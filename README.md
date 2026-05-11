@@ -4,10 +4,19 @@
 
 ## 安装
 
+### 方式一：一句话让 Claude 装（推荐）
+
+在 Claude Code 里直接说：
+
+> 从 git@git.mypacelab.com:tools/yibasuo-skill.git clone 到 /tmp，执行 install.sh，完成后删掉临时目录
+
+### 方式二：手动安装
+
 ```bash
-git clone git@github.com:xxx/yibasuo-skill.git
-cd yibasuo-skill
+git clone git@git.mypacelab.com:tools/yibasuo-skill.git /tmp/yibasuo-skill
+cd /tmp/yibasuo-skill
 ./install.sh
+rm -rf /tmp/yibasuo-skill
 
 # 如需强制覆盖已有配置
 ./install.sh --force

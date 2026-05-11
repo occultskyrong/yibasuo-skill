@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1] - 2026-05-11
+
+### Changed
+
+- README 增加"一句话让 Claude 装"安装方式
+- 修正远端地址为 git.mypacelab.com
+
 ## [1.0.0] - 2026-05-11
 
 ### Added

@@ -1,6 +1,6 @@
 ---
 name: yibasuo
-version: "1.0.0"
+version: "1.0.1"
 description: "一把梭 — 全流程自动化开发管线。输入需求，自动走完 规划→架构→TDD→实现→审查→提交。触发词：一把梭、全流程、端到端开发、一键开发、梭哈、all-in-one 开发。适用于功能开发、Bug 修复、重构等任何需要完整开发流程的任务。"
 requires:
   agents:
