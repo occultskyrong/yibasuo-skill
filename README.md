@@ -24,6 +24,29 @@ rm -rf /tmp/yibasuo-skill
 
 重启 Claude Code 后，说 **"一把梭"** 即可触发。
 
+## 更新
+
+### 方式一：一句话让 Claude 更新（推荐）
+
+在 Claude Code 里直接说：
+
+> 从 git@git.mypacelab.com:tools/yibasuo-skill.git clone 到 /tmp，执行 install.sh --force 覆盖更新，完成后删掉临时目录
+
+### 方式二：手动更新
+
+```bash
+git clone git@git.mypacelab.com:tools/yibasuo-skill.git /tmp/yibasuo-skill
+cd /tmp/yibasuo-skill
+./install.sh --force
+rm -rf /tmp/yibasuo-skill
+```
+
+### 检查当前版本
+
+```bash
+cat ~/.claude/skills/yibasuo/.installed-version
+```
+
 ## 依赖
 
 ### 内置 Agent（Claude Code 自带，无需安装）
@@ -47,14 +70,26 @@ rm -rf /tmp/yibasuo-skill
 
 ## 工作流
 
+### 两种运行模式
+
+| 模式 | 触发词 | 行为 | 适用场景 |
+| --- | --- | --- | --- |
+| 交互模式 | `一把梭` `全流程` `梭哈` | 每阶段暂停等确认 | 复杂需求、新项目 |
+| 自动模式 | `自动梭` `全自动` `一路梭到底` | 阶段 0-4 连续走，提交前确认 | 熟悉项目、简单需求 |
+
+中途随时可切换：说"自动走完剩下的"或"停一下"。
+
+### 6 阶段管线
+
 ```
 需求确认 → 规划 → 架构 → TDD 实现 → 审查 → 提交
-   ▲         ▲       ▲        ▲          ▲       ▲
-   │         │       │        │          │       │
- 用户确认  用户确认 用户确认  用户确认   用户确认  git commit
+   ▲                              ▲          ▲
+   │                              │          │
+ 两种模式                       自动      两种模式
+ 都需确认                       跳过      都需确认
 ```
 
-每个阶段结束必须暂停，用户确认后才进入下一阶段。
+CRITICAL 和 HIGH 级别审查问题两种模式都强制拦截。
 
 ## 适用判断
 
