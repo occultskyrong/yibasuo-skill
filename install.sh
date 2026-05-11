@@ -46,7 +46,7 @@ install_rules() {
   fi
 }
 
-for lang in common java typescript; do
+for lang in common java typescript web; do
   install_rules "$lang"
 done
 
@@ -68,7 +68,7 @@ fi
 if [[ "${1:-}" == "--force" ]]; then
   echo ""
   echo "[force] Overwriting all existing files..."
-  for lang in common java typescript; do
+  for lang in common java typescript web; do
     mkdir -p "$BASE/rules/$lang"
     cp -r "$SCRIPT_DIR/rules/$lang"/* "$BASE/rules/$lang/"
     echo "  [+] rules/$lang (force overwritten)"

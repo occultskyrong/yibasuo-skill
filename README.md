@@ -43,6 +43,7 @@ rm -rf /tmp/yibasuo-skill
 | `rules/common/` | 通用编码规范（必装） |
 | `rules/java/` | Java / Spring Boot 项目 |
 | `rules/typescript/` | Node.js / NestJS 项目 |
+| `rules/web/` | 前端静态网站项目 |
 
 ## 工作流
 
@@ -87,13 +88,15 @@ yibasuo-skill/
 │   │   ├── security.md
 │   │   ├── hooks.md
 │   │   └── logging.md
-│   └── typescript/     # TypeScript/Node.js 规范
-│       ├── coding-style.md
-│       ├── testing.md
-│       ├── patterns.md
-│       ├── security.md
-│       ├── hooks.md
-│       └── logging.md
+│   ├── typescript/     # TypeScript/Node.js 规范
+│   │   ├── coding-style.md
+│   │   ├── testing.md
+│   │   ├── patterns.md
+│   │   ├── security.md
+│   │   ├── hooks.md
+│   │   └── logging.md
+│   └── web/             # 前端静态网站规范
+│       └── static-website-checklist.md
 ├── skills/
 │   └── yibasuo/
 │       └── SKILL.md
