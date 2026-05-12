@@ -75,46 +75,63 @@ requires:
 
 ### 1. 规划
 
-1. `Agent({ subagent_type: "planner" })`，prompt 含需求卡片 + 项目上下文 + 语言规范
-2. 展示：任务分解、依赖关系、风险点
-3. 默认（自动）直接继续。如触发交互模式，问"计划 OK？"等确认。
+1. **先读项目代码**：用 `Read` / `Bash` 确认项目结构、现有模块、技术栈版本，再规划。
+2. `Agent({ subagent_type: "planner" })`，prompt 必须包含：
+   - 需求卡片
+   - 项目结构摘要（读了什么、关键文件路径）
+   - 技术栈 + 对应语言规范
+   - **要求输出**：任务分解（Task List）、依赖关系图、风险点列表
+3. Agent 调用失败 → **展示错误，暂停等用户决定**（两种模式都停）。
+4. 展示结果后：默认（自动）直接继续。如触发交互模式，问"计划 OK？"等确认。
 
 ### 2. 架构
 
-1. `Agent({ subagent_type: "architect" })`，prompt 含需求 + 计划 + 语言规范，要求 ADR 格式
-2. 展示：架构决策、接口契约、数据变更
-3. 默认（自动）直接继续。如触发交互模式，问"方案 OK？"等确认。
+1. `Agent({ subagent_type: "architect" })`，prompt 必须包含：
+   - 需求卡片 + 阶段1 计划
+   - 技术栈 + 语言规范
+   - **要求产出**：ADR（架构决策记录）含上下文/决策/后果/替代方案，接口契约（API 变更清单），数据变更（DDL/migration 路径）
+2. Agent 调用失败 → **展示错误，暂停等用户决定**（两种模式都停）。
+3. 展示结果后：默认（自动）直接继续。如触发交互模式，问"方案 OK？"等确认。
 
 ### 3. TDD
 
-1. `Agent({ subagent_type: "tdd-guide" })`，prompt 含需求 + 计划 + 架构方案
+1. `Agent({ subagent_type: "tdd-guide" })`，prompt 必须包含：
+   - 需求 + 阶段1计划 + 阶段2架构方案
+   - 语言规范（测试框架、assertion 库、mock 工具）
+   - **要求产出**：测试文件路径 + 覆盖率报告
 2. 走 RED → GREEN → IMPROVE，覆盖率 ≥ 80%
-3. 展示结果和测试报告
-4. 默认（自动）直接继续。如触发交互模式，暂停等确认。
+3. Agent 调用失败 → **展示错误，暂停等用户决定**（两种模式都停）。
+4. 展示结果和测试报告。默认（自动）直接继续。如触发交互模式，暂停等确认。
 
 ### 4. 审查
 
 1. 按技术栈选择 reviewer，**并行**启动两个 agent：
-   - Java → `java-reviewer`，Node.js → `typescript-reviewer`，前端 → `typescript-reviewer`
+   - Java → `java-reviewer`，Node.js/前端 → `typescript-reviewer`
    - 安全（所有项目）→ `security-reviewer`
-2. 汇总，按级处理：
+2. **任一 agent 失败** → 展示错误，让用户决定是否继续（两种模式都停）。
+3. 汇总，按级处理：
    - CRITICAL / HIGH → **必须修复**（两种模式都拦截），修复后重审
    - MEDIUM / LOW → 展示建议，不强制
-3. 默认（自动）无 CRITICAL/HIGH 则继续。如触发交互模式，暂停等确认。
+4. 默认（自动）无 CRITICAL/HIGH 则继续。如触发交互模式，暂停等确认。
 
 ### 5. 提交
 
 遵循 `rules/common/git-workflow.md` 规范：
 
-1. `git diff --stat` 确认变更
+1. **环境检查**：
+   - 非 git 仓库 → 警告"当前目录不是 git 仓库"，暂停
+   - `git diff --stat` 确认变更范围
 2. **格式化**（根据技术栈）：
-   - 前端 / Node.js → `pnpm prettier --write "src/**/*.{vue,tsx,jsx,ts,js,css,scss}"`
-   - Java → `mvn pmd:check`（p3c 阿里巴巴 Java 开发手册），修复用 IDE 插件
+   - 前端 / Node.js → 检测 `prettier` 是否可用（`npx prettier --version`），不可用则跳过并提示
+   - 可用则执行 `pnpm prettier --write "src/**/*.{vue,tsx,jsx,ts,js,css,scss}"`
+   - Java → 检测 `mvn` 是否可用（`mvn --version`），不可用则跳过并提示
+   - 可用则执行 `mvn pmd:check`（p3c 阿里巴巴 Java 开发手册）
+   - **格式化失败**（语法错误/冲突）→ 展示错误输出，暂停等用户处理
    - 优先检测项目已有 formatter 并复用
 3. **构建验证**（前端 / Node.js 项目）：
    - 检测 `package.json` 的 `scripts.build`
-   - 存在 → 执行 `pnpm build`（或 `npm run build`）
-   - **不存在 → 明确警告**：「项目未配置 build 命令。请在 package.json 中配置 `"build": "..."`，或手动构建确认通过。在 build 命令可用前，不应提交。」**暂停等用户处理**。
+   - 存在 → 执行 `pnpm build`（或 `npm run build`），构建失败 → **暂停等用户处理**
+   - **不存在 → 明确警告**：「项目未配置 build 命令。请在 package.json 中配置 `"build": "..."`，或手动构建确认通过。在 build 命令可用前，不应提交。」**暂停等用户处理**
 4. 按 `conventional commits` 生成 message（格式：`<type>: <description>`）
 5. **展示确认**（两种模式都必确认）
 6. `git add` + `git commit`
@@ -134,6 +151,19 @@ requires:
 | 新功能 / 重构 | 完整 6 阶段 |
 | Bug 修复 | 跳过 1-2，直接 TDD + 审查 + 提交 |
 | 单文件小改 | 不建议用，直接改 + 审查 |
+
+## 完整示例
+
+用户说：`自动梭 修复 mch-prc 项目登录超时没提示的问题`
+
+| 阶段 | 行为 |
+|------|------|
+| 0 | 澄清：超时是多少秒？期望提示文案？确认是 NestJS 项目 → 注入 typescript rules |
+| 1 | （Bug 修复跳过） |
+| 2 | （Bug 修复跳过） |
+| 3 | 调用 tdd-guide，prompt："修复登录超时无提示，预期60s超时弹Toast，项目 NestJS + Vitest + supertest" |
+| 4 | 并行调 typescript-reviewer + security-reviewer |
+| 5 | prettier → build → commit message: `fix: 登录超时增加用户提示` → 确认 → commit |
 
 ## 反模式
 
