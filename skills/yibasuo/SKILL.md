@@ -20,6 +20,18 @@ requires:
 
 中途说"停一下"回交互，说"自动走完剩下的"切自动。
 
+## 语言适配
+
+阶段 0 确认技术栈后，在调用 agent 的 prompt 中注入对应 rules：
+
+| 技术栈 | 注入内容 |
+|--------|---------|
+| Java / Spring Boot | JUnit 5 + AssertJ + Mockito + Testcontainers，构造器注入，Logback 日志规范 |
+| Node.js / NestJS | Vitest/Jest + supertest，NestJS 分层架构，pino 日志，`__` 私有方法前缀 |
+| Web 前端 | 静态网站检查清单（安全/CDN/备案/SEO） |
+
+阶段 3-4 的 agent 直接操作代码文件，rules 通过 `paths:` 匹配自动加载，无需手动注入。
+
 ## 阶段
 
 ### 0. 需求确认
