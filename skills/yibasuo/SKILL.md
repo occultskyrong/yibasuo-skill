@@ -94,7 +94,9 @@ requires:
 
 ### 4. 审查
 
-1. **并行**启动 `code-reviewer` + `security-reviewer`
+1. 按技术栈选择 reviewer，**并行**启动两个 agent：
+   - Java → `java-reviewer`，Node.js → `typescript-reviewer`
+   - 安全（所有项目）→ `security-reviewer`
 2. 汇总，按级处理：
    - CRITICAL / HIGH → **必须修复**（两种模式都拦截），修复后重审
    - MEDIUM / LOW → 展示建议，不强制
