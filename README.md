@@ -1,4 +1,4 @@
-# 一把梭 (yibasuo) — Claude Code 全流程开发 Skill v1.7.4
+# 一把梭 (yibasuo) — Claude Code 全流程开发 Skill v1.8.0
 
 > 需求 → 规划 → 架构 → 测试驱动开发 → 审查 → 提交
 
@@ -30,20 +30,20 @@ curl -fsSL https://raw.githubusercontent.com/YOUR_USER/yibasuo-skill/main/instal
 
 中途切换：说"停一下"或"继续梭"。
 
-## 6 阶段
+## 6 阶段管线
 
 ```
-0.需求确认 → 1.规划 → 2.架构 → 3.测试驱动开发 → 4.审查 → 5.提交(格式→构建→commit)
+0.需求确认 → 1.规划 → 2.架构 → 3.测试驱动开发 → 4.审查 → 5.提交(验证→格式→构建→commit)
 ```
 
-| 阶段 | 做什么 |
-|------|--------|
-| 需求确认 | 澄清模糊点，输出需求卡片（标题/类型/范围/验收标准/约束） |
-| 规划 | planner agent：任务分解、依赖关系、风险点 |
-| 架构 | architect agent：ADR、接口契约、DDL |
-| 测试驱动开发 | tdd-guide agent：RED→GREEN→IMPROVE，覆盖率≥80% |
-| 审查 | code-reviewer + security-reviewer 并行，CRITICAL/HIGH 强制修复 |
-| 提交 | 格式化→构建验证→conventional commit→确认 |
+| 阶段 | 做什么 | 注入能力 |
+|------|--------|---------|
+| 需求确认 | 一次一问澄清、子项目拆解、2-3方案对比、输出需求卡片 | brainstorming |
+| 规划 | 先读代码再规划，任务分解+依赖+风险 | writing-plans |
+| 架构 | ADR含决策/后果/替代方案，接口契约，DDL | architect agent |
+| 测试驱动开发 | 铁律：先行代码删除，RED→GREEN→IMPROVE，覆盖率≥80% | TDD iron law |
+| 审查 | code-reviewer + security-reviewer 并行，修复前先写复现测试 | systematic-debugging |
+| 提交 | 5项验证清单→格式化→构建→conventional commit→PR/合并确认 | verification + finishing |
 
 ## 语言适配
 
@@ -57,8 +57,18 @@ curl -fsSL https://raw.githubusercontent.com/YOUR_USER/yibasuo-skill/main/instal
 
 | 层面 | 来源 | 核心 |
 |------|------|------|
-| 编排层 | Andrew Ng Agentic AI | 六阶段管线：规划→反思→工具→协作 |
+| 编排层 | Andrew Ng Agentic AI | 6阶段管线：规划→反思→工具→协作 |
 | 执行层 | Karpathy 4 原则 | 不假设、简洁、手术刀、循环验证 |
+| 约束层 | superpowers | 需求澄清、TDD铁律、系统调试、完成前验证 |
+
+## Token 消耗
+
+| 场景 | 直接调用 LLM | 一把梭 | 倍数 |
+|------|------------|--------|------|
+| 新功能（中等复杂度） | ~25K | ~93K | 3.7x |
+| Bug 修复 | ~12K | ~40K | 3x |
+
+多的 60-70K tokens 买的是架构评审 + 强制TDD + 代码审查 + 安全审查 + 提交前验证。
 
 ## 任务适配
 
