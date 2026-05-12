@@ -1,10 +1,10 @@
 ---
 name: yibasuo
-version: "1.5.0"
+version: "1.6.0"
 description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段0-4连续执行，仅提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer]
-  rules: [common, "java (Java 项目)", "typescript (Node.js 项目)", "web (前端静态网站项目)"]
+  rules: [common, "java (Java 项目)", "typescript (Node.js 项目)", "web (Vue/React 前端项目)"]
 ---
 
 # 一把梭
@@ -37,7 +37,7 @@ requires:
 |--------|---------|
 | Java / Spring Boot | JUnit5 + AssertJ + Mockito + Testcontainers，构造器注入，阿里巴巴 Java 开发手册 (p3c)，Logback，sealed types |
 | Node.js / NestJS | Vitest/Jest + supertest，NestJS 分层，pino 日志，`__` 私有前缀，Zod 校验 |
-| Web 前端 | 静态网站检查清单（安全/CDN/备案/SEO） |
+| Vue / React 前端 | Vue3 Composition API / React Hooks，Pinia/Zustand，Vite 构建，Playwright E2E，Prettier + ESLint |
 
 阶段 3-4 的 agent 直接操作文件，rules 按 `paths:` 自动加载，不需手动注入。
 
@@ -95,7 +95,7 @@ requires:
 ### 4. 审查
 
 1. 按技术栈选择 reviewer，**并行**启动两个 agent：
-   - Java → `java-reviewer`，Node.js → `typescript-reviewer`
+   - Java → `java-reviewer`，Node.js → `typescript-reviewer`，前端 → `typescript-reviewer`
    - 安全（所有项目）→ `security-reviewer`
 2. 汇总，按级处理：
    - CRITICAL / HIGH → **必须修复**（两种模式都拦截），修复后重审
@@ -108,13 +108,17 @@ requires:
 
 1. `git diff --stat` 确认变更
 2. **格式化**（根据技术栈）：
-   - Node.js → `pnpm prettier --write`
-   - Java → `mvn pmd:check`（p3c 阿里巴巴 Java 开发手册），如需自动修复则 IDE 插件处理
-   - 优先检测项目已有 formatter，存在则复用
-3. 按 `conventional commits` 生成 message（格式：`<type>: <description>`）
-4. **展示确认**（两种模式都必确认）
-5. `git add` + `git commit`
-6. 询问是否 push
+   - 前端 / Node.js → `pnpm prettier --write "src/**/*.{vue,tsx,jsx,ts,js,css,scss}"`
+   - Java → `mvn pmd:check`（p3c 阿里巴巴 Java 开发手册），修复用 IDE 插件
+   - 优先检测项目已有 formatter 并复用
+3. **构建验证**（前端 / Node.js 项目）：
+   - 检测 `package.json` 的 `scripts.build`
+   - 存在 → 执行 `pnpm build`（或 `npm run build`）
+   - **不存在 → 明确警告**：「项目未配置 build 命令。请在 package.json 中配置 `"build": "..."`，或手动构建确认通过。在 build 命令可用前，不应提交。」**暂停等用户处理**。
+4. 按 `conventional commits` 生成 message（格式：`<type>: <description>`）
+5. **展示确认**（两种模式都必确认）
+6. `git add` + `git commit`
+7. 询问是否 push
 
 ## 中断与恢复
 
