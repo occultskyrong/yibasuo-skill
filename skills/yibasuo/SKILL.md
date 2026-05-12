@@ -1,6 +1,6 @@
 ---
 name: yibasuo
-version: "1.8.1"
+version: "1.8.2"
 description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段0-4连续执行，仅提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer]
@@ -146,7 +146,7 @@ requires:
      a. 检测 `prettier`（`npx prettier --version`），可用则 `pnpm prettier --write "src/**/*.{vue,tsx,jsx,ts,js,css,scss}"`
      b. 检测 `eslint`（`npx eslint --version`），可用则 `pnpm eslint --fix "src/**/*.{ts,tsx,js,jsx}"`
      c. 任一不可用 → 跳过并提示
-   - Java → 检测 `mvn --version`，可用则 `mvn pmd:check`（p3c 阿里巴巴 Java 开发手册）
+   - Java → 检测 `mvn --version`，可用则 `mvn pmd:check`（p3c 阿里巴巴 Java 开发手册）。修复建议：`mvn com.alibaba.p3c:p3c-pmd:pmd` 或 IDE 插件（Alibaba Java Coding Guidelines）一键修复
    - **格式检查失败**（语法错误/冲突）→ 展示错误输出，暂停等用户处理
    - 优先检测项目已有 formatter/linter 配置并复用
 3. **构建验证**（前端 / Node.js 项目）：

@@ -17,6 +17,40 @@ if [[ "${1:-}" == "--version" ]] || [[ "${1:-}" == "-v" ]]; then
   exit 0
 fi
 
+# --- --verify ---
+if [[ "${1:-}" == "--verify" ]]; then
+  ERRORS=0
+  SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+  VER="$(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo "MISSING")"
+  echo "=== yibasuo-skill v$VER 一致性检查 ==="
+
+  check() {
+    local label="$1" file="$2" pattern="$3"
+    local actual
+    actual="$(grep "$pattern" "$file" 2>/dev/null | head -1 || echo '')"
+    if echo "$actual" | grep -q "$VER"; then
+      echo "  [OK] $label: $VER"
+    else
+      echo "  [FAIL] $label: 期望 $VER, 实际 $(echo $actual | head -c 80)"
+      ((ERRORS++))
+    fi
+  }
+
+  check "VERSION      " "$SCRIPT_DIR/VERSION" "$VER"
+  check "SKILL.md     " "$SCRIPT_DIR/skills/$SKILL_NAME/SKILL.md" "version:"
+  check "README       " "$SCRIPT_DIR/README.md" "v[0-9]"
+  check "git tag      " <(cd "$SCRIPT_DIR" && git tag --points-at HEAD 2>/dev/null || echo "NO_TAG") "v[0-9]"
+
+  echo ""
+  if [[ $ERRORS -eq 0 ]]; then
+    echo "全部通过 ✓"
+    exit 0
+  else
+    echo "$ERRORS 处不一致，请修复后重新发布 ✗"
+    exit 1
+  fi
+fi
+
 # --- Detect standalone mode (piped via curl, no repo alongside) ---
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
@@ -119,6 +153,7 @@ echo "命令:"
 echo "  ./install.sh           首次安装"
 echo "  ./install.sh --force   强制覆盖"
 echo "  ./install.sh --version 查看版本"
+echo "  ./install.sh --verify  版本一致性检查"
 echo ""
 echo "依赖的 agent（Claude Code 内置，无需安装）："
 echo "  - planner      (阶段1: 规划)"
