@@ -1,6 +1,6 @@
 ---
 name: yibasuo
-version: "1.8.0"
+version: "1.8.1"
 description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段0-4连续执行，仅提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer]
@@ -141,13 +141,14 @@ requires:
 1. **环境检查**：
    - 非 git 仓库 → 警告"当前目录不是 git 仓库"，暂停
    - `git diff --stat` 确认变更范围
-2. **格式化**（根据技术栈）：
-   - 前端 / Node.js → 检测 `prettier` 是否可用（`npx prettier --version`），不可用则跳过并提示
-   - 可用则执行 `pnpm prettier --write "src/**/*.{vue,tsx,jsx,ts,js,css,scss}"`
-   - Java → 检测 `mvn` 是否可用（`mvn --version`），不可用则跳过并提示
-   - 可用则执行 `mvn pmd:check`（p3c 阿里巴巴 Java 开发手册）
-   - **格式化失败**（语法错误/冲突）→ 展示错误输出，暂停等用户处理
-   - 优先检测项目已有 formatter 并复用
+2. **格式检查**（根据技术栈）：
+   - 前端 / Node.js：
+     a. 检测 `prettier`（`npx prettier --version`），可用则 `pnpm prettier --write "src/**/*.{vue,tsx,jsx,ts,js,css,scss}"`
+     b. 检测 `eslint`（`npx eslint --version`），可用则 `pnpm eslint --fix "src/**/*.{ts,tsx,js,jsx}"`
+     c. 任一不可用 → 跳过并提示
+   - Java → 检测 `mvn --version`，可用则 `mvn pmd:check`（p3c 阿里巴巴 Java 开发手册）
+   - **格式检查失败**（语法错误/冲突）→ 展示错误输出，暂停等用户处理
+   - 优先检测项目已有 formatter/linter 配置并复用
 3. **构建验证**（前端 / Node.js 项目）：
    - 检测 `package.json` 的 `scripts.build`
    - 存在 → 执行 `pnpm build`（或 `npm run build`），构建失败 → **暂停等用户处理**
@@ -155,7 +156,7 @@ requires:
 4. **完成前验证** (superpowers/verification-before-completion)：
    - [x] 全部测试通过，覆盖率 ≥ 80%
    - [x] 无 CRITICAL/HIGH 审查问题
-   - [x] 格式化已执行
+   - [x] 格式检查已执行（prettier + eslint / p3c）
    - [x] 构建通过（或已处理缺失警告）
    - [x] 无 console.log / 调试残留
 5. 按 `conventional commits` 生成 message（格式：`<type>: <description>`）
@@ -189,7 +190,7 @@ requires:
 | 2 | （Bug 修复跳过） |
 | 3 | 调用 tdd-guide，prompt："修复登录超时无提示，预期60s超时弹Toast，项目 NestJS + Vitest + supertest" |
 | 4 | 并行调 typescript-reviewer + security-reviewer |
-| 5 | prettier → build → commit message: `fix: 登录超时增加用户提示` → 确认 → commit |
+| 5 | prettier + eslint → build → commit message: `fix: 登录超时增加用户提示` → 确认 → commit |
 
 ## 反模式
 
