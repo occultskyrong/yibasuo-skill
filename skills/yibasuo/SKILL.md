@@ -65,10 +65,13 @@ requires:
 
 ### 0. 需求确认
 
-1. 理解输入，识别模糊点
-2. 提出澄清问题（功能边界、交互细节、异常情况）
+> Inspired by superpowers/brainstorming
+
+1. 理解输入，识别模糊点。若涉及多个独立子系统，**先拆解为子项目**，逐个处理
+2. 提出澄清问题（功能边界、交互细节、异常情况），**一次只问一个问题**
 3. 确认技术栈和影响范围
-4. 输出需求卡片：
+4. **提出 2-3 种实现方案**，含 trade-off 和推荐理由
+5. 输出需求卡片：
 
 ```markdown
 标题: <一句话>
@@ -80,7 +83,7 @@ requires:
 约束: <性能/兼容/安全>
 ```
 
-5. **暂停，等用户确认。** 两种模式都需确认。
+6. **暂停，等用户确认。** 两种模式都需确认。
 
 ### 1. 规划
 
@@ -104,6 +107,10 @@ requires:
 
 ### 3. 测试驱动开发
 
+> Inspired by superpowers/test-driven-development
+
+**铁律**：没有失败测试 → 没有生产代码。测试之前写的任何生产代码 = 删除，从测试重新开始。没有"保留参考"。
+
 1. `Agent({ subagent_type: "tdd-guide" })`，prompt 必须包含：
    - 需求 + 阶段1计划 + 阶段2架构方案
    - **按技术栈指定测试工具链和命令**：
@@ -123,7 +130,7 @@ requires:
    - 安全（所有项目）→ `security-reviewer`
 2. **任一 agent 失败** → 展示错误，让用户决定是否继续（两种模式都停）。
 3. 汇总，按级处理：
-   - CRITICAL / HIGH → **必须修复**（两种模式都拦截），修复后重审
+   - CRITICAL / HIGH → **必须修复**（两种模式都拦截）。修复前先写复现测试，确认测试因该 bug 而失败，再修代码让测试通过。修复后重审
    - MEDIUM / LOW → 展示建议，不强制
 4. 默认（自动）无 CRITICAL/HIGH 则继续。如触发交互模式，暂停等确认。
 
@@ -145,10 +152,16 @@ requires:
    - 检测 `package.json` 的 `scripts.build`
    - 存在 → 执行 `pnpm build`（或 `npm run build`），构建失败 → **暂停等用户处理**
    - **不存在 → 明确警告**：「项目未配置 build 命令。请在 package.json 中配置 `"build": "..."`，或手动构建确认通过。在 build 命令可用前，不应提交。」**暂停等用户处理**
-4. 按 `conventional commits` 生成 message（格式：`<type>: <description>`）
-5. **展示确认**（两种模式都必确认）
-6. `git add` + `git commit`
-7. 询问是否 push
+4. **完成前验证** (superpowers/verification-before-completion)：
+   - [x] 全部测试通过，覆盖率 ≥ 80%
+   - [x] 无 CRITICAL/HIGH 审查问题
+   - [x] 格式化已执行
+   - [x] 构建通过（或已处理缺失警告）
+   - [x] 无 console.log / 调试残留
+5. 按 `conventional commits` 生成 message（格式：`<type>: <description>`）
+6. **展示确认**（两种模式都必确认）
+7. `git add` + `git commit`
+8. 询问是否 push。若需要 PR，引导创建；若分支已完成，询问合并策略
 
 ## 中断与恢复
 
