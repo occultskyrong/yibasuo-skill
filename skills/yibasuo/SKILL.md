@@ -97,7 +97,11 @@ requires:
 
 1. `Agent({ subagent_type: "tdd-guide" })`，prompt 必须包含：
    - 需求 + 阶段1计划 + 阶段2架构方案
-   - 语言规范（测试框架、assertion 库、mock 工具）
+   - **按技术栈指定测试工具链和命令**：
+     - Java → `mvn test`，框架 JUnit5 + AssertJ + Mockito，集成测试用 Testcontainers，覆盖用 JaCoCo
+     - Node.js → `pnpm test`，框架 Vitest + supertest，E2E 用 Playwright，覆盖用 v8
+     - 前端 → `pnpm test`，框架 Vitest + Vue Test Utils / React Testing Library，E2E 用 Playwright
+   - **强制要求 agent 先 Read 项目的 `rules/<lang>/testing.md` 再动手**
    - **要求产出**：测试文件路径 + 覆盖率报告
 2. 走 RED → GREEN → IMPROVE，覆盖率 ≥ 80%
 3. Agent 调用失败 → **展示错误，暂停等用户决定**（两种模式都停）。
