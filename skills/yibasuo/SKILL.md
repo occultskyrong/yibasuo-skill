@@ -105,10 +105,11 @@ requires:
 遵循 `rules/common/git-workflow.md` 规范：
 
 1. `git diff --stat` 确认变更
-2. 按 `conventional commits` 生成 message（格式：`<type>: <description>`）
-3. **展示确认**（两种模式都必确认）
-4. `git add` + `git commit`
-5. 询问是否 push
+2. **格式化**（根据技术栈）：Node.js → `pnpm prettier --write`，Java → `mvn spotless:apply`（如有配置），优先检测项目已有 formatter
+3. 按 `conventional commits` 生成 message（格式：`<type>: <description>`）
+4. **展示确认**（两种模式都必确认）
+5. `git add` + `git commit`
+6. 询问是否 push
 
 ## 中断与恢复
 
