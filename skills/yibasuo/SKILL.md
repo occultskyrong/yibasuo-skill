@@ -35,7 +35,7 @@ requires:
 
 | 技术栈 | 注入要点 |
 |--------|---------|
-| Java / Spring Boot | JUnit5 + AssertJ + Mockito + Testcontainers，构造器注入，Logback，sealed types |
+| Java / Spring Boot | JUnit5 + AssertJ + Mockito + Testcontainers，构造器注入，阿里巴巴 Java 开发手册 (p3c)，Logback，sealed types |
 | Node.js / NestJS | Vitest/Jest + supertest，NestJS 分层，pino 日志，`__` 私有前缀，Zod 校验 |
 | Web 前端 | 静态网站检查清单（安全/CDN/备案/SEO） |
 
@@ -107,7 +107,10 @@ requires:
 遵循 `rules/common/git-workflow.md` 规范：
 
 1. `git diff --stat` 确认变更
-2. **格式化**（根据技术栈）：Node.js → `pnpm prettier --write`，Java → `mvn spotless:apply`（如有配置），优先检测项目已有 formatter
+2. **格式化**（根据技术栈）：
+   - Node.js → `pnpm prettier --write`
+   - Java → `mvn pmd:check`（p3c 阿里巴巴 Java 开发手册），如需自动修复则 IDE 插件处理
+   - 优先检测项目已有 formatter，存在则复用
 3. 按 `conventional commits` 生成 message（格式：`<type>: <description>`）
 4. **展示确认**（两种模式都必确认）
 5. `git add` + `git commit`

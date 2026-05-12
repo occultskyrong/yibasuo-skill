@@ -8,7 +8,8 @@ paths:
 
 ## Formatting
 
-- **google-java-format** or **Checkstyle** (Google or Sun style) for enforcement
+- **阿里巴巴 Java 开发手册 (p3c)** for enforcement — use `p3c-pmd` or Alibaba Checkstyle config
+- `mvn pmd:check` or `mvn checkstyle:check` with Alibaba rules
 - One public top-level type per file
 - Consistent indent: 2 or 4 spaces (match project standard)
 - Member order: constants, fields, constructors, public methods, protected, private
