@@ -1,6 +1,6 @@
 ---
 name: yibasuo
-version: "1.3.0"
+version: "1.3.1"
 description: "一把梭 — 全流程开发管线。交互模式触发词：一把梭、全流程、梭哈。自动模式触发词：自动梭、全自动、一路梭到底、不问我。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer]
@@ -16,30 +16,56 @@ requires:
 | 模式 | 触发词 | 阶段 0-4 | 阶段 5 提交 |
 |------|--------|---------|------------|
 | 交互 | `一把梭` `全流程` `梭哈` | 每阶段暂停等确认 | 确认 |
-| 自动 | `自动梭` `全自动` `一路梭到底` `不问我` | 连续执行不暂停 | 确认（安全闸） |
+| 自动 | `自动梭` `全自动` `一路梭到底` `不问我` | 连续不暂停 | 确认 |
 
-中途切换：说"自动走完剩下的"或"停一下"。
+中途说"停一下"回交互，说"自动走完剩下的"切自动。
 
 ## 阶段
 
 ### 0. 需求确认
-澄清模糊点 → 确认技术栈和范围 → 输出需求卡片（标题/类型/范围/验收标准/约束）。
-**两种模式都暂停确认。**
+分析需求 → 提澄清问题 → 确认技术栈和影响范围 → 输出卡片：
+
+```
+标题: <一句话>
+类型: feat / fix / refactor
+范围: <受影响模块>
+验收标准:
+  1. <可验证条件>
+  2. ...
+约束: <性能/兼容/安全>
+```
+
+**两种模式都暂停确认。** 用户说"继续"才进入阶段 1。
 
 ### 1. 规划
-`Agent({ subagent_type: "planner", prompt: "需求 + 项目上下文" })`。展示结果后：交互模式确认，自动模式直接继续。
+调用 `Agent({ subagent_type: "planner" })`，传入需求卡片和项目上下文。展示规划结果（任务分解、依赖、风险）。
+- **交互**：询问"计划是否 OK？"，暂停等确认
+- **自动**：直接继续
 
 ### 2. 架构
-`Agent({ subagent_type: "architect", prompt: "需求 + 计划，产出 ADR 格式" })`。展示结果后：交互模式确认，自动模式直接继续。
+调用 `Agent({ subagent_type: "architect" })`，传入需求 + 计划，要求产出 ADR 格式。展示架构决策、接口契约、数据变更。
+- **交互**：询问"方案是否 OK？"，暂停等确认
+- **自动**：直接继续
 
 ### 3. TDD
-`Agent({ subagent_type: "tdd-guide", prompt: "需求 + 计划 + 架构方案" })`。确认覆盖率 ≥ 80%。交互模式确认，自动模式直接继续。
+调用 `Agent({ subagent_type: "tdd-guide" })`，传入需求 + 计划 + 架构方案。走 RED→GREEN→IMPROVE。确认测试通过且覆盖率 ≥ 80%。展示结果。
+- **交互**：暂停等确认
+- **自动**：直接继续
 
 ### 4. 审查
-并行启动 `code-reviewer` + `security-reviewer`。CRITICAL/HIGH 问题必须修复（两种模式都拦截）。交互模式确认，自动模式无问题则继续。
+**并行启动** `code-reviewer` + `security-reviewer`。汇总问题，分级处理：
+- CRITICAL / HIGH → **必须修复**（两种模式都拦截），修复后重新审查
+- MEDIUM → 展示建议，不强制
+- 展示审查结论
+- **交互**：暂停等确认
+- **自动**：无 CRITICAL/HIGH 则继续
 
 ### 5. 提交
-`git diff --stat` → 生成 conventional commit message → **展示确认（两种模式必确认）** → git commit → 询问是否 push。
+1. `git diff --stat` 确认变更范围
+2. 按 conventional commits 生成 commit message
+3. **展示确认（两种模式都必确认）**
+4. `git add` + `git commit`
+5. 询问是否 push
 
 ## 任务适配
 
