@@ -4,9 +4,8 @@
 
 ## 仓库
 
-- 路径: `~/code/witkey/yibasuo-skill`
-- 远端: `git@git.mypacelab.com:tools/yibasuo-skill.git`
-- 默认分支: `master`
+- 远端: `https://github.com/YOUR_USER/yibasuo-skill.git`
+- 默认分支: `main`（或 `master`）
 
 ## 版本管理
 
