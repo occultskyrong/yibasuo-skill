@@ -9,18 +9,23 @@
 
 ## 版本管理
 
-```
-VERSION       # 纯文本 semver，install.sh 读取
-CHANGELOG.md  # 按版本记录变更
-skills/yibasuo/SKILL.md  # version 字段与 VERSION 同步
-```
+**版本一致性铁律**：以下 4 处版本号必须相同，与 git tag 一致。任何一处不同即为 bug。
+
+| 检查点 | 文件 | 字段 |
+|--------|------|------|
+| 1 | `VERSION` | 纯文本 |
+| 2 | `skills/yibasuo/SKILL.md` | `version: "X.Y.Z"` |
+| 3 | `README.md` | 标题中的 `vX.Y.Z` |
+| 4 | `git tag` | `vX.Y.Z` |
 
 发布流程：
-1. 改代码 + 更新 `VERSION` + 更新 `SKILL.md` version 字段
-2. 追加 `CHANGELOG.md`
-3. `git add -A && git commit -m "<type>: <desc>"`
-4. `git tag -a vX.Y.Z -m "yibasuo-skill vX.Y.Z — <summary>"`
-5. `git push origin main --tags`
+1. **先定版本号** — 根据变更类型决定 semver（feat→minor, fix→patch, break→major）
+2. **同步 3 个文件** — `VERSION` + `SKILL.md` version + `README.md` 标题
+3. 追加 `CHANGELOG.md`
+4. `git add -A && git commit -m "<type>: <desc> (vX.Y.Z)"`
+5. `git tag -a vX.Y.Z -m "yibasuo-skill vX.Y.Z — <summary>"`
+6. `git push origin main --tags`
+7. **验证** — `git tag --points-at HEAD` 确认 tag 打在最新 commit 上
 
 Commit 格式: `<type>: <description>` (feat/fix/docs/refactor/perf)
 
