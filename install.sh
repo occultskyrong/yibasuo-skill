@@ -1,7 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE="${XDG_CONFIG_HOME:-$HOME/.claude}"
+TARGET="claude"
+FORCE=""
+for arg in "$@"; do
+  case "$arg" in
+    --codex) TARGET="codex" ;;
+    --force) FORCE="--force" ;;
+  esac
+done
+
+if [[ "$TARGET" == "codex" ]]; then
+  BASE="${XDG_CONFIG_HOME:-$HOME/.agents}"
+  SKILL_SRC="codex"
+else
+  BASE="${XDG_CONFIG_HOME:-$HOME/.claude}"
+  SKILL_SRC="skills/$SKILL_NAME"
+fi
 SKILL_NAME="yibasuo"
 
 # Default repo URL (update when publishing to GitHub)
@@ -121,12 +136,12 @@ if [[ -d "$SKILL_DEST" ]]; then
   echo "  [-] skills/$SKILL_NAME already exists, skipping (use --force to overwrite)"
 else
   mkdir -p "$SKILL_DEST"
-  cp -r "$SCRIPT_DIR/skills/$SKILL_NAME"/* "$SKILL_DEST/"
-  echo "  [+] skills/$SKILL_NAME installed"
+  cp -r "$SCRIPT_DIR/$SKILL_SRC"/* "$SKILL_DEST/"
+  echo "  [+] skills/$SKILL_NAME installed ($TARGET)"
 fi
 
 # --- Force mode ---
-if [[ "${1:-}" == "--force" ]]; then
+if [[ "$FORCE" == "--force" ]]; then
   echo ""
   echo "[force] Overwriting all existing files..."
   for lang in common java typescript web; do
@@ -135,8 +150,8 @@ if [[ "${1:-}" == "--force" ]]; then
     echo "  [+] rules/$lang (force overwritten)"
   done
   mkdir -p "$SKILL_DEST"
-  cp -r "$SCRIPT_DIR/skills/$SKILL_NAME"/* "$SKILL_DEST/"
-  echo "  [+] skills/$SKILL_NAME (force overwritten)"
+  cp -r "$SCRIPT_DIR/$SKILL_SRC"/* "$SKILL_DEST/"
+  echo "  [+] skills/$SKILL_NAME (force overwritten, $TARGET)"
 fi
 
 # --- Write installed version marker ---
@@ -147,17 +162,18 @@ echo "========================================"
 echo "  安装完成 — yibasuo v$VERSION"
 echo "========================================"
 echo ""
-echo "重启 Claude Code 后，说 \"一把梭\" 即可使用。"
+if [[ "$TARGET" == "codex" ]]; then
+  echo "在 Codex 中说 \"一把梭\" 即可使用。"
+else
+  echo "重启 Claude Code 后，说 \"一把梭\" 即可使用。"
+  echo ""
+  echo "依赖的 agent（Claude Code 内置）："
+  echo "  - planner / architect / tdd-guide / code-reviewer / security-reviewer"
+fi
 echo ""
 echo "命令:"
-echo "  ./install.sh           首次安装"
-echo "  ./install.sh --force   强制覆盖"
-echo "  ./install.sh --version 查看版本"
-echo "  ./install.sh --verify  版本一致性检查"
-echo ""
-echo "依赖的 agent（Claude Code 内置，无需安装）："
-echo "  - planner      (阶段1: 规划)"
-echo "  - architect    (阶段2: 架构)"
-echo "  - tdd-guide    (阶段3: TDD)"
-echo "  - code-reviewer (阶段4: 审查)"
-echo "  - security-reviewer (阶段4: 安全)"
+echo "  ./install.sh            首次安装 (Claude Code)"
+echo "  ./install.sh --codex    安装到 Codex"
+echo "  ./install.sh --force    强制覆盖"
+echo "  ./install.sh --version  查看版本"
+echo "  ./install.sh --verify   版本一致性检查"

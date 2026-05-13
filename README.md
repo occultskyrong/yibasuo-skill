@@ -1,22 +1,34 @@
-# 一把梭 (yibasuo) — Claude Code 全流程开发 Skill v1.8.2
+# 一把梭 (yibasuo) — Claude Code / Codex 全流程开发 Skill
 
 > 需求 → 规划 → 架构 → 测试驱动开发 → 审查 → 提交
 
 ## 安装
 
-```bash
-# 一行安装
-curl -fsSL https://raw.githubusercontent.com/YOUR_USER/yibasuo-skill/main/install.sh | bash
+### Claude Code
 
-# 或让 Claude 帮你装
-# "从 https://github.com/YOUR_USER/yibasuo-skill.git clone 到 /tmp，执行 install.sh"
+```bash
+curl -fsSL https://raw.githubusercontent.com/YOUR_USER/yibasuo-skill/main/install.sh | bash
 ```
-重启 Claude Code 后说 **"一把梭"** 即可触发。
+
+### Codex
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/YOUR_USER/yibasuo-skill/main/install.sh | bash -s -- --codex
+```
+
+或让 Claude/Codex 帮你装：
+> "从 https://github.com/YOUR_USER/yibasuo-skill.git clone 到 /tmp，执行 install.sh --codex"
+
+安装后说 **"一把梭"** 即可触发。
 
 ## 更新
 
 ```bash
+# Claude Code
 curl -fsSL https://raw.githubusercontent.com/YOUR_USER/yibasuo-skill/main/install.sh | bash -s -- --force
+
+# Codex
+curl -fsSL https://raw.githubusercontent.com/YOUR_USER/yibasuo-skill/main/install.sh | bash -s -- --codex --force
 ```
 
 查看版本：`cat ~/.claude/skills/yibasuo/.installed-version`
