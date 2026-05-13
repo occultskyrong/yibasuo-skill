@@ -37,8 +37,12 @@ yibasuo-skill/
 ├── CHANGELOG.md          # 变更日志
 ├── README.md             # 安装说明
 ├── CLAUDE.md             # 本文件
-├── install.sh            # 安装脚本 (--force 覆盖, --version 查看)
+├── install.sh            # 安装脚本 (--force 覆盖, --codex Codex, --verify 校验)
 ├── .gitignore
+├── .codex-plugin/
+│   └── plugin.json       # Codex 插件清单
+├── codex/
+│   └── SKILL.md          # Codex 版技能（无 agent 依赖，纯内联指令）
 ├── rules/
 │   ├── common/   (11 files)  # 通用规范，所有项目适用
 │   ├── java/     (6 files)   # Java/Spring Boot 规范 + logging.md
@@ -46,7 +50,7 @@ yibasuo-skill/
 │   └── web/      (5 files)   # Vue/React 前端规范
 └── skills/
     └── yibasuo/
-        └── SKILL.md          # 技能定义文件
+        └── SKILL.md          # Claude Code 版技能（依赖内置 agent）
 ```
 
 ## 技能设计
@@ -66,14 +70,16 @@ yibasuo-skill/
 
 ### 6 阶段
 
-| 阶段 | Agent | Superpowers 注入 |
-|------|-------|-----------------|
-| 0. 需求确认 | — | brainstorming（一次一问、子项目拆解、2-3方案） |
-| 1. 规划 | planner | writing-plans（先读代码再规划） |
-| 2. 架构 | architect | ADR含决策/后果/替代方案 |
-| 3. 测试驱动开发 | tdd-guide | TDD iron law（先行代码必须删除） |
-| 4. 审查 | code-reviewer + security-reviewer | systematic-debugging（修复前先写复现测试） |
-| 5. 提交 | — | 5项验证清单 + 分支收尾 |
+| 阶段 | Claude Code (agent) | Codex (内联) |
+|------|--------------------|-------------|
+| 0. 需求确认 | 主会话 | 主会话 |
+| 1. 规划 | planner agent | 内联分析 |
+| 2. 架构 | architect agent | 内联生成 |
+| 3. 测试驱动开发 | tdd-guide agent | 内联执行 |
+| 4. 审查 | java/typescript-reviewer + security-reviewer | 内联审查 |
+| 5. 提交 | 主会话 | 主会话 |
+
+两个版本逻辑完全等价，差异仅在于 Claude Code 依赖内置 agent，Codex 用内联指令。
 
 ### Rules 加载机制
 
