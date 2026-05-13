@@ -1,5 +1,6 @@
 ---
 name: yibasuo
+version: "1.9.1"
 description: "一把梭 — 全流程开发管线。触发词：一把梭、全流程、梭哈、自动梭、全自动、一步步梭、交互梭。"
 ---
 
@@ -54,7 +55,7 @@ description: "一把梭 — 全流程开发管线。触发词：一把梭、全�
 3. 默认（自动）直接继续。如交互模式，确认后继续。
 
 ### 3. 测试驱动开发
-**铁律】：没有失败测试 → 没有生产代码。先行代码必须删除。**
+**铁律**：没有失败测试 → 没有生产代码。先行代码必须删除。
 
 1. 先写失败测试（RED），确认失败原因正确
 2. 最小实现让测试通过（GREEN）
@@ -63,18 +64,22 @@ description: "一把梭 — 全流程开发管线。触发词：一把梭、全�
    - Java: `mvn test`, JUnit5+AssertJ+Mockito, Testcontainers, JaCoCo
    - Node.js: `pnpm test`, Vitest+supertest, Playwright E2E, v8
    - 前端: `pnpm test`, Vitest+Testing Library, Playwright E2E
-5. 默认（自动）直接继续。如交互模式，确认后继续。
+5. 测试或覆盖率不达标 → 修复后重新验证，不过不继续
+6. 默认（自动）直接继续。如交互模式，确认后继续。
 
 ### 4. 审查
-1. **并行**执行代码质量审查和安全审查
-2. CRITICAL / HIGH → 必须修复（两种模式都拦截），修复前先写复现测试
+1. **并行**执行两轮审查：
+   - 代码质量：检查命名、架构分层、异常处理、代码坏味
+   - 安全：检查硬编码密钥、SQL/命令注入、路径遍历、缺输入校验
+2. CRITICAL / HIGH → 必须修复（两种模式都拦截），修复前先写复现测试，确认测试因该 bug 失败再修
 3. MEDIUM / LOW → 展示建议，不强制
-4. 默认（自动）无 CRITICAL/HIGH 则继续。
+4. 审查失败或无法完成 → 展示错误，暂停等用户决定
+5. 默认（自动）无 CRITICAL/HIGH 则继续。
 
 ### 5. 提交
 1. 环境检查：非 git 仓库警告暂停，`git diff --stat`
-2. 格式检查：prettier + eslint（Node/前端）或 p3c（Java）
-3. 构建验证：`pnpm build` / `npm run build`，缺 build 命令警告暂停
+2. 格式检查：prettier + eslint（Node/前端）或 `mvn pmd:check`（Java p3c）；Java 修复建议 `mvn com.alibaba.p3c:p3c-pmd:pmd` 或 IDE 插件一键修复。格式检查失败 → 暂停等用户处理
+3. 构建验证：`pnpm build` / `npm run build`，构建失败 → 暂停。缺 build 命令 → 明确警告并暂停
 4. 完成前验证：
    - [x] 全部测试通过，覆盖率 ≥ 80%
    - [x] 无 CRITICAL/HIGH 审查问题
