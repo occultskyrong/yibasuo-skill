@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SKILL_NAME="yibasuo"
 TARGET="claude"
 FORCE=""
 for arg in "$@"; do
@@ -17,7 +18,6 @@ else
   BASE="${XDG_CONFIG_HOME:-$HOME/.claude}"
   SKILL_SRC="skills/$SKILL_NAME"
 fi
-SKILL_NAME="yibasuo"
 
 # Default repo URL (update when publishing to GitHub)
 REPO_URL="${YIBASUO_REPO:-https://github.com/YOUR_USER/yibasuo-skill.git}"
