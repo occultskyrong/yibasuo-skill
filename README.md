@@ -1,4 +1,4 @@
-# 一把梭 (yibasuo) — Claude Code / Codex 全流程开发 Skill v1.9.2
+# 一把梭 (yibasuo) — Claude Code / Codex 全流程开发 Skill v1.9.3
 
 > 需求 → 规划 → 架构 → 测试驱动开发 → 审查 → 提交
 
