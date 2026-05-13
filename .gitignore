@@ -1,1 +1,9 @@
 .DS_Store
+
+# 私人数据 — 禁止提交
+*.conf
+*-private.*
+*-local.*
+.env
+credentials.*
+secrets.*
