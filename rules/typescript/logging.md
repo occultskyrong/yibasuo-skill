@@ -73,17 +73,24 @@ const logger = pino({
     target: 'pino-pretty',
     options: {
       colorize: true,
-      translateTime: 'yyyy-MM-dd HH:MM:ss.l',
+      translateTime: 'yyyy-mm-dd HH:MM:ss.l',
       ignore: 'pid,hostname',
+      messageFormat: '[{traceId}] {levelLabel} {caller} - {msg}',
     },
+  },
+  // traceId 从请求上下文注入
+  mixin() {
+    return { traceId: getTraceIdFromAsyncContext() ?? '-' };
   },
 });
 ```
 
 输出效果：
 ```
-2026-05-11 14:30:01.234 [traceId=abc123] INFO  UsersService:42 - User created: id=1
+2026-05-11 14:30:01.234 [abc123] INFO  UsersService:42 - User created: id=1
 ```
+
+与 Java 格式对齐：`时间 [traceId] 级别 来源:行号 - 消息`（Java 多 `[线程]` 字段）
 
 ### staging/prod — 结构化 JSON
 
