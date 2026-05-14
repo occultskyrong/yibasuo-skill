@@ -5,16 +5,16 @@ paths:
   - "**/*.js"
   - "**/*.jsx"
 ---
-# TypeScript/JavaScript Security
+# TypeScript/JavaScript 安全指南
 
-> This file extends [common/security.md](../common/security.md) with TypeScript/JavaScript specific content.
+> 本文件扩展 [common/security.md](../common/security.md) 的 TypeScript/JavaScript 特定内容。
 
-## Secret Management
+## 密钥管理
 
 **生产密钥**（支付、生产数据库密码、生产 JWT Secret）禁止硬编码，必须走环境变量。
 
 **开发默认值**允许以 fallback 形式存在，但必须：
-1. 注明确认是开发/测试密钥，不是生产密钥
+1. 注明是开发/测试密钥，不是生产密钥
 2. 仅用于低风险场景（LLM provider、内网服务调用）
 3. 生产环境通过环境变量覆盖
 
@@ -25,11 +25,14 @@ const apiKey = process.env.LLM_API_KEY || 'sk-dev-default-xxx'; // 开发环境 
 // BAD: 生产密钥硬编码
 const stripeKey = 'sk_live_xxx';
 
-// ALWAYS: 必须的密钥，启动时校验
+// 必须校验：关键密钥缺失直接报错
 if (!process.env.JWT_SECRET) {
   throw new Error('JWT_SECRET not configured');
 }
 ```
+
+- 用 Zod 或 class-validator 在启动时校验所有 env 变量
+- `process.env` 值始终是字符串，数字/布尔值需显式转换
 
 ## 进程退出策略
 
@@ -42,17 +45,13 @@ process.on('unhandledRejection', (reason) => {
 });
 ```
 
-- Use Zod or class-validator to validate all env vars at boot
-- `process.env` values are always strings — parse numbers/booleans explicitly
-
-## NestJS Security
+## NestJS 安全配置
 
 ### Helmet
 
-Enable Helmet for secure HTTP headers:
+启用 Helmet 设置安全响应头：
 
 ```typescript
-// main.ts
 import helmet from 'helmet';
 
 async function bootstrap() {
@@ -64,7 +63,7 @@ async function bootstrap() {
 
 ### CORS
 
-Restrict origins explicitly — never use `origin: '*'` with credentials:
+严格限制来源，带凭证时不要用 `origin: '*'`：
 
 ```typescript
 app.enableCors({
@@ -74,115 +73,109 @@ app.enableCors({
 });
 ```
 
-### Rate Limiting
+### 速率限制
 
-Use `@nestjs/throttler` on public endpoints:
+使用 `@nestjs/throttler` 保护公开端点：
 
 ```typescript
-// app.module.ts
-imports: [
-  ThrottlerModule.forRoot([{ ttl: 60000, limit: 20 }]),
-]
+imports: [ThrottlerModule.forRoot([{ ttl: 60000, limit: 20 }])]
 
-// On sensitive endpoints
+// 敏感端点
 @UseGuards(ThrottlerGuard)
 @Post('login')
 async login() { ... }
 ```
 
-- Auth endpoints: 5 req/min per IP
-- Public APIs: 20-60 req/min default
-- Internal BFF → Service calls: skip rate limiting
+- 认证端点: 5 次/分钟/IP
+- 公开 API: 20-60 次/分钟
+- 内部 BFF→微服务: 跳过速率限制
 
 ### CSRF
 
-If using cookie-based sessions:
+基于 cookie 的会话需要 CSRF 保护：
 
 ```typescript
 import * as csurf from 'csurf';
 app.use(csurf({ cookie: true }));
 ```
 
-For JWT-based APIs (Bearer token in `Authorization` header), CSRF is not needed — browsers don't auto-attach `Authorization` headers.
+JWT API（Bearer token）不需要 CSRF — 浏览器不会自动附加 `Authorization` 头。
 
-## Input Validation
+## 输入验证
 
-Zod is preferred for runtime validation. For NestJS, use `class-validator` with `ValidationPipe`:
+优先使用 Zod 做运行时校验。NestJS 用 `class-validator` 配合 `ValidationPipe`：
 
 ```typescript
-// main.ts
 app.useGlobalPipes(
   new ValidationPipe({
-    whitelist: true,              // strip unknown properties
-    forbidNonWhitelisted: true,   // reject unknown properties
+    whitelist: true,              // 剥除未知字段
+    forbidNonWhitelisted: true,   // 拒绝未知字段
     transform: true,
   }),
 );
 ```
 
-Validate at all system boundaries:
-- [ ] HTTP request body (DTO validation via ValidationPipe)
-- [ ] URL params (`ParseUUIDPipe`, `ParseIntPipe`)
-- [ ] Query strings (class-validator on query DTOs)
-- [ ] External API responses (Zod schema)
-- [ ] File uploads (file type, size, count limits)
+所有系统边界必须验证：
+- [ ] HTTP 请求体（DTO 通过 ValidationPipe）
+- [ ] URL 参数（`ParseUUIDPipe`、`ParseIntPipe`）
+- [ ] Query 参数（class-validator on query DTO）
+- [ ] 外部 API 响应（Zod schema）
+- [ ] 文件上传（类型、大小、数量限制）
 
-## SQL / NoSQL Injection
+## SQL / NoSQL 注入
 
-### Parameterized queries (raw SQL)
+### 参数化查询
 
 ```typescript
-// BAD — string interpolation
+// BAD — 字符串拼接
 const rows = await db.query(`SELECT * FROM users WHERE name = '${name}'`);
 
-// GOOD — parameterized
+// GOOD — 参数化
 const rows = await db.query('SELECT * FROM users WHERE name = $1', [name]);
 ```
 
-### ORM injection (Prisma / TypeORM)
+### ORM 原生查询
 
-ORMs don't prevent all injections — be careful with raw queries:
+ORM 不防止所有注入 — 原生查询仍需注意：
 
 ```typescript
-// BAD — raw query with unsanitized input
+// BAD
 await prisma.$queryRawUnsafe(`SELECT * FROM users WHERE name = '${name}'`);
 
-// GOOD — parameterized
+// GOOD
 await prisma.$queryRaw`SELECT * FROM users WHERE name = ${name}`;
 ```
 
-### NoSQL injection (MongoDB)
+### NoSQL 注入（MongoDB）
 
 ```typescript
-// BAD — user input directly in query object
+// BAD — 用户输入直接作为查询条件
 await collection.find({ username: req.body.username });
 
-// GOOD — type-check and sanitize
+// GOOD — 类型校验后传入
 const username = String(req.body.username);
 await collection.find({ username });
 ```
 
-## Authentication
+## 认证
 
-- Never implement custom crypto — use established libraries (bcrypt, Argon2)
-- Store passwords with bcrypt (cost factor >= 10):
+- 不要自研加密算法 — 使用成熟库（bcrypt、Argon2）
+- 密码用 bcrypt 存储（cost factor >= 10）：
 
 ```typescript
 import * as bcrypt from 'bcrypt';
-
 const hash = await bcrypt.hash(password, 10);
 const match = await bcrypt.compare(password, hash);
 ```
 
-- JWT secrets must be >= 256-bit random, stored in env vars
-- Set reasonable JWT expiry (access token: 15-60 min, refresh token: 7-14 days)
+- JWT Secret 必须 >= 256-bit 随机值，存于 env
+- JWT 过期时间: access token 15-60 分钟，refresh token 7-14 天
 
-## Error Messages
+## 错误消息
 
-Never expose internals in API responses:
+不在 API 响应中暴露内部信息：
 
 ```typescript
-// Exception filter — log detail, return safe message
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
@@ -191,11 +184,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       return response.status(exception.getStatus()).json({
         status: 2,
-        message: exception.message,  // safe — these are intentional
+        message: exception.message,  // 已知异常，message 安全
       });
     }
 
-    // Unexpected — log full detail, return generic
+    // 未知异常 — 记录完整详情，返回通用消息
     logger.error('Unhandled error', exception);
     return response.status(500).json({
       status: 99,
@@ -205,30 +198,21 @@ export class AllExceptionsFilter implements ExceptionFilter {
 }
 ```
 
-- Never return `error.stack` to clients
-- Never expose database errors, file paths, or library internals
+- 不要返回 `error.stack` 给客户端
+- 不要暴露数据库错误、文件路径、库内部信息
 
-## Dependency Security
+## 依赖安全
 
 ```bash
-# Audit dependencies
-npm audit
-# OR
-pnpm audit
-
-# For CI: fail on high/critical
-npm audit --audit-level=high
+npm audit          # 或 pnpm audit
+npm audit --audit-level=high   # CI 中: 遇到 HIGH/CRITICAL 直接失败
 ```
 
-- Run audit in CI, fail on HIGH or CRITICAL
-- Use Dependabot or Renovate for automated updates
-- Lockfiles (`package-lock.json` / `pnpm-lock.yaml`) must be committed
+- CI 中运行 audit，HIGH 或 CRITICAL 级别失败
+- 使用 Dependabot 或 Renovate 自动更新
+- lockfile（`package-lock.json` / `pnpm-lock.yaml`）必须提交
 
-## Agent Support
+## Agent 支持
 
-- Use **security-reviewer** agent for comprehensive security audits
-- See skill: `security-review` for general security checklists
-
-## References
-
-See skill: `nestjs-patterns` for NestJS auth guards and exception filter patterns.
+- 使用 **security-reviewer** agent 进行综合安全审计
+- 参见 skill: `security-review`
