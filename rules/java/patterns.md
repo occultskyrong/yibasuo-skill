@@ -127,23 +127,37 @@ String message = switch (result) {
 
 ## API Response Envelope
 
-统一返回体，Java / NestJS 使用相同结构：
+统一返回体（对齐 ai-foundation），Java / NestJS 使用相同结构：
 
 ```java
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public record ApiResponse<T>(
-    int code,          // 0=成功, 1=成功有消息, >=2=错误
-    String message,    // 错误描述或成功提示
-    T data,            // 业务数据，错误时为 null
-    String requestId   // traceId，用于链路追踪
+    int status,             // 0=成功, >=2=错误
+    String message,         // 成功提示或错误描述
+    T data,                 // 业务数据，错误时为 null
+    String requestId,       // traceId，从 MDC 获取
+    Integer errorCode,      // 子错误码（业务分类），可选
+    String errorMessage,    // 子错误详情，可选
+    ResponseMetadata metadata // 请求元数据
 ) {
-    public static <T> ApiResponse<T> ok(T data) {
-        return new ApiResponse<>(0, null, data, MDC.get("traceId"));
+    public record ResponseMetadata(
+        String timestamp,   // YYYY-MM-DD HH:mm:ss.SSS
+        String method,      // HTTP 方法
+        String endpoint,    // 请求路径
+        Long count,         // 分页总数，可选
+        Integer totalPages, // 总页数，可选
+        Integer currentPage,// 当前页，可选
+        Integer pageSize    // 每页数量，可选
+    ) {}
+
+    public static <T> ApiResponse<T> ok(T data, String method, String endpoint) {
+        return new ApiResponse<>(0, "请求成功", data,
+            MDC.get("traceId"), null, null,
+            new ResponseMetadata(formatNow(), method, endpoint, null, null, null, null));
     }
-    public static <T> ApiResponse<T> ok(T data, String message) {
-        return new ApiResponse<>(1, message, data, MDC.get("traceId"));
-    }
-    public static <T> ApiResponse<T> error(int code, String message) {
-        return new ApiResponse<>(code, message, null, MDC.get("traceId"));
+    public static <T> ApiResponse<T> error(int status, String message, int errorCode, String errorMessage) {
+        return new ApiResponse<>(status, message, null,
+            MDC.get("traceId"), errorCode, errorMessage, null);
     }
 }
 ```

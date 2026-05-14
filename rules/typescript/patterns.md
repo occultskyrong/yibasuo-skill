@@ -225,19 +225,31 @@ Fail fast: if required env vars are missing, crash at boot — don't limp along.
 
 ## API Response Envelope
 
-统一返回体，Java / NestJS 使用相同结构：
+统一返回体（对齐 ai-foundation），Java / NestJS 使用相同结构：
 
 ```typescript
 interface ApiResponse<T = unknown> {
-  code: number       // 0=成功, 1=成功有消息, >=2=错误
-  message?: string   // 错误描述或成功提示
-  data?: T           // 业务数据
-  requestId?: string  // traceId，用于链路追踪
+  status: number         // 0=成功, >=2=错误
+  message: string        // 成功提示或错误描述
+  data: T | null         // 业务数据
+  requestId: string      // traceId，用于链路追踪
+  error_code?: number    // 子错误码（业务分类）
+  error_message?: string // 子错误详情
+  metadata: {
+    timestamp: string    // YYYY-MM-DD HH:mm:ss.SSS
+    method: string       // HTTP 方法
+    endpoint: string     // 请求路径
+    count?: number       // 分页总数
+    totalPages?: number  // 总页数
+    currentPage?: number // 当前页
+    pageSize?: number    // 每页数量
+  }
 }
 ```
 
-- `code: 0` — 成功，data 有效
-- `code: 1` — 成功但有提示信息
+- `status: 0` — 成功
+- `status: >=2` — 错误，message 和 error_code/error_message 描述原因
+- `requestId` 从 traceId（MDC / AsyncContext）获取，不自己生成
 - `code: >=2` — 错误，message 描述原因
 
 ## Custom Hooks (React)
