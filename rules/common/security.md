@@ -1,29 +1,34 @@
-# Security Guidelines
+# 安全指南
 
-## Mandatory Security Checks
+## 强制安全检查
 
-Before ANY commit:
-- [ ] No hardcoded secrets (API keys, passwords, tokens)
-- [ ] All user inputs validated
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] XSS prevention (sanitized HTML)
-- [ ] CSRF protection enabled
-- [ ] Authentication/authorization verified
-- [ ] Rate limiting on all endpoints
-- [ ] Error messages don't leak sensitive data
+提交前必须确认：
+- [ ] 无生产密钥硬编码（支付密钥、生产数据库密码、JWT Secret）
+- [ ] 所有用户输入已验证
+- [ ] SQL 注入防护（参数化查询）
+- [ ] XSS 防护（HTML 转义）
+- [ ] CSRF 保护已启用
+- [ ] 认证/授权已验证
+- [ ] 所有端点已配置速率限制
+- [ ] 错误消息不泄露敏感数据
 
-## Secret Management
+## 密钥管理
 
-- NEVER hardcode secrets in source code
-- ALWAYS use environment variables or a secret manager
-- Validate that required secrets are present at startup
-- Rotate any secrets that may have been exposed
+**生产密钥禁止硬编码**（支付密钥、生产数据库密码、生产 JWT Secret）。
 
-## Security Response Protocol
+**开发默认值**允许作为 fallback（如 LLM API key 指向默认 provider），前提：
+1. 明确标注为开发密钥
+2. 生产环境通过 env 覆盖
+3. 不用于高敏感场景
 
-If security issue found:
-1. STOP immediately
-2. Use **security-reviewer** agent
-3. Fix CRITICAL issues before continuing
-4. Rotate any exposed secrets
-5. Review entire codebase for similar issues
+- 启动时验证生产密钥是否已配置
+- 轮换所有已暴露的密钥
+
+## 安全响应协议
+
+发现安全问题时：
+1. 立即停止当前操作
+2. 调用 **security-reviewer** agent
+3. 修复 CRITICAL 问题后再继续
+4. 轮换所有已暴露的密钥
+5. 审查整个代码库是否有类似问题

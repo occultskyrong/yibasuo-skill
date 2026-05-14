@@ -11,16 +11,35 @@ paths:
 
 ## Secret Management
 
+**生产密钥**（支付、生产数据库密码、生产 JWT Secret）禁止硬编码，必须走环境变量。
+
+**开发默认值**允许以 fallback 形式存在，但必须：
+1. 注明确认是开发/测试密钥，不是生产密钥
+2. 仅用于低风险场景（LLM provider、内网服务调用）
+3. 生产环境通过环境变量覆盖
+
 ```typescript
-// NEVER: Hardcoded secrets
-const apiKey = "sk-proj-xxxxx"
+// OK: 开发默认值，env 可覆盖
+const apiKey = process.env.LLM_API_KEY || 'sk-dev-default-xxx'; // 开发环境 Bailian
 
-// ALWAYS: Environment variables, validated at startup
-const apiKey = process.env.OPENAI_API_KEY
+// BAD: 生产密钥硬编码
+const stripeKey = 'sk_live_xxx';
 
-if (!apiKey) {
-  throw new Error('OPENAI_API_KEY not configured')
+// ALWAYS: 必须的密钥，启动时校验
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET not configured');
 }
+```
+
+## 进程退出策略
+
+**不要因为未捕获异常自动退出进程**。记录错误让编排层（Docker/K8s/pm2）决定是否重启。
+
+```typescript
+process.on('unhandledRejection', (reason) => {
+  logger.error('Unhandled rejection', reason instanceof Error ? reason.stack : String(reason));
+  // 不调用 process.exit(1)
+});
 ```
 
 - Use Zod or class-validator to validate all env vars at boot
