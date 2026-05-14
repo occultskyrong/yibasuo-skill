@@ -46,7 +46,7 @@ Follow standard Java conventions:
 
 ## Modern Java Features
 
-Use modern language features where they improve clarity:
+优先使用现代语言特性提升代码清晰度：
 - **Records** for DTOs and value types (Java 16+)
 - **Sealed classes** for closed type hierarchies (Java 17+)
 - **Pattern matching** with `instanceof` — no explicit cast (Java 16+)

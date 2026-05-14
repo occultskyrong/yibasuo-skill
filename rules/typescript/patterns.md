@@ -11,7 +11,7 @@ paths:
 
 ## NestJS Layered Architecture
 
-Strict separation of concerns — never skip a layer:
+严格分层，绝不越层调用：
 
 ```
 Controller → Service → Repository → Database
@@ -44,7 +44,7 @@ export class UsersController {
 
 ### Service
 
-All business logic here. Never expose entities directly — map to response DTOs:
+所有业务逻辑放这里。不直接暴露 Entity，通过 DTO 映射：
 
 ```typescript
 @Injectable()
@@ -61,7 +61,7 @@ export class UsersService {
 
 ### Repository
 
-Encapsulate data access. Use Prisma, TypeORM, or raw DB driver behind a clean interface:
+封装数据访问。用 Prisma、TypeORM 或原生 DB 驱动，对外暴露干净接口：
 
 ```typescript
 @Injectable()
@@ -134,7 +134,7 @@ export class UserResponse {
 
 ## Global Validation Pipe
 
-Configure once in `main.ts`:
+在 `main.ts` 中一次配置：
 
 ```typescript
 app.useGlobalPipes(
@@ -197,7 +197,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
 ## Configuration
 
-Validate env at startup, not at first request:
+启动时校验环境变量，不在首次请求时才检查：
 
 ```typescript
 // config/configuration.ts

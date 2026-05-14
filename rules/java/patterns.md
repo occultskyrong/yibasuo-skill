@@ -8,7 +8,7 @@ paths:
 
 ## Repository Pattern
 
-Encapsulate data access behind an interface:
+将数据访问封装在接口后面：
 
 ```java
 public interface OrderRepository {
@@ -19,11 +19,11 @@ public interface OrderRepository {
 }
 ```
 
-Concrete implementations handle storage details (JPA, JDBC, in-memory for tests).
+具体实现处理存储细节（JPA、JDBC、测试用内存实现）。
 
 ## Service Layer
 
-Business logic in service classes; keep controllers and repositories thin:
+业务逻辑放在 Service 层，Controller 和 Repository 保持轻薄：
 
 ```java
 public class OrderService {
@@ -46,7 +46,7 @@ public class OrderService {
 
 ## Constructor Injection
 
-Always use constructor injection — never field injection:
+始终使用构造器注入，禁止字段注入：
 
 ```java
 // GOOD — constructor injection (testable, immutable)
@@ -67,7 +67,7 @@ public class NotificationService {
 
 ## DTO Mapping
 
-Use records for DTOs. Map at service/controller boundaries:
+使用 Record 作为 DTO，在 Service/Controller 边界做映射：
 
 ```java
 public record OrderResponse(Long id, String customer, BigDecimal total) {
@@ -79,7 +79,7 @@ public record OrderResponse(Long id, String customer, BigDecimal total) {
 
 ## Builder Pattern
 
-Use for objects with many optional parameters:
+适用于有很多可选参数的对象：
 
 ```java
 public class SearchCriteria {

@@ -11,7 +11,7 @@ paths:
 
 ## Types and Interfaces
 
-Use types to make public APIs, shared models, and component props explicit, readable, and reusable.
+为公开 API、共享模型和组件 Props 使用显式类型，使其可读、可复用。
 
 ### Public APIs
 
@@ -115,7 +115,7 @@ export function formatUser(user) {
 
 ## Immutability
 
-Use spread operator for immutable updates:
+使用扩展运算符实现不可变更新：
 
 ```typescript
 interface User {
