@@ -127,15 +127,23 @@ String message = switch (result) {
 
 ## API Response Envelope
 
-Consistent API responses:
+统一返回体，Java / NestJS 使用相同结构：
 
 ```java
-public record ApiResponse<T>(boolean success, T data, String error) {
+public record ApiResponse<T>(
+    int code,          // 0=成功, 1=成功有消息, >=2=错误
+    String message,    // 错误描述或成功提示
+    T data,            // 业务数据，错误时为 null
+    String requestId   // traceId，用于链路追踪
+) {
     public static <T> ApiResponse<T> ok(T data) {
-        return new ApiResponse<>(true, data, null);
+        return new ApiResponse<>(0, null, data, MDC.get("traceId"));
     }
-    public static <T> ApiResponse<T> error(String message) {
-        return new ApiResponse<>(false, null, message);
+    public static <T> ApiResponse<T> ok(T data, String message) {
+        return new ApiResponse<>(1, message, data, MDC.get("traceId"));
+    }
+    public static <T> ApiResponse<T> error(int code, String message) {
+        return new ApiResponse<>(code, message, null, MDC.get("traceId"));
     }
 }
 ```

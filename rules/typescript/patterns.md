@@ -225,19 +225,20 @@ Fail fast: if required env vars are missing, crash at boot — don't limp along.
 
 ## API Response Envelope
 
-Project convention (`status` codes):
+统一返回体，Java / NestJS 使用相同结构：
 
 ```typescript
 interface ApiResponse<T = unknown> {
-  status: number   // 0=success, 1=success with info, 2=validation error, 99=internal error
-  message?: string
-  data?: T
+  code: number       // 0=成功, 1=成功有消息, >=2=错误
+  message?: string   // 错误描述或成功提示
+  data?: T           // 业务数据
+  requestId?: string  // traceId，用于链路追踪
 }
 ```
 
-- Status `0`: success, data returned
-- Status `1`: success with informational message
-- Status `>=2`: error, check `message` for detail
+- `code: 0` — 成功，data 有效
+- `code: 1` — 成功但有提示信息
+- `code: >=2` — 错误，message 描述原因
 
 ## Custom Hooks (React)
 
