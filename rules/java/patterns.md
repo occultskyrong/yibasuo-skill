@@ -162,6 +162,24 @@ public record ApiResponse<T>(
 }
 ```
 
+### traceId 生成规则
+
+| 角色 | 行为 |
+|------|------|
+| **Gateway** | 生成 traceId（UUID 去横线），写入 MDC 和响应头 `X-Trace-Id` |
+| **BFF / 微服务** | 从请求头 `X-Trace-Id` 提取 traceId 写入 MDC；若请求头无此字段，自行生成（UUID 去横线） |
+| **所有服务** | traceId 写入日志格式 `%X{traceId}`，并设置为 ApiResponse.requestId |
+
+```java
+// Gateway Filter 或全局 Interceptor
+String traceId = request.getHeader("X-Trace-Id");
+if (traceId == null || traceId.isEmpty()) {
+    traceId = UUID.randomUUID().toString().replace("-", "");
+}
+MDC.put("traceId", traceId);
+response.setHeader("X-Trace-Id", traceId);
+```
+
 ## References
 
 See skill: `springboot-patterns` for Spring Boot architecture patterns.

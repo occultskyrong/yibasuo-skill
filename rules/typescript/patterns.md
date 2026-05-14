@@ -249,8 +249,23 @@ interface ApiResponse<T = unknown> {
 
 - `status: 0` — 成功
 - `status: >=2` — 错误，message 和 error_code/error_message 描述原因
-- `requestId` 从 traceId（MDC / AsyncContext）获取，不自己生成
-- `code: >=2` — 错误，message 描述原因
+- `requestId` 从 traceId 获取，不自己生成
+
+### traceId 生成规则
+
+| 角色 | 行为 |
+|------|------|
+| **Gateway** | 生成 traceId（UUID 去横线），写入 AsyncLocalStorage 和响应头 `X-Trace-Id` |
+| **BFF / 微服务** | 从请求头 `X-Trace-Id` 提取 traceId；若请求头无此字段，自行生成（UUID 去横线） |
+| **所有服务** | traceId 注入日志（pino mixin），并设置为 ApiResponse.requestId |
+
+```typescript
+// NestJS 中间件或 interceptor
+const traceId = req.headers['x-trace-id'] as string
+  || crypto.randomUUID().replace(/-/g, '');
+asyncLocalStorage.run({ traceId }, () => next());
+res.setHeader('X-Trace-Id', traceId);
+```
 
 ## Custom Hooks (React)
 
