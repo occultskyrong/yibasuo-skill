@@ -159,6 +159,7 @@ requires:
    - [x] 无 CRITICAL/HIGH 审查问题
    - [x] 格式检查已执行（prettier + eslint / p3c）
    - [x] 构建通过（或已处理缺失警告）
+   - [x] **NestJS 项目**：`timeout 15 npm start 2>&1 | grep "successfully started"` — `nest build` 只检查 TypeScript，不检查 NestJS 模块 DI 图。必须启动服务确认无 `Nest can't resolve dependencies` 错误
    - [x] 无 console.log / 调试残留
 5. 按 `conventional commits` 生成 message（格式：`<type>: <description>`）
 6. **展示确认**（两种模式都必确认）

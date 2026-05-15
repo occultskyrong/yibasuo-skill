@@ -92,7 +92,8 @@ yibasuo-skill/
 2. [ ] 无 CRITICAL/HIGH 审查问题
 3. [ ] 格式化已执行（Prettier / p3c）
 4. [ ] 构建通过（或缺失已警告并处理）
-5. [ ] 无 console.log / 调试残留
+5. [ ] **NestJS 项目**：`npm start` 启动确认无 DI 错误（`nest build` 不足）
+6. [ ] 无 console.log / 调试残留
 
 ## GitHub 发布前脱敏清单
 
