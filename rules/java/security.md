@@ -94,6 +94,40 @@ try {
 }
 ```
 
+## 敏感数据保护
+
+- 手机号、身份证、银行卡等个人敏感信息** AES-256 加密存储**，不可明文落库
+- 日志中脱敏：手机号 `138****1234`，身份证 `3201**********1234`
+- 前端回显时按需脱敏
+
+## Web 安全
+
+### XSS 防护
+
+所有用户输入输出转义。富文本场景用 **OWASP AntiSamy** 或 **Jsoup** 白名单过滤，禁止直接返回用户输入的 HTML。
+
+### CSRF 防护
+
+管理后台类服务开启 Spring Security CSRF 保护，或 Token 双写校验。
+
+### 文件上传
+
+校验扩展名 + MIME 白名单，禁止直接使用用户提供的文件名。文件大小限制，独立文件服务存储。
+
+### SQL 注入
+
+MyBatis 全部使用 `#{}` 参数化，禁止 `${}` 拼接用户输入（排序字段等场景需白名单校验后使用）。
+
+## Spring Security
+
+- BCrypt cost=12，通过 `SecurityConfig` Bean 注入，响应中 password 字段 `@JsonIgnore`
+- JWT: HS256 签名，access_token 24h，refresh_token 7d
+- Token 写入 Redis `{prefix}:token:{userId}:{jti}`，登出/强制下线时 JTI 加入黑名单
+
+## 数据权限
+
+通过 `DataScopeHelper` 控制：全部(1) / 自定义(2) / 仅自己(3)。Mapper XML 显式拼接条件，禁止拦截器隐式修改 SQL。
+
 ## References
 
 See skill: `springboot-security` for Spring Security authentication and authorization patterns.

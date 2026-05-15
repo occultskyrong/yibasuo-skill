@@ -127,58 +127,105 @@ String message = switch (result) {
 
 ## API Response Envelope
 
-统一返回体（对齐 ai-foundation），Java / NestJS 使用相同结构：
+遵循《阿里巴巴 Java 开发手册（黄山版）》前后端规约：
+
+```json
+// 成功
+{"code":0,"message":"操作成功","data":{...},"requestId":"xxx"}
+// 业务错误
+{"code":"LOGIN_FAILED","message":"用户名或密码错误","data":null,"requestId":"xxx"}
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `code` | Object | 成功=0(Integer)，失败=String（业务错误码）|
+| `message` | String | 用户提示信息 |
+| `data` | T | 业务数据 |
+| `requestId` | String | 请求追踪 ID |
+
+**强制项：** 空列表返回 `[]`，禁止 `null`。JSON key 使用 lowerCamelCase。HTTP 状态码由 `BusinessCode.httpCode` 控制。禁止在 `message` 中泄露敏感信息。
 
 ```java
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public record ApiResponse<T>(
-    int status,             // 0=成功, >=2=错误
-    String message,         // 成功提示或错误描述
-    T data,                 // 业务数据，错误时为 null
-    String requestId,       // traceId，从 MDC 获取
-    Integer errorCode,      // 子错误码（业务分类），可选
-    String errorMessage,    // 子错误详情，可选
-    ResponseMetadata metadata // 请求元数据
-) {
-    public record ResponseMetadata(
-        String timestamp,   // YYYY-MM-DD HH:mm:ss.SSS
-        String method,      // HTTP 方法
-        String endpoint,    // 请求路径
-        Long count,         // 分页总数，可选
-        Integer totalPages, // 总页数，可选
-        Integer currentPage,// 当前页，可选
-        Integer pageSize    // 每页数量，可选
-    ) {}
-
-    public static <T> ApiResponse<T> ok(T data, String method, String endpoint) {
-        return new ApiResponse<>(0, "请求成功", data,
-            MDC.get("traceId"), null, null,
-            new ResponseMetadata(formatNow(), method, endpoint, null, null, null, null));
+public record ApiResponse<T>(Object code, String message, T data, String requestId) {
+    public static <T> ApiResponse<T> ok(T data) {
+        return new ApiResponse<>(0, "操作成功", data, UUID.randomUUID().toString().replace("-", ""));
     }
-    public static <T> ApiResponse<T> error(int status, String message, int errorCode, String errorMessage) {
-        return new ApiResponse<>(status, message, null,
-            MDC.get("traceId"), errorCode, errorMessage, null);
+    public static <T> ApiResponse<T> fail(String code, String message) {
+        return new ApiResponse<>(code, message, null, UUID.randomUUID().toString().replace("-", ""));
     }
 }
 ```
 
-### traceId 生成规则
+### RESTful 版本化
 
-| 角色 | 行为 |
-|------|------|
-| **Gateway** | 生成 traceId（UUID 去横线），写入 MDC 和响应头 `X-Trace-Id` |
-| **BFF / 微服务** | 从请求头 `X-Trace-Id` 提取 traceId 写入 MDC；若请求头无此字段，自行生成（UUID 去横线） |
-| **所有服务** | traceId 写入日志格式 `%X{traceId}`，并设置为 ApiResponse.requestId |
+不兼容的接口变更使用 URL 版本号，新旧并存，等消费者迁移完成后删除旧版：
 
 ```java
-// Gateway Filter 或全局 Interceptor
-String traceId = request.getHeader("X-Trace-Id");
-if (traceId == null || traceId.isEmpty()) {
-    traceId = UUID.randomUUID().toString().replace("-", "");
-}
-MDC.put("traceId", traceId);
-response.setHeader("X-Trace-Id", traceId);
+// 新版
+@RestController
+@RequestMapping("/v2/auth")
+public class AuthControllerV2 { ... }
+
+// 旧版保留，@Deprecated 待下线
+@RestController
+@RequestMapping("/auth")
+public class AuthController { ... }
 ```
+
+| 变更类型 | 处理 |
+|---------|------|
+| 加字段 | 直接加，消费者忽略未知字段 |
+| 改字段名/类型/含义 | 新建 `/v2/xxx`，新旧并存 |
+| 删字段 | 同上 |
+| 消费者未对接 | 不兼容变更可直接改 |
+
+## 数据库规范
+
+遵循《阿里巴巴 Java 开发手册》数据库规约。
+
+### 命名
+
+- 数据库名/表名/列名：全小写+下划线，禁止大写字母
+- 表名不使用复数
+- 索引命名：`pk_`/`uk_`/`idx_` 前缀
+
+### 审计字段
+
+每张业务表必须包含：
+
+```sql
+id         BIGINT   NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
+created_by INT      COMMENT '创建人 ID',
+created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+updated_by INT      COMMENT '更新人 ID',
+updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+deleted_at DATETIME COMMENT '逻辑删除（NULL=未删除）'
+```
+
+### 核心约束
+
+- **禁止使用外键** — 一切外键约束在应用层解决
+- 逻辑删除：`deleted_at` + MyBatis-Plus `@TableLogic`；关联表物理删除；日志表物理删除
+- 数据库用户：`{库名}_{环境}`，禁止 root
+
+## Redis 规范
+
+- **禁止使用 `KEYS` 命令** — 生产环境必须用 `SCAN` 替代
+- **所有 Key 必须设置 TTL** — Token 类 1h-7d，缓存 5min-30min
+- **拒绝大 Key** — String 不超过 10KB，集合元素不超过 5000
+- **BigKey 删除用 `UNLINK`** — 替代 `DEL`，避免阻塞主线程
+- **降级** — 所有 Redis 操作加 try-catch，不可用时降级运行（跳过黑名单、权限查库）
+
+```java
+private static final String PREFIX = System.getenv().getOrDefault("REDIS_KEY_PREFIX", "yms:admin:dev");
+public static final String TOKEN_KEY = PREFIX + ":token:";
+```
+
+## 操作日志
+
+- AOP 切面拦截 `@RequirePerm` 注解
+- `@Async` 异步写入 `admin_operate_log`
+- 请求参数中 password/secret 字段脱敏，截断至 2048 字符
 
 ## References
 

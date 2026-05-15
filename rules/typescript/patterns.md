@@ -225,45 +225,42 @@ Fail fast: if required env vars are missing, crash at boot — don't limp along.
 
 ## API Response Envelope
 
-统一返回体（对齐 ai-foundation），Java / NestJS 使用相同结构：
+遵循《阿里巴巴 Java 开发手册》前后端规约，Java / NestJS 使用相同结构：
+
+```json
+{"code":0,"message":"操作成功","data":{...},"requestId":"xxx"}
+{"code":"LOGIN_FAILED","message":"用户名或密码错误","data":null,"requestId":"xxx"}
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `code` | `number \| string` | 成功=0，失败=String 业务错误码 |
+| `message` | `string` | 用户提示信息 |
+| `data` | `T \| null` | 业务数据 |
+| `requestId` | `string` | UUID 去横线，请求追踪 |
 
 ```typescript
 interface ApiResponse<T = unknown> {
-  status: number         // 0=成功, >=2=错误
-  message: string        // 成功提示或错误描述
-  data: T | null         // 业务数据
-  requestId: string      // traceId，用于链路追踪
-  error_code?: number    // 子错误码（业务分类）
-  error_message?: string // 子错误详情
-  metadata: {
-    timestamp: string    // YYYY-MM-DD HH:mm:ss.SSS
-    method: string       // HTTP 方法
-    endpoint: string     // 请求路径
-    count?: number       // 分页总数
-    totalPages?: number  // 总页数
-    currentPage?: number // 当前页
-    pageSize?: number    // 每页数量
-  }
+  code: number | string
+  message: string
+  data: T | null
+  requestId: string
 }
 ```
 
-- `status: 0` — 成功
-- `status: >=2` — 错误，message 和 error_code/error_message 描述原因
-- `requestId` 从 traceId 获取，不自己生成
+**强制项：** 空列表返回 `[]`，禁止 `null`。JSON key 使用 lowerCamelCase。
 
 ### traceId 生成规则
 
 | 角色 | 行为 |
 |------|------|
 | **Gateway** | 生成 traceId（UUID 去横线），写入 AsyncLocalStorage 和响应头 `X-Trace-Id` |
-| **BFF / 微服务** | 从请求头 `X-Trace-Id` 提取 traceId；若请求头无此字段，自行生成（UUID 去横线） |
-| **所有服务** | traceId 注入日志（pino mixin），并设置为 ApiResponse.requestId |
+| **BFF / 微服务** | 从请求头 `X-Trace-Id` 提取 traceId；若请求头无此字段，自行生成 |
+| **所有服务** | traceId 注入日志，并设置为 ApiResponse.requestId |
 
 ```typescript
-// NestJS 中间件或 interceptor
 const traceId = req.headers['x-trace-id'] as string
   || crypto.randomUUID().replace(/-/g, '');
-asyncLocalStorage.run({ traceId }, () => next());
 res.setHeader('X-Trace-Id', traceId);
 ```
 

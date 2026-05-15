@@ -38,11 +38,26 @@ public class Order {
 
 ## Naming
 
-Follow standard Java conventions:
-- `PascalCase` for classes, interfaces, records, enums
-- `camelCase` for methods, fields, parameters, local variables
-- `SCREAMING_SNAKE_CASE` for `static final` constants
-- Packages: all lowercase, reverse domain (`com.example.app.service`)
+| 对象 | 规则 | 示例 |
+|------|------|------|
+| 类/接口/Record | PascalCase | `AdminUserService` |
+| 方法/变量 | camelCase | `findByPhone()` |
+| 常量 | UPPER_SNAKE_CASE | `DATA_SCOPE_ALL` |
+| 包名 | 全小写，反域名 | `com.jiachen.api.admin.service` |
+| 抽象类 | `Abstract` 或 `Base` 开头 | `BaseController` |
+| 异常类 | `Exception` 结尾 | `UserNotFoundException` |
+| 测试类 | `Test` 结尾 | `UserServiceTest` |
+| Service 接口 | 不加 `I` 前缀 | `UserService` |
+| Service 实现 | 接口名 + `Impl` | `UserServiceImpl` |
+| Mapper | `Mapper` 结尾（MyBatis-Plus） | `UserMapper` |
+| 数据库表 | snake_case | `admin_user_school` |
+| 数据库列 | snake_case | `created_at` |
+
+## POJO 约束
+
+- POJO 属性**禁止使用基本类型**：`int`→`Integer`、`long`→`Long`、`boolean`→`Boolean`
+- POJO 布尔变量**禁止 `is` 前缀**（避免序列化框架误解析）
+- **禁止滥用 `@Data`**：关联对象多的实体改用 `@Getter`/`@Setter` 单独指定，防止 `toString` 泄漏关联数据或循环引用。密码字段加 `@JsonIgnore` 排除序列化
 
 ## Modern Java Features
 
