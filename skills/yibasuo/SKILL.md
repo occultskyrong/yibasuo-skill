@@ -161,7 +161,18 @@ requires:
    - [x] 构建通过（或已处理缺失警告）
    - [x] **NestJS 项目**：`timeout 15 npm start 2>&1 | grep "successfully started"` — `nest build` 只检查 TypeScript，不检查 NestJS 模块 DI 图。必须启动服务确认无 `Nest can't resolve dependencies` 错误
    - [x] 无 console.log / 调试残留
-5. 按 `conventional commits` 生成 message（格式：`<type>: <description>`）
+5. 按 **Conventional Commits** 生成 message（格式：`<type>[!]: <description>`）
+
+   | 变更类型 | type | 示例 |
+   |---------|------|------|
+   | 破坏性变更 | `feat!:` `fix!:` | `feat!: 重构ApiResponse code类型` |
+   | 新功能 | `feat:` | `feat: 增加用户导出功能` |
+   | Bug 修复 | `fix:` | `fix: 修复登录超时无提示` |
+   | 文档/杂项 | `docs:` `chore:` | `docs: 更新README安装说明` |
+   | 重构/性能 | `refactor:` `perf:` | `refactor: 提取公共校验方法` |
+   | 测试/CI | `test:` `ci:` | `test: 补充边界条件用例` |
+
+   破坏性变更必须在标题加 `!`（如 `feat!:`），或在 body 写 `BREAKING CHANGE:`
 6. **展示确认**（两种模式都必确认）
 7. `git add` + `git commit`
 8. 询问是否 push。若需要 PR，引导创建；若分支已完成，询问合并策略
@@ -192,7 +203,7 @@ requires:
 | 2 | （Bug 修复跳过） |
 | 3 | 调用 tdd-guide，prompt："修复登录超时无提示，预期60s超时弹Toast，项目 NestJS + Vitest + supertest" |
 | 4 | 并行调 typescript-reviewer + security-reviewer |
-| 5 | prettier + eslint → build → commit message: `fix: 登录超时增加用户提示` → 确认 → commit |
+| 5 | prettier+eslint→build→生成 `fix: 登录超时增加用户提示`→确认→commit |
 
 ## 反模式
 
