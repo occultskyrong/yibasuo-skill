@@ -175,7 +175,14 @@ requires:
    破坏性变更必须在标题加 `!`（如 `feat!:`），或在 body 写 `BREAKING CHANGE:`
 6. **展示确认**（两种模式都必确认）
 7. `git add` + `git commit`
-8. 询问是否 push。若需要 PR，引导创建；若分支已完成，询问合并策略
+8. **创建 tag**（遵循 SemVer）：
+   - 检测当前最新 tag：`git tag --sort=-v:refname | head -1`
+   - 根据 commit type 确定版本级别：`feat!`→MAJOR / `feat`→MINOR / `fix`→PATCH / `docs`等→不创建 tag
+   - 展示建议 tag 并询问：「建议创建 tag vX.Y.Z，是否执行？」
+   - 用户确认后 `git tag -a vX.Y.Z -m "vX.Y.Z — <summary>"`
+   - docs/chore/refactor 等非功能性变更**不创建 tag**
+   - **标签不可变**：已推送的 tag 绝不删除重打
+9. 询问是否 push（含 `--tags`）。若需要 PR，引导创建；若分支已完成，询问合并策略
 
 ## 中断与恢复
 
