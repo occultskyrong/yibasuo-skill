@@ -146,7 +146,8 @@ requires:
    - 前端 / Node.js：
      a. 检测 `prettier`（`npx prettier --version`），可用则 `pnpm prettier --write "src/**/*.{vue,tsx,jsx,ts,js,css,scss}"`
      b. 检测 `eslint`（`npx eslint --version`），可用则 `pnpm eslint --fix "src/**/*.{ts,tsx,js,jsx}"`
-     c. 任一不可用 → 跳过并提示
+     c. **僵尸代码清理**：检测 `ts-prune`（`npx ts-prune --version`），可用则 `npx ts-prune` 扫描未使用的导出。发现僵尸代码 → 列出清单并询问用户是否删除，**不自动删**（遵循 Karpathy 手术刀原则）。不可用则跳过
+     d. 任一不可用 → 跳过并提示
    - Java → 检测 `mvn --version`，可用则 `mvn pmd:check`（p3c 阿里巴巴 Java 开发手册）。修复建议：`mvn com.alibaba.p3c:p3c-pmd:pmd` 或 IDE 插件（Alibaba Java Coding Guidelines）一键修复
    - **格式检查失败**（语法错误/冲突）→ 展示错误输出，暂停等用户处理
    - 优先检测项目已有 formatter/linter 配置并复用
