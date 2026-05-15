@@ -102,6 +102,10 @@ try {
 
 ## Web 安全
 
+### HTTPS
+
+生产环境强制使用 HTTPS，Nginx/网关层做 SSL 终结。禁止生产环境 HTTP 明文传输。
+
 ### XSS 防护
 
 所有用户输入输出转义。富文本场景用 **OWASP AntiSamy** 或 **Jsoup** 白名单过滤，禁止直接返回用户输入的 HTML。
