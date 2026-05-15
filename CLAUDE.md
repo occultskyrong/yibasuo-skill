@@ -9,25 +9,47 @@
 
 ## 版本管理
 
-**版本一致性铁律**：以下 4 处版本号必须相同，与 git tag 一致。任何一处不同即为 bug。
+遵循 **SemVer v2.0**（[semver.org](https://semver.org)）+ **Conventional Commits**（[conventionalcommits.org](https://www.conventionalcommits.org)）。
+
+### 版本号规则
+
+| 提交前缀 | 版本升级 | 示例 |
+|---------|:--:|------|
+| `fix:` / `fix!:` | **PATCH** `1.0.0→1.0.1` | 修复 bug |
+| `feat:` | **MINOR** `1.0.0→1.1.0` | 新增功能 |
+| `feat!:` / `fix!:` / `BREAKING CHANGE:` | **MAJOR** `1.0.0→2.0.0` | 破坏性 API 变更 |
+| `docs:` `chore:` `style:` `refactor:` `perf:` `test:` `ci:` | **不升级** | 非功能变更 |
+
+破坏性变更用 `!` 标记：`feat!: 重构ApiResponse` 或 footer 写 `BREAKING CHANGE: ...`
+
+### 标签铁律
+
+**标签不可变**。一旦 `git push --tags`，标签永不动。发现错误不 `tag -d` 重打，而是发新版本。
+
+### 版本一致性
+
+以下 4 处版本号必须相同：
 
 | 检查点 | 文件 | 字段 |
 |--------|------|------|
 | 1 | `VERSION` | 纯文本 |
 | 2 | `skills/yibasuo/SKILL.md` | `version: "X.Y.Z"` |
 | 3 | `README.md` | 标题中的 `vX.Y.Z` |
-| 4 | `git tag` | `vX.Y.Z` |
+| 4 | `git tag` | `vX.Y.Z`（注释标签） |
 
-发布流程：
-1. **先定版本号** — 根据变更类型决定 semver（feat→minor, fix→patch, break→major）
-2. **同步 3 个文件** — `VERSION` + `SKILL.md` version + `README.md` 标题
+### 发布流程
+
+1. **先定版本号** — 根据 commit 前缀决定 semver 级别
+2. **同步 4 份文件** — `VERSION` + `SKILL.md` + `README.md` + `codex/SKILL.md`
 3. 追加 `CHANGELOG.md`
 4. `git add -A && git commit -m "<type>: <desc> (vX.Y.Z)"`
 5. `git tag -a vX.Y.Z -m "yibasuo-skill vX.Y.Z — <summary>"`
-6. `git push origin main --tags`
-7. **验证** — `git tag --points-at HEAD` 确认 tag 打在最新 commit 上
+6. `git push origin master --tags`
+7. **验证** — `bash install.sh --verify` 确认 4 处一致 + 标签打在 HEAD
 
-Commit 格式: `<type>: <description>` (feat/fix/docs/refactor/perf)
+Commit 格式: `<type>[!]: <description>` (feat/fix/docs/refactor/perf/chore/test/ci)
+
+破坏性变更示例: `feat!: ApiResponse code类型改为Object` — 注意 `!` 在 `:` 之前
 
 ## 产物结构
 
