@@ -79,22 +79,16 @@ description: "一把梭 — 全流程开发管线。触发词：一把梭、全�
 5. 默认（自动）无 CRITICAL/HIGH 则继续。
 
 ### 5. 提交
-1. 环境检查：非 git 仓库警告暂停，`git diff --stat`
-2. 格式检查：优先检测项目已有 formatter/linter 配置并复用，无配置则使用以下默认：
-   - Node/前端：prettier + eslint
-   - Java：`mvn pmd:check`（p3c），修复建议 `mvn com.alibaba.p3c:p3c-pmd:pmd` 或 IDE 一键修复
-   格式检查失败 → 暂停等用户处理
-3. 构建验证：`pnpm build` / `npm run build`，构建失败 → 暂停。缺 build 命令 → 明确警告并暂停
-4. 完成前验证：
-   - [x] 全部测试通过，覆盖率 ≥ 80%
-   - [x] 无 CRITICAL/HIGH 审查问题
-   - [x] 格式检查已执行
-   - [x] 构建通过（或已处理缺失警告）
-   - [x] 无 console.log / 调试残留
-5. 按 conventional commits 生成 message（`<type>: <description>`）
+
+1. **环境检查**：非 git 仓库警告暂停，`git diff --stat`
+2. **格式检查**：prettier+eslint（Node/前端）或 `mvn pmd:check`（Java p3c），格式失败→暂停
+3. **构建验证**：`pnpm build`，失败或缺 build 命令→暂停
+4. **完成前验证**：测试通过+覆盖率达标+无CRITICAL/HIGH+格式已执行+构建通过+无调试残留
+5. **生成 commit**：遵循 [Conventional Commits](references/commit-conventions.md)，`<type>[!]: <desc>`
 6. **展示确认**（两种模式都必确认）
 7. `git add` + `git commit`
-8. 询问是否 push / PR / 合并策略
+8. **创建 tag**：遵循 [SemVer](references/commit-conventions.md#semver-tag)，非功能变更不创建。**标签不可变**
+9. 询问是否 push / PR / 合并策略
 
 ## 中断与恢复
 
