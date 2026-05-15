@@ -155,7 +155,7 @@ requires:
    - 存在 → 执行 `pnpm build`（或 `npm run build`），构建失败 → **暂停等用户处理**
    - **不存在 → 明确警告**：「项目未配置 build 命令。请在 package.json 中配置 `"build": "..."`，或手动构建确认通过。在 build 命令可用前，不应提交。」**暂停等用户处理**
 4. **完成前验证** (superpowers/verification-before-completion)：
-   - [x] 全部测试通过，覆盖率 ≥ 80%
+   - [x] 全部测试通过，覆盖率 ≥ 阶段3达成值
    - [x] 无 CRITICAL/HIGH 审查问题
    - [x] 格式检查已执行（prettier + eslint / p3c）
    - [x] 构建通过（或已处理缺失警告）
