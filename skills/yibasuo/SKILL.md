@@ -1,6 +1,6 @@
 ---
 name: yibasuo
-version: "2.4.1"
+version: "2.4.2"
 description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段0-4连续执行，仅提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer]
@@ -66,7 +66,7 @@ requires:
 ### 2. 架构
 
 1. `Agent({ subagent_type: "architect" })`，prompt 含：需求 + 计划 + 语言规范。要求产出 ADR（决策/后果/替代方案）+ 接口契约 + 数据变更
-2. 自检 P0 问题（缺关键决策/接口遗漏/数据变更缺失），有 P0 → 修正 → 重新自检，**最多 5 轮**。5 轮后仍有 P0 → 暂停等用户决定
+2. 自检 P0 问题（缺关键决策/接口遗漏/数据变更缺失），**至少 3 轮、最多 5 轮**。即使无 P0 也跑满 3 轮以充分打磨。5 轮后仍有 P0 → 暂停等用户决定
 3. Agent 失败 → **展示错误，暂停**
 4. 默认（自动）直接继续。交互模式问"方案 OK？"
 
@@ -88,7 +88,7 @@ requires:
 1. 按技术栈 **并行**启动：Java→`java-reviewer`，Node.js/前端→`typescript-reviewer` + `security-reviewer`
 2. 任一 agent 失败 → **展示错误，暂停**
 3. CRITICAL/HIGH → **必须修复**（两种模式都拦截），修复前先写复现测试
-4. 修复后重审，**循环直到无 CRITICAL/HIGH，最多 5 轮**。5 轮后仍有 → 暂停等用户决定
+4. 修复后重审，**至少 3 轮、最多 5 轮**。即使无 CRITICAL/HIGH 也跑满 3 轮以充分审查。5 轮后仍有 → 暂停等用户决定
 5. MEDIUM/LOW → 展示建议，不强制
 6. 默认（自动）无 CRITICAL/HIGH 则继续
 
