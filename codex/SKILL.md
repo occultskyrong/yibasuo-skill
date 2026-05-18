@@ -1,7 +1,7 @@
 ---
 name: yibasuo
 version: "2.5.0"
-description: "一把梭 — 全流程自动化开发管线。输入需求，自动走完 规划→架构→TDD→实现→审查→提交。触发词：一把梭、全流程、端到端开发、一键开发、梭哈、all-in-one 开发。适用于功能开发、Bug 修复、重构等任何需要完整开发流程的任务。"
+description: "一把梭 — 全流程自动化开发管线。输入需求，自动走完 规划→架构→TDD→实现→审查→提交。Git 操作（提交、push、分支、合并等）见阶段5规范。触发词：一把梭、全流程、端到端开发、一键开发、梭哈、all-in-one 开发、提交、commit、push、推送、创建分支、切分支。"
 ---
 
 # 一把梭 — 全流程开发管线
@@ -124,16 +124,29 @@ description: "一把梭 — 全流程自动化开发管线。输入需求，自�
 
 ## 阶段 5：提交
 
-**目标**：生成规范的 commit 并推送到远端。
+**目标**：生成规范的 commit，打 tag，推送到远端。
+
+### Git 约定
+
+- **命令前缀**：本机主工作目录不含 git 仓库，所有 git 命令用 `git -C <项目路径>` 而非 `cd && git`
+- **分支命名**：`类型/YYMMDD_描述`（6 位日期，kebab-case），从 `production` 拉取
+- **禁止分支**：`production` / `master` 未经用户明确允许，禁止任何写操作
+- **提交格式**：`<type>(<scope>): <中文描述>`
+- **敏感文件**：`.env`、credentials、密钥不暂存（`git.mypacelab.com` 内部库例外）
+- **冲突处理**：禁止 `git checkout --ours/--theirs`，必须手动审查每个冲突文件
+- **误提交恢复**：代码正确不 revert，留在原分支报告用户决断；仅代码有 BUG 才 revert
+- **分步任务**：分步执行的任务不提交，所有任务完成后统一提交
 
 ### 步骤
 
-1. **启动验证**（NestJS 项目）：运行 `npm start` 确认服务能正常启动（至少无 DI 错误、无 crash），验证通过后停掉进程再继续
-2. 运行 `git diff --stat` 确认变更范围
-3. 按 conventional commits 格式生成 commit message
-4. 展示给用户确认
-5. 执行 `git add` + `git commit`
-6. 询问是否需要推送
+1. **提交前验证**（NestJS 项目）：`yarn test && yarn build && yarn format` 全部通过
+2. **启动验证**（NestJS 项目）：`npm start` 确认无 DI 错误，通过后停掉进程
+3. `git diff --stat` 确认变更范围，检查无敏感文件
+4. 按 Conventional Commits 格式生成中文 commit message，展示给用户确认
+5. `git add <具体文件>`（不用 `-A`）
+6. `git commit -m "message"`
+7. 打 tag：`git tag -a vX.Y.Z -m "vX.Y.Z: ..."`（SemVer，注释标签）
+8. 询问是否推送：`git push origin <分支> --tags`
 
 ---
 
