@@ -7,17 +7,17 @@
 ### Claude Code
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USER/yibasuo-skill/main/install.sh | bash
+git clone git@git.mypacelab.com:tools/yibasuo-skill.git /tmp/yibasuo-skill && cd /tmp/yibasuo-skill && bash install.sh
 ```
 
 ### Codex
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USER/yibasuo-skill/main/install.sh | bash -s -- --codex
+git clone git@git.mypacelab.com:tools/yibasuo-skill.git /tmp/yibasuo-skill && cd /tmp/yibasuo-skill && bash install.sh --codex
 ```
 
 或让 Claude/Codex 帮你装：
-> "从 https://github.com/YOUR_USER/yibasuo-skill.git clone 到 /tmp，执行 install.sh --codex"
+> "从 git@git.mypacelab.com:tools/yibasuo-skill.git clone 到 /tmp，执行 install.sh --codex"
 
 安装后说 **"一把梭"** 即可触发。
 
@@ -25,10 +25,10 @@ curl -fsSL https://raw.githubusercontent.com/YOUR_USER/yibasuo-skill/main/instal
 
 ```bash
 # Claude Code
-curl -fsSL https://raw.githubusercontent.com/YOUR_USER/yibasuo-skill/main/install.sh | bash -s -- --force
+cd /tmp/yibasuo-skill && git pull && bash install.sh --force
 
 # Codex
-curl -fsSL https://raw.githubusercontent.com/YOUR_USER/yibasuo-skill/main/install.sh | bash -s -- --codex --force
+cd /tmp/yibasuo-skill && git pull && bash install.sh --codex --force
 ```
 
 查看版本：`cat ~/.claude/skills/yibasuo/.installed-version`
@@ -65,6 +65,8 @@ curl -fsSL https://raw.githubusercontent.com/YOUR_USER/yibasuo-skill/main/instal
 | Node.js / NestJS | Vitest + supertest + Playwright + pino |
 | Vue / React 前端 | Vitest + Testing Library + Playwright + Prettier |
 
+**包管理器检测**（Node.js / 前端）：根据锁文件自动选择 — `pnpm-lock.yaml`→pnpm、`yarn.lock`→yarn、`package-lock.json`→npm。
+
 ## 方法论
 
 | 层面 | 来源 | 核心 |
@@ -89,9 +91,10 @@ curl -fsSL https://raw.githubusercontent.com/YOUR_USER/yibasuo-skill/main/instal
 | 新功能 / 重构 | 完整 6 阶段 |
 | Bug 修复 | 跳过 1-2，直接测试驱动开发 + 审查 + 提交 |
 | 单文件小改 | 不建议用 |
+| 纯研究 / 调研 | 不适用 |
 
 ## 依赖
 
-**Agent**（内置）：planner / architect / tdd-guide / java-reviewer / typescript-reviewer / security-reviewer
+**Agent**（内置）：planner / architect / tdd-guide / code-reviewer / security-reviewer / java-reviewer / typescript-reviewer
 
 **Rules**（自动安装）：`common` / `java` / `typescript` / `web`

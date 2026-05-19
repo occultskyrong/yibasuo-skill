@@ -19,8 +19,8 @@ else
   SKILL_SRC="skills/$SKILL_NAME"
 fi
 
-# Default repo URL (update when publishing to GitHub)
-REPO_URL="${YIBASUO_REPO:-https://github.com/YOUR_USER/yibasuo-skill.git}"
+# Default repo URL
+REPO_URL="${YIBASUO_REPO:-git@git.mypacelab.com:tools/yibasuo-skill.git}"
 
 # --- --version ---
 if [[ "${1:-}" == "--version" ]] || [[ "${1:-}" == "-v" ]]; then
@@ -53,6 +53,7 @@ if [[ "${1:-}" == "--verify" ]]; then
 
   check "VERSION      " "$SCRIPT_DIR/VERSION" "$VER"
   check "SKILL.md     " "$SCRIPT_DIR/skills/$SKILL_NAME/SKILL.md" "version:"
+  check "codex/SKILL  " "$SCRIPT_DIR/codex/SKILL.md" "version:"
   check "README       " "$SCRIPT_DIR/README.md" "v[0-9]"
   check "git tag      " <(cd "$SCRIPT_DIR" && git tag --points-at HEAD 2>/dev/null || echo "NO_TAG") "v[0-9]"
 
@@ -104,7 +105,7 @@ if [[ -f "$PREV_VERSION_FILE" ]]; then
 fi
 
 # --- Rules ---
-echo "[1/3] Installing rules..."
+echo "[1/4] Installing rules..."
 
 install_rules() {
   local lang="$1"
@@ -128,7 +129,7 @@ done
 
 # --- Skill ---
 echo ""
-echo "[2/3] Installing skill: $SKILL_NAME..."
+echo "[2/4] Installing skill: $SKILL_NAME..."
 
 SKILL_DEST="$BASE/skills/$SKILL_NAME"
 
@@ -139,6 +140,25 @@ else
   cp -r "$SCRIPT_DIR/$SKILL_SRC"/* "$SKILL_DEST/"
   echo "  [+] skills/$SKILL_NAME installed ($TARGET)"
 fi
+
+# --- Optional tools ---
+echo ""
+echo "[3/4] Installing optional tools..."
+
+install_tool() {
+  local name="$1"
+  local pkg="$2"
+  echo -n "  $name ... "
+  if command -v "$name" &>/dev/null || npx "$name" --version &>/dev/null 2>&1; then
+    echo "already available"
+  elif npm install -g "$pkg" 2>/dev/null; then
+    echo "installed"
+  else
+    echo "skipped (install manually: npm install -g $pkg)"
+  fi
+}
+
+install_tool ts-prune ts-prune
 
 # --- Force mode ---
 if [[ "$FORCE" == "--force" ]]; then
@@ -158,7 +178,7 @@ fi
 
 # --- Agents ---
 echo ""
-echo "[3/3] Installing agents..."
+echo "[4/4] Installing agents..."
 AGENT_DEST="$BASE/agents"
 
 if [[ -d "$SCRIPT_DIR/agents" ]]; then
@@ -195,6 +215,7 @@ else
   echo ""
   echo "依赖的 agent（Claude Code 内置）："
   echo "  - planner / architect / tdd-guide / code-reviewer / security-reviewer"
+  echo "  - java-reviewer / typescript-reviewer"
 fi
 echo ""
 echo "命令:"

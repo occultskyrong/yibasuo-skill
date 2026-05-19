@@ -1,9 +1,9 @@
 ---
 name: yibasuo
 version: "2.5.0"
-description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段0-4连续执行，仅提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
+description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段1-4连续执行，阶段0与提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
 requires:
-  agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer]
+  agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer, java-reviewer, typescript-reviewer]
   rules: [common, "java (Java 项目)", "typescript (Node.js 项目)", "web (Vue/React 前端项目)"]
 ---
 
@@ -25,7 +25,7 @@ requires:
 1. **编码前思考** — 不确定时提 2-3 种解释，不默默假设
 2. **简洁优先** — 最少代码解决问题，不添加未请求的功能
 3. **手术刀改动** — 只改任务相关代码，不顺手重构；死代码只提不删
-4. **循环验证** — 每阶段定义成功标准，不达标不回；覆盖率≥60%、CRITICAL=0 是底线
+4. **循环验证** — 每阶段定义成功标准，不达标不回；覆盖率≥80%、CRITICAL=0 是底线
 
 ## 语言适配
 
@@ -34,6 +34,8 @@ requires:
 | Java | JUnit5+AssertJ+Mockito+Testcontainers，p3c，构造器注入，Logback |
 | Node.js / NestJS | Vitest+supertest，NestJS分层，pino，`__`私有前缀，Zod |
 | Vue / React | Vitest+Testing Library，Pinia/Zustand，Playwright E2E，Prettier+ESLint |
+
+**包管理器检测**（Node.js / 前端项目）：根据锁文件自动选择 — `pnpm-lock.yaml`→pnpm、`yarn.lock`→yarn、`package-lock.json`→npm。优先级：pnpm > yarn > npm。以下文档用 `<pkg>` 指代检测到的包管理器。
 
 阶段 3-4 的 agent 直接操作文件，rules 按 `paths:` 自动加载。阶段 1-2 需手动在 agent prompt 中注入。
 
@@ -76,36 +78,42 @@ requires:
 
 1. `Agent({ subagent_type: "tdd-guide" })`，prompt 含需求 + 计划 + 架构 + 按技术栈指定测试命令：
    - Java → `mvn test`，JUnit5+AssertJ+Mockito，Testcontainers，JaCoCo
-   - Node.js → `pnpm test`，Vitest+supertest，Playwright E2E，v8
-   - 前端 → `pnpm test`，Vitest+Testing Library，Playwright E2E
+   - Node.js → `<pkg> test`，Vitest+supertest，Playwright E2E，v8
+   - 前端 → `<pkg> test`，Vitest+Testing Library，Playwright E2E
    - **强制 agent 先 Read 项目的 `rules/<lang>/testing.md` 再动手**
-2. RED → GREEN → IMPROVE，**默认覆盖率 ≥ 60%**
+2. RED → GREEN → IMPROVE，**目标覆盖率 ≥ 80%**（与 `rules/common/testing.md` 一致）
 3. Agent 失败 → **展示错误，暂停**
-4. 展示覆盖率，询问：「当前 XX%。是否继续提高到 80%？」用户说"够了"则继续。自动模式：60% 达标直接过，未达标暂停。
+4. 展示覆盖率。未达 80% → 暂停修复。达标则继续。
 
 ### 4. 审查
 
 1. 按技术栈 **并行**启动：Java→`java-reviewer`，Node.js/前端→`typescript-reviewer` + `security-reviewer`
 2. 任一 agent 失败 → **展示错误，暂停**
 3. CRITICAL/HIGH → **必须修复**（两种模式都拦截），修复前先写复现测试
-4. 修复后重审，**至少 3 轮、最多 5 轮**。即使无 CRITICAL/HIGH 也跑满 3 轮以充分审查。5 轮后仍有 → 暂停等用户决定
-5. MEDIUM/LOW → 展示建议，不强制
-6. 默认（自动）无 CRITICAL/HIGH 则继续
+4. **基础设施配置审查**（主会话执行，agent 不负责）：
+   - 扫描 `src/config/` 或 `src/main/resources/` 目录，识别同概念重复配置文件
+   - NestJS 项目：检查 `nest-cli.json` 的 `assets` 是否覆盖 `src/config/` 下所有 JSON 文件
+   - 检查 `.env.example` 变量与代码中 `process.env.*` 引用是否一一对应
+   - 检查是否存在硬编码的 API Key/Token/Password
+5. 修复后重审，**至少 3 轮、最多 5 轮**。即使无 CRITICAL/HIGH 也跑满 3 轮以充分审查。5 轮后仍有 → 暂停等用户决定
+6. MEDIUM/LOW → 展示建议，不强制
+7. 默认（自动）无 CRITICAL/HIGH 则继续
 
 ### 5. 提交
 
-1. **环境检查**：非 git 仓库警告暂停，`git diff --stat`
-2. **格式检查**（按技术栈）：
-   - Node.js/前端：prettier → eslint → ts-prune（僵尸代码扫描，列清单不自动删）
-   - Java：`mvn pmd:check`（p3c），修复建议 `mvn p3c:pmd` 或 IDE 插件
+1. **启动验证**（NestJS 项目）：运行 `<pkg> start:dev` 或 `npm start`，确认服务能正常启动（无 DI 错误、无 crash），验证通过后停掉进程再继续
+2. **环境检查**：非 git 仓库警告暂停，`git diff --stat`
+3. **格式检查**（按技术栈）：
+   - Node.js/前端：`<pkg>` prettier → `<pkg>` eslint → ts-prune（僵尸代码扫描，列清单不自动删）
+   - Java：检测 pom.xml 是否含 `maven-pmd-plugin` → 有则 `mvn pmd:check`，无则跳过
    - 格式失败 → 暂停。优先复用项目已有 formatter/linter 配置
-3. **构建验证**（Node.js/前端）：`pnpm build`，构建失败或缺 build 命令 → 暂停
-4. **完成前验证**：测试通过 + 覆盖率达标 + 无 CRITICAL/HIGH + 格式已执行 + 构建通过 + 无调试残留
-5. **生成 commit message**：遵循 [Conventional Commits](references/commit-conventions.md)（`<type>[!]: <desc>`），破坏性变更加 `!`
-6. **展示确认**（两种模式都必确认）
-7. `git add` + `git commit`
-8. **创建 tag**：遵循 [SemVer](references/commit-conventions.md#semver-tag)，根据 type 确定 MAJOR/MINOR/PATCH。非功能变更（docs/chore/refactor）不创建 tag。**标签不可变**
-9. 询问是否 push（含 `--tags`）。引导 PR/合并策略
+4. **构建验证**（Node.js/前端）：`<pkg> build`，构建失败或缺 build 命令 → 暂停
+5. **完成前验证**：测试通过 + 覆盖率达标 + 无 CRITICAL/HIGH + 格式已执行 + 构建通过 + 无调试残留
+6. **生成 commit message**：遵循 [Conventional Commits](references/commit-conventions.md)（`<type>[!]: <desc>`），破坏性变更加 `!`
+7. **展示确认**（两种模式都必确认）
+8. `git add` + `git commit`
+9. **创建 tag**：遵循 [SemVer](references/commit-conventions.md#semver-tag)，根据 type 确定 MAJOR/MINOR/PATCH。非功能变更（docs/chore/refactor）不创建 tag。**标签不可变**
+10. 询问是否 push（含 `--tags`）。引导 PR/合并策略
 
 ## 中断与恢复
 
@@ -120,6 +128,7 @@ requires:
 | 新功能 / 重构 | 完整 6 阶段 |
 | Bug 修复 | 跳过 1-2，直接 测试驱动开发 + 审查 + 提交 |
 | 单文件小改 | 不建议用 |
+| 纯研究 / 调研 | 不适用 |
 
 ## 示例
 

@@ -4,8 +4,8 @@
 
 ## 仓库
 
-- 远端: `https://github.com/YOUR_USER/yibasuo-skill.git`
-- 默认分支: `main`（或 `master`）
+- 远端: `git@git.mypacelab.com:tools/yibasuo-skill.git`
+- 默认分支: `master`
 
 ## 版本管理
 
@@ -28,24 +28,25 @@
 
 ### 版本一致性
 
-以下 4 处版本号必须相同：
+以下 5 处版本号必须相同：
 
-| 检查点 | 文件 | 字段 |
+| 检查点 | 来源 | 字段 |
 |--------|------|------|
 | 1 | `VERSION` | 纯文本 |
 | 2 | `skills/yibasuo/SKILL.md` | `version: "X.Y.Z"` |
-| 3 | `README.md` | 标题中的 `vX.Y.Z` |
-| 4 | `git tag` | `vX.Y.Z`（注释标签） |
+| 3 | `codex/SKILL.md` | `version: "X.Y.Z"` |
+| 4 | `README.md` | 标题中的 `vX.Y.Z` |
+| 5 | `git tag` | `vX.Y.Z`（注释标签） |
 
 ### 发布流程
 
 1. **先定版本号** — 根据 commit 前缀决定 semver 级别
-2. **同步 4 份文件** — `VERSION` + `SKILL.md` + `README.md` + `codex/SKILL.md`
+2. **同步 4 份文件** — `VERSION` + `SKILL.md` + `codex/SKILL.md` + `README.md`
 3. 追加 `CHANGELOG.md`
 4. `git add -A && git commit -m "<type>: <desc> (vX.Y.Z)"`
 5. `git tag -a vX.Y.Z -m "yibasuo-skill vX.Y.Z — <summary>"`
 6. `git push origin master --tags`
-7. **验证** — `bash install.sh --verify` 确认 4 处一致 + 标签打在 HEAD
+7. **验证** — `bash install.sh --verify` 确认 5 处一致 + 标签打在 HEAD
 
 Commit 格式: `<type>[!]: <description>` (feat/fix/docs/refactor/perf/chore/test/ci)
 
@@ -66,7 +67,7 @@ yibasuo-skill/
 ├── codex/
 │   └── SKILL.md          # Codex 版技能（无 agent 依赖，纯内联指令）
 ├── rules/
-│   ├── common/   (11 files)  # 通用规范，所有项目适用
+│   ├── common/   (10 files)  # 通用规范，所有项目适用
 │   ├── java/     (6 files)   # Java/Spring Boot 规范 + logging.md
 │   ├── typescript/ (6 files) # TypeScript/NestJS 规范 + logging.md
 │   └── web/      (5 files)   # Vue/React 前端规范
@@ -95,13 +96,13 @@ yibasuo-skill/
 | 阶段 | Claude Code (agent) | Codex (内联) |
 |------|--------------------|-------------|
 | 0. 需求确认 | 主会话 | 主会话 |
-| 1. 规划 | planner agent | 内联分析 |
-| 2. 架构 | architect agent | 内联生成 |
-| 3. 测试驱动开发 | tdd-guide agent | 内联执行 |
-| 4. 审查 | java/typescript-reviewer + security-reviewer | 内联审查 |
+| 1. 规划 | planner agent | 主会话内联分析 |
+| 2. 架构 | architect agent | 主会话内联设计 |
+| 3. 测试驱动开发 | tdd-guide agent | 主会话内联执行 |
+| 4. 审查 | java/typescript-reviewer + security-reviewer | 主会话内联审查 |
 | 5. 提交 | 主会话 | 主会话 |
 
-两个版本逻辑完全等价，差异仅在于 Claude Code 依赖内置 agent，Codex 用内联指令。
+两个版本逻辑完全等价，差异仅在于 Claude Code 版委托 agent 做重活，Codex 版在主会话内完成所有阶段。
 
 ### Rules 加载机制
 
