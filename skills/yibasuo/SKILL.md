@@ -39,6 +39,8 @@ requires:
 
 阶段 3-4 的 agent 直接操作文件，rules 按 `paths:` 自动加载。阶段 1-2 需手动在 agent prompt 中注入。
 
+**命名规范**：所有阶段生成的文件/分支/文档遵循 `naming-convention` skill——Git 分支 `feat/YYMMDD_desc`、Java 文件 PascalCase、NestJS 文件 snake_case、文档 `YYYYMMDD - 标题.md`。
+
 ## 工作流
 
 ```
