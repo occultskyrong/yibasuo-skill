@@ -7,3 +7,4 @@
 .env
 credentials.*
 secrets.*
+.installed-version
