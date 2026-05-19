@@ -1,6 +1,6 @@
 ---
 name: yibasuo
-version: "2.5.0"
+version: "2.6.0"
 description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段1-4连续执行，阶段0与提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer, java-reviewer, typescript-reviewer]
@@ -39,7 +39,7 @@ requires:
 
 阶段 3-4 的 agent 直接操作文件，rules 按 `paths:` 自动加载。阶段 1-2 需手动在 agent prompt 中注入。
 
-**命名规范**：所有阶段生成的文件/分支/文档遵循 `naming-convention` skill——Git 分支 `feat/YYMMDD_desc`、Java 文件 PascalCase、NestJS 文件 snake_case、文档 `YYYYMMDD - 标题.md`。
+**命名规范**：Git 分支 `feat/YYMMDD_desc`（见 `rules/common/git-workflow.md`）、Java 文件 PascalCase、NestJS 文件 snake_case、文档 `YYYYMMDD - 标题.md`。
 
 ## 工作流
 

@@ -4,8 +4,22 @@
 
 ## 仓库
 
-- 远端: `git@git.mypacelab.com:tools/yibasuo-skill.git`
+- 远端: `https://github.com/YOUR_USER/yibasuo-skill.git`
 - 默认分支: `master`
+
+## 自包含性
+
+一把梭是完全自包含的——安装后无需外部依赖即可运行：
+
+| 组件 | 位置 | 说明 |
+|------|------|------|
+| SKILL.md | `skills/yibasuo/` | 核心技能定义（131 行） |
+| 内置 Agent | `agents/`（7 个 .md） | planner/architect/tdd-guide/java-reviewer/typescript-reviewer/code-reviewer/security-reviewer |
+| Rules 规范 | `rules/`（common/java/typescript/web） | 编码风格、测试、安全、日志、模式 |
+| 提交规范 | `skills/yibasuo/references/commit-conventions.md` | Conventional Commits + SemVer 标签规则 |
+| 安装脚本 | `install.sh` | 一键安装 agents + rules + skill |
+
+所有引用均为项目内路径（`rules/...`、`references/...`），不依赖用户本地外部 skill 或配置。
 
 ## 版本管理
 

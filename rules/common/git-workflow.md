@@ -9,6 +9,18 @@
 
 Types: feat, fix, refactor, docs, test, chore, perf, ci
 
+## Branch Naming
+
+格式：`<type>/YYMMDD_short-desc`
+
+| 元素 | 规则 | 示例 |
+|------|------|------|
+| type | feat/fix/hotfix/refactor/docs/chore | `feat` |
+| YYMMDD | 6 位日期 | `260513` |
+| desc | kebab-case，小写英文+连字符 | `add-login-page` |
+
+示例：`feat/260513_add-user-profile`、`fix/260513_null-pointer`、`hotfix/260513_payment-failure`
+
 Note: Attribution disabled globally via ~/.claude/settings.json.
 
 ## Pull Request Workflow
