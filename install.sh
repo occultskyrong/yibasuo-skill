@@ -104,7 +104,7 @@ if [[ -f "$PREV_VERSION_FILE" ]]; then
 fi
 
 # --- Rules ---
-echo "[1/2] Installing rules..."
+echo "[1/3] Installing rules..."
 
 install_rules() {
   local lang="$1"
@@ -128,7 +128,7 @@ done
 
 # --- Skill ---
 echo ""
-echo "[2/2] Installing skill: $SKILL_NAME..."
+echo "[2/3] Installing skill: $SKILL_NAME..."
 
 SKILL_DEST="$BASE/skills/$SKILL_NAME"
 
@@ -152,6 +152,32 @@ if [[ "$FORCE" == "--force" ]]; then
   mkdir -p "$SKILL_DEST"
   cp -r "$SCRIPT_DIR/$SKILL_SRC"/* "$SKILL_DEST/"
   echo "  [+] skills/$SKILL_NAME (force overwritten, $TARGET)"
+
+  echo "  [+] agents/* (force overwritten)"
+fi
+
+# --- Agents ---
+echo ""
+echo "[3/3] Installing agents..."
+AGENT_DEST="$BASE/agents"
+
+if [[ -d "$SCRIPT_DIR/agents" ]]; then
+  mkdir -p "$AGENT_DEST"
+  installed=0 skipped=0
+  for agent in "$SCRIPT_DIR/agents"/*.md; do
+    agent_name=$(basename "$agent")
+    if [[ -f "$AGENT_DEST/$agent_name" ]] && [[ "$FORCE" != "--force" ]]; then
+      ((skipped++))
+    else
+      cp "$agent" "$AGENT_DEST/"
+      ((installed++))
+    fi
+  done
+  echo "  [+] agents: $installed installed, $skipped skipped (use --force to overwrite)"
+fi
+
+if [[ "$FORCE" == "--force" ]] && [[ -d "$SCRIPT_DIR/agents" ]]; then
+  cp "$SCRIPT_DIR/agents"/*.md "$AGENT_DEST/"
 fi
 
 # --- Write installed version marker ---
