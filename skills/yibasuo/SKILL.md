@@ -1,6 +1,6 @@
 ---
 name: yibasuo
-version: "2.6.2"
+version: "2.6.3"
 description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段1-4连续执行，阶段0与提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer, java-reviewer, typescript-reviewer]
@@ -141,7 +141,14 @@ nvm use 22 && codegraph init -i && codegraph index
    - Java：检测 pom.xml 是否含 `maven-pmd-plugin` → 有则 `mvn pmd:check`，无则跳过
    - 格式失败 → 暂停。优先复用项目已有 formatter/linter 配置
 4. **构建验证**（Node.js/前端）：`<pkg> build`，构建失败或缺 build 命令 → 暂停
-5. **完成前验证**：测试通过 + 覆盖率达标 + 无 CRITICAL/HIGH + 格式已执行 + 构建通过 + 无调试残留
+5. **完成前验证**：
+   - [x] 测试通过 + 覆盖率达标
+   - [x] 无 CRITICAL/HIGH 审查问题
+   - [x] 格式已执行（prettier+eslint / p3c）
+   - [x] 构建通过（或已处理缺失警告）
+   - [x] 无 console.log / 调试残留
+   - [x] 日志含 `[traceId]`（Logback `%X{traceId}` / pino mixin），日志格式符合规范
+   - [x] ApiResponse 含 `requestId`（UUID 去横线）
 6. **生成 commit message**：遵循 [Conventional Commits](references/commit-conventions.md)（`<type>[!]: <desc>`），破坏性变更加 `!`
 7. **展示确认**（两种模式都必确认）
 8. `git add` + `git commit`
