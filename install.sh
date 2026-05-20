@@ -127,19 +127,26 @@ for lang in common java typescript web; do
   install_rules "$lang"
 done
 
-# --- Skill ---
+# --- Skills ---
 echo ""
-echo "[2/4] Installing skill: $SKILL_NAME..."
+echo "[2/4] Installing skills..."
 
-SKILL_DEST="$BASE/skills/$SKILL_NAME"
+install_skill() {
+  local skill_name="$1"
+  local skill_src="$2"
+  local skill_dest="$BASE/skills/$skill_name"
 
-if [[ -d "$SKILL_DEST" ]]; then
-  echo "  [-] skills/$SKILL_NAME already exists, skipping (use --force to overwrite)"
-else
-  mkdir -p "$SKILL_DEST"
-  cp -r "$SCRIPT_DIR/$SKILL_SRC"/* "$SKILL_DEST/"
-  echo "  [+] skills/$SKILL_NAME installed ($TARGET)"
-fi
+  if [[ -d "$skill_dest" ]]; then
+    echo "  [-] skills/$skill_name already exists, skipping (use --force to overwrite)"
+  else
+    mkdir -p "$skill_dest"
+    cp -r "$SCRIPT_DIR/$skill_src"/* "$skill_dest/"
+    echo "  [+] skills/$skill_name installed"
+  fi
+}
+
+install_skill "$SKILL_NAME" "$SKILL_SRC"
+install_skill "git-workflow" "skills/git-workflow"
 
 # --- Optional tools ---
 echo ""
@@ -209,6 +216,9 @@ if [[ "$FORCE" == "--force" ]]; then
   mkdir -p "$SKILL_DEST"
   cp -r "$SCRIPT_DIR/$SKILL_SRC"/* "$SKILL_DEST/"
   echo "  [+] skills/$SKILL_NAME (force overwritten, $TARGET)"
+  mkdir -p "$BASE/skills/git-workflow"
+  cp -r "$SCRIPT_DIR/skills/git-workflow"/* "$BASE/skills/git-workflow/"
+  echo "  [+] skills/git-workflow (force overwritten)"
 
   echo "  [+] agents/* (force overwritten)"
 fi
