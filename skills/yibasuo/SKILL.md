@@ -1,6 +1,6 @@
 ---
 name: yibasuo
-version: "2.6.0"
+version: "2.6.1"
 description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段1-4连续执行，阶段0与提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer, java-reviewer, typescript-reviewer]
@@ -41,6 +41,35 @@ requires:
 
 **命名规范**：Git 分支 `feat/YYMMDD_desc`（见 `rules/common/git-workflow.md`）、Java 文件 PascalCase、NestJS 文件 snake_case、文档 `YYYYMMDD - 标题.md`。
 
+## CodeGraph 集成（可选）
+
+[CodeGraph](https://github.com/colbymchenry/codegraph) 预索引代码库，替代 agent 手工扫描文件，大幅减少 token 消耗。
+
+### 环境要求
+
+| 组件 | 版本 | 安装 |
+|------|------|------|
+| Node.js | **22**（`>=18.0.0 <25.0.0`） | `nvm install 22` |
+| codegraph | latest | `nvm use 22 && npx @colbymchenry/codegraph` |
+
+调用前必须 `nvm use 22`（或通过 wrapper 自动切换）。
+
+### 项目初始化（一次性）
+
+```bash
+nvm use 22 && codegraph init -i && codegraph index
+```
+
+### 阶段注入点
+
+| 阶段 | CodeGraph 命令 | 替代行为 |
+|------|------|------|
+| 1 规划 | `codegraph context "<需求描述>"` → markdown 注入 planner prompt | 替代 agent 手工 Read/grep 扫项目结构 |
+| 2 架构 | `codegraph query -k class "<关键类名>"` | 替代 agent 盲目搜调用链 |
+| 3 TDD | `codegraph affected src/改动的文件.ts` | 自动定位受影响测试文件 |
+| 4 审查 | `codegraph query "<变更的符号名>"` | 验证所有引用点已更新 |
+| 持续 | `codegraph sync` | 增量更新索引 |
+
 ## 工作流
 
 ```
@@ -62,8 +91,8 @@ requires:
 
 ### 1. 规划
 
-1. **先读项目代码**：`Read`/`Bash` 确认项目结构、模块、版本
-2. `Agent({ subagent_type: "planner" })`，prompt 含：需求卡片 + 项目结构摘要 + 语言规范。要求输出任务分解、依赖关系图、风险点列表
+1. **先读项目代码**（有 CodeGraph 则用 `nvm use 22 && codegraph context "<需求>"` 替代手工读代码）
+2. `Agent({ subagent_type: "planner" })`，prompt 含：需求卡片 + 项目结构摘要（CodeGraph 输出） + 语言规范。要求输出任务分解、依赖关系图、风险点列表
 3. Agent 失败 → **展示错误，暂停**（两种模式都停）
 4. 默认（自动）直接继续。交互模式问"计划 OK？"
 
@@ -83,6 +112,7 @@ requires:
    - Node.js → `<pkg> test`，Vitest+supertest，Playwright E2E，v8
    - 前端 → `<pkg> test`，Vitest+Testing Library，Playwright E2E
    - **强制 agent 先 Read 项目的 `rules/<lang>/testing.md` 再动手**
+   - 有 CodeGraph 时：`codegraph affected <改动文件>` 自动定位受影响测试，加速 RED 阶段
 2. RED → GREEN → IMPROVE，**目标覆盖率 ≥ 80%**（与 `rules/common/testing.md` 一致）
 3. Agent 失败 → **展示错误，暂停**
 4. 展示覆盖率。未达 80% → 暂停修复。达标则继续。
@@ -100,6 +130,7 @@ requires:
 5. 修复后重审，**至少 3 轮、最多 5 轮**。即使无 CRITICAL/HIGH 也跑满 3 轮以充分审查。5 轮后仍有 → 暂停等用户决定
 6. MEDIUM/LOW → 展示建议，不强制
 7. 默认（自动）无 CRITICAL/HIGH 则继续
+8. 有 CodeGraph 时：`codegraph query "<变更符号>"` 验证所有引用点已更新
 
 ### 5. 提交
 

@@ -160,6 +160,43 @@ install_tool() {
 
 install_tool ts-prune ts-prune
 
+# codegraph: requires Node 18-24 → wrapper auto-switches via nvm
+install_codegraph() {
+  local wrapper_dest
+
+  # Find writable bin dir (prefer ~/.local/bin for portability)
+  for d in "$HOME/.local/bin" "/usr/local/bin"; do
+    if [[ -d "$d" ]] && [[ -w "$d" ]]; then wrapper_dest="$d"; break; fi
+  done
+  [[ -z "$wrapper_dest" ]] && wrapper_dest="$HOME/.local/bin"
+  mkdir -p "$wrapper_dest"
+
+  # Write portable wrapper: auto-detect nvm, switch to 22, exec codegraph
+  cat > "$wrapper_dest/codegraph" << 'CGWRAP'
+#!/usr/bin/env bash
+set -e
+# find nvm
+for nvm_dir in "${NVM_DIR:-}" "$HOME/.nvm"; do
+  [[ -s "$nvm_dir/nvm.sh" ]] && . "$nvm_dir/nvm.sh" && break
+done
+# switch to node 22
+nvm use 22 >/dev/null 2>&1 || {
+  echo "[codegraph] Node 22 not found. Install: nvm install 22" >&2
+  exit 1
+}
+exec codegraph "$@"
+CGWRAP
+  chmod +x "$wrapper_dest/codegraph"
+
+  echo -n "  codegraph wrapper -> $wrapper_dest/codegraph ... "
+  if "$wrapper_dest/codegraph" --version &>/dev/null; then
+    echo "ok ($("$wrapper_dest/codegraph" --version 2>/dev/null))"
+  else
+    echo "wrapper created (install codegraph: nvm use 22 && npx @colbymchenry/codegraph)"
+  fi
+}
+install_codegraph
+
 # --- Force mode ---
 if [[ "$FORCE" == "--force" ]]; then
   echo ""
