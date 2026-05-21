@@ -223,6 +223,28 @@ export function validateEnv(config: Record<string, unknown>) {
 
 Fail fast: if required env vars are missing, crash at boot — don't limp along.
 
+## 时间格式
+
+**统一传输格式：** `yyyy-MM-dd HH:mm:ss.SSS`（精确到毫秒）
+
+API 输入/输出、JSON 序列化、数据库 DateTime、日志时间戳均使用此格式。
+
+```typescript
+// dayjs 格式化
+dayjs().format('YYYY-MM-DD HH:mm:ss.SSS');
+
+// 原生 Date → 字符串
+new Date().toISOString(); // 不推荐：ISO格式
+// 推荐手写 formatter:
+const pad = (n: number, len = 2) => String(n).padStart(len, '0');
+const d = new Date();
+`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`;
+```
+
+- 时区统一 `Asia/Shanghai`
+- 禁止使用 `toISOString()`（ISO 8601 格式为 `T` 分隔、带时区后缀，与统一格式不兼容）
+- 禁止仅到秒（`HH:mm:ss` 无毫秒）
+
 ## API Response Envelope
 
 遵循《阿里巴巴 Java 开发手册》前后端规约，Java / NestJS 使用相同结构：

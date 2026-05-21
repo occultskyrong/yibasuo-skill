@@ -179,6 +179,24 @@ public class AuthController { ... }
 | 删字段 | 同上 |
 | 消费者未对接 | 不兼容变更可直接改 |
 
+## 时间格式
+
+**统一传输格式：** `yyyy-MM-dd HH:mm:ss.SSS`（精确到毫秒）
+
+API 输入/输出、JSON 序列化、数据库 DateTime、日志时间戳均使用此格式。
+
+```java
+// Jackson 全局配置
+@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS", timezone = "Asia/Shanghai")
+private LocalDateTime createdAt;
+
+// SimpleDateFormat（线程安全用 ThreadLocal）
+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+```
+
+- 时区统一 `Asia/Shanghai`
+- 禁止使用 `yyyy-MM-dd'T'HH:mm:ss`（ISO 8601 无毫秒不完整）、禁止仅到秒（`yyyy-MM-dd HH:mm:ss`）
+
 ## 数据库规范
 
 遵循《阿里巴巴 Java 开发手册》数据库规约。
