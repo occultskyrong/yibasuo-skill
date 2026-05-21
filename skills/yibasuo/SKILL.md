@@ -1,6 +1,6 @@
 ---
 name: yibasuo
-version: "2.6.3"
+version: "2.7.0"
 description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段1-4连续执行，阶段0与提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer, java-reviewer, typescript-reviewer]
@@ -147,8 +147,7 @@ nvm use 22 && codegraph init -i && codegraph index
    - [x] 格式已执行（prettier+eslint / p3c）
    - [x] 构建通过（或已处理缺失警告）
    - [x] 无 console.log / 调试残留
-   - [x] 日志含 `[traceId]`（Logback `%X{traceId}` / pino mixin），日志格式符合规范
-   - [x] ApiResponse 含 `requestId`（UUID 去横线）
+   - [x] 全链路 traceId 一致——Gateway → BFF → 微服务日志同一 `[traceId]`（规范见 [references/trace-id.md](references/trace-id.md)）
 6. **生成 commit message**：遵循 [Conventional Commits](references/commit-conventions.md)（`<type>[!]: <desc>`），破坏性变更加 `!`
 7. **展示确认**（两种模式都必确认）
 8. `git add` + `git commit`
