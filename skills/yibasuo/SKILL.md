@@ -173,7 +173,7 @@ nvm use 22 && codegraph init -i && codegraph index
    - [x] 格式已执行（prettier+eslint / p3c）
    - [x] 构建通过（或已处理缺失警告）
    - [x] 无 console.log / 调试残留
-   - [x] 接口返回含 `requestId`（= traceId）和 `metadata`（timestamp/method/endpoint），格式符合规范（规范见 [references/trace-id.md](references/trace-id.md)）
+   - [x] 接口返回含 `requestId`（= traceId）和 `metadata`（timestamp/method/endpoint），格式符合 `rules/java/patterns.md` 规范
 6. **生成 commit message**：遵循 [Conventional Commits](references/commit-conventions.md)（`<type>[!]: <desc>`），破坏性变更加 `!`
 7. **展示确认**（两种模式都必确认）
 8. `git add` + `git commit`
