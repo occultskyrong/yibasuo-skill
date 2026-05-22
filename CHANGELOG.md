@@ -54,3 +54,24 @@
 - install.sh 一键安装脚本（支持 --force 覆盖）
 - 阶段门禁机制：每阶段暂停等待用户确认
 - 内置 Agent 编排：planner / architect / tdd-guide / code-reviewer / security-reviewer
+
+## [2.7.7] - 2026-05-24
+
+### Added
+- 行为红线第5条: 破坏性变更需确认+日志(.yibasuo-deletions.log)
+- 前端项目差异: 静态网站/管理后台分流,管理后台增加头脑风暴+设计流程
+- git-workflow独立技能(分支命名/保护分支/Conventional Commits/SemVer Tag)
+
+### Changed
+- feat!: ApiResponse合并traceId+requestId,增加metadata字段(v2.7.4, v2.7.5回退metadata)
+- SKILL.md 222→131行重构,渐进式披露
+- Stage5验证清单增加traceId+requestId检查
+- 命名规范嵌入rules(不再依赖外部naming-convention skill)
+- 统一时间传输格式: yyyy-MM-dd HH:mm:ss.SSS
+- TDD覆盖率80%恢复为硬性要求
+
+### Fixed
+- 前端审查修复: 补全静态网站4项+管理后台9项检查
+- 全仓库脱敏: README/install.sh/CLAUDE/codex替换私有信息
+- Stage3标题恢复(遗漏bug)
+
