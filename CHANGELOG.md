@@ -75,3 +75,9 @@
 - 全仓库脱敏: README/install.sh/CLAUDE/codex替换私有信息
 - Stage3标题恢复(遗漏bug)
 
+
+## [2.8.1] - 2026-05-24
+
+### Changed
+- 生成说明文档改用 `ui-ux-pro-max` skill（替代 frontend-design）
+
