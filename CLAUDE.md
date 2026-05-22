@@ -4,7 +4,7 @@
 
 ## 仓库
 
-- 远端: `https://github.com/YOUR_USER/yibasuo-skill.git`
+- 远端: `git@github.com:occultskyrong/yibasuo-skill.git`
 - 默认分支: `master`
 
 ## 自包含性

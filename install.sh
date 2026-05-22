@@ -20,7 +20,7 @@ else
 fi
 
 # Default repo URL
-REPO_URL="${YIBASUO_REPO:-https://github.com/YOUR_USER/yibasuo-skill.git}"
+REPO_URL="${YIBASUO_REPO:-git@github.com:occultskyrong/yibasuo-skill.git}"
 
 # --- --version ---
 if [[ "${1:-}" == "--version" ]] || [[ "${1:-}" == "-v" ]]; then

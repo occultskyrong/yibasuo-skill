@@ -7,17 +7,17 @@
 ### Claude Code
 
 ```bash
-git clone https://github.com/YOUR_USER/yibasuo-skill.git /tmp/yibasuo-skill && cd /tmp/yibasuo-skill && bash install.sh
+git clone git@github.com:occultskyrong/yibasuo-skill.git /tmp/yibasuo-skill && cd /tmp/yibasuo-skill && bash install.sh
 ```
 
 ### Codex
 
 ```bash
-git clone https://github.com/YOUR_USER/yibasuo-skill.git /tmp/yibasuo-skill && cd /tmp/yibasuo-skill && bash install.sh --codex
+git clone git@github.com:occultskyrong/yibasuo-skill.git /tmp/yibasuo-skill && cd /tmp/yibasuo-skill && bash install.sh --codex
 ```
 
 或让 Claude/Codex 帮你装：
-> "从 https://github.com/YOUR_USER/yibasuo-skill.git clone 到 /tmp，执行 install.sh --codex"
+> "从 git@github.com:occultskyrong/yibasuo-skill.git clone 到 /tmp，执行 install.sh --codex"
 
 安装后说 **"一把梭"** 即可触发。
 
