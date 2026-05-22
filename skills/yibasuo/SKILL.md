@@ -1,6 +1,6 @@
 ---
 name: yibasuo
-version: "2.8.2"
+version: "2.8.3"
 description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段1-4连续执行，阶段0与提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer, java-reviewer, typescript-reviewer]
@@ -71,32 +71,7 @@ requires:
 
 ## CodeGraph 集成（可选）
 
-[CodeGraph](https://github.com/colbymchenry/codegraph) 预索引代码库，替代 agent 手工扫描文件，大幅减少 token 消耗。
-
-### 环境要求
-
-| 组件 | 版本 | 安装 |
-|------|------|------|
-| Node.js | **22**（`>=18.0.0 <25.0.0`） | `nvm install 22` |
-| codegraph | latest | `nvm use 22 && npx @colbymchenry/codegraph` |
-
-调用前必须 `nvm use 22`（或通过 wrapper 自动切换）。
-
-### 项目初始化（一次性）
-
-```bash
-nvm use 22 && codegraph init -i && codegraph index
-```
-
-### 阶段注入点
-
-| 阶段 | CodeGraph 命令 | 替代行为 |
-|------|------|------|
-| 1 规划 | `codegraph context "<需求描述>"` → markdown 注入 planner prompt | 替代 agent 手工 Read/grep 扫项目结构 |
-| 2 架构 | `codegraph query -k class "<关键类名>"` | 替代 agent 盲目搜调用链 |
-| 3 TDD | `codegraph affected src/改动的文件.ts` | 自动定位受影响测试文件 |
-| 4 审查 | `codegraph query "<变更的符号名>"` | 验证所有引用点已更新 |
-| 持续 | `codegraph sync` | 增量更新索引 |
+详见 [references/codegraph.md](references/codegraph.md) — 预索引代码库，替代 agent 扫描文件。初始化：`nvm use 22 && codegraph init -i && codegraph index`。
 
 ## 工作流
 
@@ -200,7 +175,16 @@ nvm use 22 && codegraph init -i && codegraph index
 
 ## 示例
 
-用户说：`自动梭 修复登录超时没提示` → 阶段0澄清→跳过1-2→阶段3 TDD→阶段4审查→阶段5 commit `fix: 登录超时增加用户提示`→tag `v1.2.1`
+用户说：`自动梭 修复登录超时没提示`
+
+| 阶段 | 行为 |
+|------|------|
+| 0 | 澄清：超时多少秒？提示文案？确认 NestJS → 注入 typescript rules |
+| 1 | （Bug 修复跳过） |
+| 2 | （Bug 修复跳过） |
+| 3 | tdd-guide：`pnpm test`，Vitest+supertest，覆盖率≥80% |
+| 4 | typescript-reviewer ∥ security-reviewer 并行 |
+| 5 | prettier→eslint→ts-prune→build→commit `fix: 登录超时增加用户提示`→tag `v1.2.1`
 
 ## 反模式
 
