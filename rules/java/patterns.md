@@ -130,28 +130,65 @@ String message = switch (result) {
 遵循《阿里巴巴 Java 开发手册（黄山版）》前后端规约：
 
 ```json
-// 成功
-{"code":0,"message":"操作成功","data":{...},"requestId":"xxx"}
-// 业务错误
-{"code":"LOGIN_FAILED","message":"用户名或密码错误","data":null,"requestId":"xxx"}
+{
+  "code": 0,
+  "message": "操作成功",
+  "data": {...},
+  "requestId": "a1b2c3d4e5f6",
+  "metadata": {
+    "timestamp": "2026-05-21 19:00:00.111",
+    "method": "POST",
+    "endpoint": "/api/users",
+    "count": 100,
+    "totalPages": 10,
+    "currentPage": 1,
+    "pageSize": 10
+  }
+}
 ```
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | `code` | Object | 成功=0(Integer)，失败=String（业务错误码）|
 | `message` | String | 用户提示信息 |
-| `data` | T | 业务数据 |
-| `requestId` | String | 请求追踪 ID |
+| `data` | T | 业务数据，空列表返回 `[]` |
+| `requestId` | String | **= traceId**，Gateway 生成后全链路透传，前端报错时回传此值即可定位日志 |
+| `metadata` | Object | 请求上下文 + 分页，非分页接口仅含 timestamp/method/endpoint |
 
-**强制项：** 空列表返回 `[]`，禁止 `null`。JSON key 使用 lowerCamelCase。HTTP 状态码由 `BusinessCode.httpCode` 控制。禁止在 `message` 中泄露敏感信息。
+### requestId = traceId
+
+requestId 不是独立 UUID，而是 traceId（Gateway 生成，经 `X-Trace-Id` 头透传）。一条链路一个值，日志中 `[traceId=xxx]` 和响应中 `requestId=xxx` 是同一个。
+
+### traceId 生成规则
+
+| 角色 | 行为 |
+|------|------|
+| **Gateway** | 生成 traceId（UUID 去横线），写入 MDC + `X-Trace-Id` 响应头 |
+| **BFF / 微服务** | 从 `X-Trace-Id` 请求头提取 → MDC；无则自生成 |
+| **所有服务** | traceId 写入日志 `[%X{traceId}]`，设置给 `ApiResponse.requestId` |
 
 ```java
-public record ApiResponse<T>(Object code, String message, T data, String requestId) {
-    public static <T> ApiResponse<T> ok(T data) {
-        return new ApiResponse<>(0, "操作成功", data, UUID.randomUUID().toString().replace("-", ""));
+// Gateway Filter 或全局 Interceptor
+String traceId = request.getHeader("X-Trace-Id");
+if (traceId == null || traceId.isEmpty()) {
+    traceId = UUID.randomUUID().toString().replace("-", "");
+}
+MDC.put("traceId", traceId);
+response.setHeader("X-Trace-Id", traceId);
+```
+
+```java
+public record ApiResponse<T>(Object code, String message, T data, String requestId, Metadata metadata) {
+    public record Metadata(String timestamp, String method, String endpoint,
+                           Long count, Integer totalPages, Integer currentPage, Integer pageSize) {}
+
+    public static <T> ApiResponse<T> ok(T data, String method, String endpoint) {
+        return new ApiResponse<>(0, "操作成功", data,
+            MDC.get("traceId"),
+            new Metadata(formatNow(), method, endpoint, null, null, null, null));
     }
     public static <T> ApiResponse<T> fail(String code, String message) {
-        return new ApiResponse<>(code, message, null, UUID.randomUUID().toString().replace("-", ""));
+        return new ApiResponse<>(code, message, null, MDC.get("traceId"), null);
     }
 }
 ```
