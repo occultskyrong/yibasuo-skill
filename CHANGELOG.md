@@ -1,5 +1,36 @@
 # Changelog
 
+## [2.8.6] - 2026-05-23
+
+### Changed
+- 需求澄清从"一次一个问题"改为"一次一个主题"，跨模块复杂需求允许多问
+- 前端项目差异从语言适配中独立为 `##` 节
+
+### Refactored
+- 基础设施配置审查详情移至 `references/infrastructure-review.md`
+
+## [2.8.5] - 2026-05-23
+
+### Refactored
+- 迁移规范从 Java 专属移至 `rules/common/patterns.md`，Java/TypeScript 各留引用
+
+## [2.8.4] - 2026-05-22
+
+### Added
+- 数据库迁移规范：6步流程（编写→验证→提交→CI幂等→部署→记录）+ 幂等 + 回滚 + 大表策略 + 反模式
+
+### Fixed
+- 删除复活的 `trace-id.md` 僵尸文件
+
+## [2.8.3] - 2026-05-22
+
+### Refactored
+- CodeGraph 集成详情抽出到 `references/codegraph.md`
+- 示例恢复为表格格式
+
+### Removed
+- 清理僵尸文件（trace-id.md, meta.md）
+
 ## [2.8.2] - 2026-05-24
 
 ### Added
