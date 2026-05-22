@@ -1,4 +1,4 @@
-# 一把梭 (yibasuo) — 全流程开发管线 v2.8.0
+# 一把梭 (yibasuo) — 全流程开发管线 v2.8.1
 
 > 需求 → 规划 → 架构 → 测试驱动开发 → 审查 → 提交。7 个内置 Agent 强制执行，消除 AI 编码的随机性。
 
@@ -47,7 +47,7 @@ cd /tmp/yibasuo-skill && bash install.sh --codex
 | 新功能 / 重构 | 完整 6 阶段 |
 | Bug 修复 | 跳过 1-2，TDD + 审查 + 提交 |
 | 单文件小改 | 不建议用 |
-| 生成说明文档 | 收集项目信息 → 调用 frontend-design 生成 HTML |
+| 生成说明文档 | 收集项目信息 → 调用 ui-ux-pro-max 生成 HTML |
 
 ## 更新
 
