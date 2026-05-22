@@ -250,41 +250,58 @@ const d = new Date();
 遵循《阿里巴巴 Java 开发手册》前后端规约，Java / NestJS 使用相同结构：
 
 ```json
-{"code":0,"message":"操作成功","data":{...},"requestId":"xxx"}
-{"code":"LOGIN_FAILED","message":"用户名或密码错误","data":null,"requestId":"xxx"}
+{
+  "code": 0,
+  "message": "操作成功",
+  "data": {...},
+  "requestId": "a1b2c3d4e5f6",
+  "metadata": {
+    "timestamp": "2026-05-21 19:00:00.111",
+    "method": "POST",
+    "endpoint": "/api/users",
+    "count": 100,
+    "currentPage": 1
+  }
+}
 ```
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | `code` | `number \| string` | 成功=0，失败=String 业务错误码 |
 | `message` | `string` | 用户提示信息 |
-| `data` | `T \| null` | 业务数据 |
-| `requestId` | `string` | UUID 去横线，请求追踪 |
+| `data` | `T \| null` | 业务数据，空列表返回 `[]` |
+| `requestId` | `string` | **= traceId**，Gateway 生成后全链路透传 |
+| `metadata` | `object` | 请求上下文 + 分页（非分页接口仅含 timestamp/method/endpoint） |
 
 ```typescript
 interface ApiResponse<T = unknown> {
   code: number | string
   message: string
   data: T | null
-  requestId: string
+  requestId: string              // = traceId
+  metadata: {
+    timestamp: string            // yyyy-MM-dd HH:mm:ss.SSS
+    method: string
+    endpoint: string
+    count?: number
+    totalPages?: number
+    currentPage?: number
+    pageSize?: number
+  }
 }
 ```
 
-**强制项：** 空列表返回 `[]`，禁止 `null`。JSON key 使用 lowerCamelCase。
+### requestId = traceId
 
-### traceId 生成规则
-
-| 角色 | 行为 |
-|------|------|
-| **Gateway** | 生成 traceId（UUID 去横线），写入 AsyncLocalStorage 和响应头 `X-Trace-Id` |
-| **BFF / 微服务** | 从请求头 `X-Trace-Id` 提取 traceId；若请求头无此字段，自行生成 |
-| **所有服务** | traceId 注入日志，并设置为 ApiResponse.requestId |
+requestId 不是独立 UUID，而是 traceId。Gateway 生成 → 经 `X-Trace-Id` 头透传 → 写入日志 + 返回给客户端。一条链路一个值。
 
 ```typescript
 const traceId = req.headers['x-trace-id'] as string
   || crypto.randomUUID().replace(/-/g, '');
 res.setHeader('X-Trace-Id', traceId);
 ```
+
+**强制项：** 空列表返回 `[]`，禁止 `null`。JSON key 使用 lowerCamelCase。
 
 ## Custom Hooks (React)
 
