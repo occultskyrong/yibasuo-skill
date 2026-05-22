@@ -162,7 +162,7 @@ description: "一把梭 — 全流程自动化开发管线。输入需求，自�
 - **分支命名**：`类型/YYMMDD_描述`（6 位日期，kebab-case），从 `production` 拉取
 - **禁止分支**：`production` / `master` 未经用户明确允许，禁止任何写操作
 - **提交格式**：`<type>(<scope>): <中文描述>`
-- **敏感文件**：`.env`、credentials、密钥不暂存（`git.mypacelab.com` 内部库例外）
+- **敏感文件**：`.env`、credentials、密钥不暂存
 - **冲突处理**：禁止 `git checkout --ours/--theirs`，必须手动审查每个冲突文件
 - **误提交恢复**：代码正确不 revert，留在原分支报告用户决断；仅代码有 BUG 才 revert
 - **分步任务**：分步执行的任务不提交，所有任务完成后统一提交

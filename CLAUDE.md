@@ -138,12 +138,12 @@ yibasuo-skill/
 
 | # | 检查项 | 示例 | 位置 |
 |---|--------|------|------|
-| 1 | 私有 GitLab 地址 | `git.mypacelab.com` | README, CLAUDE, install.sh |
-| 2 | 项目名/路径 | 特定项目名称映射 | 不在本仓库 — 存 `~/.claude/config/git-base-branches.conf` |
-| 3 | IP/域名 | 内网地址、数据库地址 | rules/logging.md 示例 |
-| 4 | 用户名/路径 | `~/code/witkey/`、`zhangrz` | CLAUDE.md, CHANGELOG |
+| 1 | 私有 Git 地址 | `git.company.com` | README, install.sh |
+| 2 | 项目名/路径 | 特定项目名称映射 | 不在本仓库 |
+| 3 | IP/域名 | 内网地址、数据库地址 | rules 示例代码 |
+| 4 | 用户名/路径 | `~/code/project/`、真实姓名 | 全仓库 |
 
 **脱敏后的存在形式**：
 - `YOUR_USER` 占位（GitHub URL）
 - `example.com` / `localhost` 示例
-- 基准分支映射 → 不在此仓库，通过 `~/.claude/config/` 本地加载
+- 敏感配置 → 通过本地配置文件加载，不提交
