@@ -1,4 +1,4 @@
-# 一把梭 (yibasuo) — 全流程开发管线 v2.8.1
+# 一把梭 (yibasuo) — 全流程开发管线 v2.8.2
 
 > 需求 → 规划 → 架构 → 测试驱动开发 → 审查 → 提交。7 个内置 Agent 强制执行，消除 AI 编码的随机性。
 
@@ -14,8 +14,6 @@ git clone git@github.com:occultskyrong/yibasuo-skill.git /tmp/yibasuo-skill
 cd /tmp/yibasuo-skill && bash install.sh --codex
 ```
 
-或让 Claude 帮你装：
-> "从 git@github.com:occultskyrong/yibasuo-skill.git clone 到 /tmp，执行 install.sh"
 
 ## 快速开始
 
@@ -31,6 +29,18 @@ cd /tmp/yibasuo-skill && bash install.sh --codex
 | 3. 测试驱动开发 | tdd-guide agent：RED→GREEN→IMPROVE、覆盖率≥80% |
 | 4. 审查 | code-reviewer + security-reviewer 并行，CRITICAL/HIGH 拦截 |
 | 5. 提交 | 格式检查→构建验证→Conventional Commit→SemVer Tag→Push |
+
+## ⚠️ Token 消耗说明
+
+一把梭会显著增加 API 调用量——每个阶段都会调用内置 Agent 进行独立分析，这些额外消耗换来的是架构评审、强制 TDD、代码审查、安全审查、提交前验证。
+
+| 场景 | 直接对话 | 一把梭 | 倍数 |
+|------|---------|--------|------|
+| 新功能（中等复杂度） | ~25K | ~90K | **~3.5x** |
+| Bug 修复 | ~12K | ~40K | **~3x** |
+| 简单改动 | ~5K | ~8K | ~1.5x |
+
+> 多的 50-70K tokens 成本买的是 4 道质检 + 确定性流程。如果只是改一行文字，不建议使用。
 
 ## 支持的技术栈
 
