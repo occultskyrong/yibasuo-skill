@@ -1,6 +1,6 @@
 ---
 name: yibasuo
-version: "2.7.0"
+version: "2.7.1"
 description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段1-4连续执行，阶段0与提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer, java-reviewer, typescript-reviewer]
@@ -38,6 +38,18 @@ requires:
 **包管理器检测**（Node.js / 前端项目）：根据锁文件自动选择 — `pnpm-lock.yaml`→pnpm、`yarn.lock`→yarn、`package-lock.json`→npm。优先级：pnpm > yarn > npm。以下文档用 `<pkg>` 指代检测到的包管理器。
 
 阶段 3-4 的 agent 直接操作文件，rules 按 `paths:` 自动加载。阶段 1-2 需手动在 agent prompt 中注入。
+
+### 前端项目差异
+
+前端项目与后端流程有两处关键差异：
+
+| 阶段 | 后端（Java/NestJS） | 前端（Vue/React） |
+|------|-------------------|-------------------|
+| 2 架构 | ADR + 接口契约 + DDL | **组件树 + 路由设计 + 状态管理架构 + 数据流** |
+| 4 审查 | java/typescript-reviewer | typescript-reviewer + **`rules/web/static-website-checklist.md`**（安全/CDN/备案/SEO/域名/模板残留） |
+| 5 提交 | mvn pmd:check | prettier+eslint + **备案信息检查**（ICP 号、公安备案号、警徽图标） |
+
+前端阶段 2 不生成 ADR，替代为组件拆分方案 + 路由表 + Store 结构 + API 对接清单。
 
 **命名规范**：Git 分支 `feat/YYMMDD_desc`（见 `rules/common/git-workflow.md`）、Java 文件 PascalCase、NestJS 文件 snake_case、文档 `YYYYMMDD - 标题.md`。
 
