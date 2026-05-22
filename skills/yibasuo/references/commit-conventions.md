@@ -22,7 +22,7 @@
 | `feat!:` `fix!:` | **MAJOR** `1.0.0→2.0.0` |
 | `feat:` | **MINOR** `1.0.0→1.1.0` |
 | `fix:` | **PATCH** `1.0.0→1.0.1` |
-| `docs:` `chore:` `refactor:` `test:` `ci:` `perf:` | 不创建 tag |
+| `docs:` `chore:` `refactor:` `test:` `ci:` `perf:` | **PATCH** `1.0.0→1.0.1` |
 
 **标签铁律**：`git push --tags` 后永不 `tag -d` 重打，发现错误发新版本。
 
