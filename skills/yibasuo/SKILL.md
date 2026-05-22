@@ -1,6 +1,6 @@
 ---
 name: yibasuo
-version: "2.7.5"
+version: "2.7.6"
 description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段1-4连续执行，阶段0与提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer, java-reviewer, typescript-reviewer]
@@ -38,6 +38,8 @@ requires:
 **包管理器检测**（Node.js / 前端项目）：根据锁文件自动选择 — `pnpm-lock.yaml`→pnpm、`yarn.lock`→yarn、`package-lock.json`→npm。优先级：pnpm > yarn > npm。以下文档用 `<pkg>` 指代检测到的包管理器。
 
 阶段 3-4 的 agent 直接操作文件，rules 按 `paths:` 自动加载。阶段 1-2 需手动在 agent prompt 中注入。
+
+**统一接口返回**：`{ code, message, data, requestId, metadata }` — requestId 即 traceId 全链路透传，metadata 含 timestamp/method/endpoint + 分页。详见 `rules/java/patterns.md` 或 `rules/typescript/patterns.md`。
 
 ### 前端项目差异
 
@@ -171,7 +173,7 @@ nvm use 22 && codegraph init -i && codegraph index
    - [x] 格式已执行（prettier+eslint / p3c）
    - [x] 构建通过（或已处理缺失警告）
    - [x] 无 console.log / 调试残留
-   - [x] 全链路 traceId 一致——Gateway → BFF → 微服务日志同一 `[traceId]`（规范见 [references/trace-id.md](references/trace-id.md)）
+   - [x] 接口返回含 `requestId`（= traceId）和 `metadata`（timestamp/method/endpoint），格式符合规范（规范见 [references/trace-id.md](references/trace-id.md)）
 6. **生成 commit message**：遵循 [Conventional Commits](references/commit-conventions.md)（`<type>[!]: <desc>`），破坏性变更加 `!`
 7. **展示确认**（两种模式都必确认）
 8. `git add` + `git commit`
