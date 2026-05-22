@@ -1,6 +1,6 @@
 ---
 name: yibasuo
-version: "2.7.7"
+version: "2.7.8"
 description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段1-4连续执行，阶段0与提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer, java-reviewer, typescript-reviewer]
@@ -195,6 +195,7 @@ nvm use 22 && codegraph init -i && codegraph index
 | Bug 修复 | 跳过 1-2，直接 测试驱动开发 + 审查 + 提交 |
 | 单文件小改 | 不建议用 |
 | 纯研究 / 调研 | 不适用 |
+| **生成说明文档** | 收集项目信息（README/CLAUDE/package.json/pom.xml）→ 整理为结构化文档 → 调用 `frontend-design` skill 生成 HTML |
 
 ## 示例
 
