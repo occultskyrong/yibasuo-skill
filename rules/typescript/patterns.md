@@ -303,6 +303,10 @@ res.setHeader('X-Trace-Id', traceId);
 
 **强制项：** 空列表返回 `[]`，禁止 `null`。JSON key 使用 lowerCamelCase。
 
+## 数据库迁移
+
+详见 `rules/common/patterns.md` 数据库迁移规范。
+
 ## Custom Hooks (React)
 
 ```typescript
