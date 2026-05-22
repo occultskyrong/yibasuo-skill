@@ -1,6 +1,6 @@
 ---
 name: yibasuo
-version: "2.7.1"
+version: "2.7.2"
 description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段1-4连续执行，阶段0与提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer, java-reviewer, typescript-reviewer]
@@ -41,15 +41,22 @@ requires:
 
 ### 前端项目差异
 
-前端项目与后端流程有两处关键差异：
+前端分两类，流程不同：
 
-| 阶段 | 后端（Java/NestJS） | 前端（Vue/React） |
-|------|-------------------|-------------------|
-| 2 架构 | ADR + 接口契约 + DDL | **组件树 + 路由设计 + 状态管理架构 + 数据流** |
-| 4 审查 | java/typescript-reviewer | typescript-reviewer + **`rules/web/static-website-checklist.md`**（安全/CDN/备案/SEO/域名/模板残留） |
-| 5 提交 | mvn pmd:check | prettier+eslint + **备案信息检查**（ICP 号、公安备案号、警徽图标） |
+**静态网站项目**（公司官网、产品主页、落地页）：保持标准流程，阶段 2 简化为页面结构 + 资源清单，阶段 4 走 `static-website-checklist`（安全/CDN/备案/SEO/模板残留/冗余文件）。
 
-前端阶段 2 不生成 ADR，替代为组件拆分方案 + 路由表 + Store 结构 + API 对接清单。
+**管理后台项目**（pts-admin 类，含登录/权限/CRUD/数据看板）：阶段 0 增加认知对齐流程，阶段 2 增加管理后台专项设计。
+
+#### 管理后台增强
+
+| 阶段 | 后端 | 管理后台前端 |
+|------|------|------------|
+| 0 需求确认 | 澄清问题 + 需求卡片 | + **头脑风暴**：竞品参考（2-3 个同类后台截图+分析）、用户角色矩阵、核心操作路径白板 |
+| 2 架构 | ADR + 接口契约 + DDL | **组件树 + 路由权限设计 + 状态管理（Pinia/Zustand）+ API 对接清单 + 组件库选型（Ant Design/Element Plus）** |
+| 4 审查 | java-reviewer | typescript-reviewer + **`rules/web/static-website-checklist.md`** + 权限矩阵验证 + 响应式断点检查 |
+| 5 提交 | mvn pmd:check | prettier+eslint + **备案检查**（ICP/公安备案/警徽）+ `lighthouse` 性能基线 |
+
+管理后台阶段 0 产出物增加：竞品分析卡片（2-3 款、含截图 URL + UX 优缺点）、用户角色表（谁、能看什么、能干什么）、关键页面线框图描述。
 
 **命名规范**：Git 分支 `feat/YYMMDD_desc`（见 `rules/common/git-workflow.md`）、Java 文件 PascalCase、NestJS 文件 snake_case、文档 `YYYYMMDD - 标题.md`。
 
