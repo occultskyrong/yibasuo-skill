@@ -43,7 +43,7 @@ requires:
 
 **统一接口返回**：`{ code, message, data, requestId, metadata }` — requestId 即 traceId 全链路透传，metadata 含 timestamp/method/endpoint + 分页。详见 `rules/java/patterns.md` 或 `rules/typescript/patterns.md`。
 
-### 前端项目差异
+## 前端项目差异
 
 前端分两类，流程不同：
 
@@ -86,7 +86,7 @@ requires:
 ### 0. 需求确认
 
 1. 理解输入，识别模糊点。多子系统**先拆解**，逐个处理
-2. 一次只问一个问题澄清（功能边界、交互细节、异常情况）
+2. 一次聚焦一个主题澄清（功能边界、交互细节、异常情况）；跨模块复杂需求可一次提 2-3 个关联问题
 3. 确认技术栈和影响范围
 4. **提出 2-3 种实现方案**，含 trade-off 和推荐理由
 5. 输出需求卡片（标题/类型/范围/验收标准/约束）
@@ -125,11 +125,7 @@ requires:
 1. 按技术栈 **并行**启动：Java→`java-reviewer`，Node.js/前端→`typescript-reviewer` + `security-reviewer`
 2. 任一 agent 失败 → **展示错误，暂停**
 3. CRITICAL/HIGH → **必须修复**（两种模式都拦截），修复前先写复现测试
-4. **基础设施配置审查**（主会话执行，agent 不负责）：
-   - 扫描 `src/config/` 或 `src/main/resources/` 目录，识别同概念重复配置文件
-   - NestJS 项目：检查 `nest-cli.json` 的 `assets` 是否覆盖 `src/config/` 下所有 JSON 文件
-   - 检查 `.env.example` 变量与代码中 `process.env.*` 引用是否一一对应
-   - 检查是否存在硬编码的 API Key/Token/Password
+4. **基础设施配置审查**（主会话执行，agent 不负责），详见 [references/infrastructure-review.md](references/infrastructure-review.md)
 5. 修复后重审，**至少 3 轮、最多 5 轮**。即使无 CRITICAL/HIGH 也跑满 3 轮以充分审查。5 轮后仍有 → 暂停等用户决定
 6. MEDIUM/LOW → 展示建议，不强制
 7. 默认（自动）无 CRITICAL/HIGH 则继续
