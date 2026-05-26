@@ -85,6 +85,18 @@ You DO NOT refactor or rewrite code — you report findings only.
 - **Deep optional chaining without fallback**: `a?.b?.c?.d` with no default — add `?? fallback`
 - **Inconsistent naming**: camelCase for variables/functions, PascalCase for types/classes/components
 
+### MEDIUM -- Scheduled Tasks
+- **Blocking event loop**: CPU-heavy or synchronous I/O inside `@Cron` / `@Interval` / `@Timeout` handlers — use BullMQ or worker threads
+- **Missing distributed lock**: Multi-instance deployment without Redis lock — tasks will run on every instance
+- **Hardcoded cron string**: Cron literal in `@Cron()` decorator — must read from `ConfigService`
+- **No `name` on `@Cron`**: Missing `name` parameter — cannot manage or identify the task at runtime
+- **No timeout control**: `fetch` / DB query inside scheduled task without `AbortSignal.timeout()` — may hang indefinitely
+- **No idempotency guard**: Processing without dedup key or state check — duplicate execution causes data issues
+- **Lock not in finally**: Lock release outside `finally` block — exception leaves lock un-released
+- **Missing structured execution log**: No structured INFO log with `task`, `duration_ms`, and counts — cannot monitor
+- **BullMQ `removeOnComplete: false`** (default): Completed jobs accumulate in Redis indefinitely — set `removeOnComplete: true` and cap `removeOnFail`
+- **`@Interval` for wall-clock tasks**: `@Interval` fires relative to app start time — use `@Cron` for daily/hourly tasks that need wall-clock precision
+
 ## Diagnostic Commands
 
 ```bash

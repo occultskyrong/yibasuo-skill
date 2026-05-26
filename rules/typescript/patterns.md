@@ -334,6 +334,179 @@ interface Repository<T> {
 }
 ```
 
+## 定时任务
+
+> 语言无关的核心规范见 [common/patterns.md](../common/patterns.md) 定时任务章节。本文档补充 TypeScript/NestJS 特定实现。
+
+### @nestjs/schedule
+
+```typescript
+// GOOD — cron 外置，调度与业务分离
+@Injectable()
+export class OrderExpireTask {
+  private readonly logger = new Logger(OrderExpireTask.name);
+
+  constructor(private readonly orderExpireService: OrderExpireService) {}
+
+  @Cron(CronExpression.EVERY_HOUR, { name: 'order:expire:cancel' })
+  async handleCron() {
+    const start = Date.now();
+    try {
+      const result = await this.orderExpireService.expireOrders();
+      this.logger.log({
+        task: 'order:expire:cancel',
+        duration_ms: Date.now() - start,
+        processed: result.processed,
+        success: result.success,
+        failed: result.failed,
+      });
+    } catch (error) {
+      this.logger.error({ task: 'order:expire:cancel', err: error }, 'Task failed');
+    }
+  }
+}
+```
+
+| 规则 | 说明 |
+|------|------|
+| cron 外置 | 通过 `ConfigService` 读取 cron，禁止硬编码字符串 |
+| 调度与业务分离 | `@Cron` 方法只做日志 + 委托，业务逻辑在独立 Service |
+| `name` 参数 | 必须设置，用于日志标识和运行时管理 |
+| `disabled` 参数 | 通过配置控制启用/禁用，方便紧急关闭 |
+
+### 动态 Cron（从配置读取）
+
+推荐在 `onModuleInit` 中通过 `SchedulerRegistry` 动态注册：
+
+```typescript
+@Injectable()
+export class DynamicTaskRegister implements OnModuleInit {
+  constructor(
+    private readonly schedulerRegistry: SchedulerRegistry,
+    private readonly config: ConfigService,
+    private readonly orderExpireTask: OrderExpireTask,
+  ) {}
+
+  onModuleInit() {
+    const cron = this.config.get<string>('TASK_ORDER_EXPIRE_CRON');
+    const job = new CronJob(cron, () => this.orderExpireTask.handleCron());
+    this.schedulerRegistry.addCronJob('order:expire:cancel', job);
+    job.start();
+  }
+}
+```
+
+### Bull / BullMQ 任务队列
+
+对于需要重试、延迟、优先级、进度追踪的任务，使用 BullMQ 而非 `@Cron`：
+
+```typescript
+// 生产者 — 在业务需要时入队
+@Injectable()
+export class ReportService {
+  constructor(@InjectQueue('report') private reportQueue: Queue) {}
+
+  async generate(userId: string) {
+    await this.reportQueue.add('generate', { userId }, {
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 2000 },
+      removeOnComplete: true,
+      removeOnFail: 100,
+    });
+  }
+}
+
+// 消费者
+@Processor('report')
+export class ReportProcessor {
+  @Process('generate')
+  async handleGenerate(job: Job<{ userId: string }>) {
+    // 业务逻辑
+  }
+}
+```
+
+| 配置 | 推荐值 | 说明 |
+|------|--------|------|
+| `attempts` | 3 | 最大重试次数 |
+| `backoff.type` | `exponential` | 指数退避 |
+| `backoff.delay` | 2000 | 初始延迟 2 秒 |
+| `removeOnComplete` | `true` | 完成即清理，节省 Redis 内存 |
+| `removeOnFail` | 100 | 保留最近 100 条失败，便于排查 |
+
+### 分布式锁实现（Redis）
+
+```typescript
+@Injectable()
+export class TaskLockService {
+  constructor(@Inject('REDIS_CLIENT') private readonly redis: Redis) {}
+
+  private lockPrefix(): string {
+    return `${process.env.REDIS_KEY_PREFIX ?? 'app:dev'}:task:lock:`;
+  }
+
+  async tryLock(taskName: string, ttlSeconds: number): Promise<boolean> {
+    const key = `${this.lockPrefix()}${taskName}`;
+    const result = await this.redis.set(key, os.hostname(), 'EX', ttlSeconds, 'NX');
+    return result === 'OK';
+  }
+
+  async unlock(taskName: string): Promise<void> {
+    const key = `${this.lockPrefix()}${taskName}`;
+    const script = `
+      if redis.call('get', KEYS[1]) == ARGV[1] then
+        return redis.call('del', KEYS[1])
+      else
+        return 0
+      end
+    `;
+    await this.redis.eval(script, 1, key, os.hostname());
+  }
+}
+```
+
+使用示例：
+
+```typescript
+@Injectable()
+export class OrderExpireTask {
+  private readonly logger = new Logger(OrderExpireTask.name);
+  private static readonly TASK_NAME = 'order:expire:cancel';
+  private static readonly LOCK_TTL = 300;
+
+  constructor(
+    private readonly lock: TaskLockService,
+    private readonly service: OrderExpireService,
+  ) {}
+
+  async execute(): Promise<void> {
+    if (!(await this.lock.tryLock(OrderExpireTask.TASK_NAME, OrderExpireTask.LOCK_TTL))) {
+      this.logger.warn({ task: OrderExpireTask.TASK_NAME }, 'Task skipped: another instance running');
+      return;
+    }
+    try {
+      await this.service.expireOrders();
+    } finally {
+      await this.lock.unlock(OrderExpireTask.TASK_NAME);
+    }
+  }
+}
+```
+
+### 审查清单
+
+- [ ] cron 表达式是否从配置读取（非硬编码）
+- [ ] `@Cron` 方法是否简洁（只做日志 + 委托，不超过 15 行）
+- [ ] 是否设置了 `name` 参数
+- [ ] 多实例部署时是否有分布式锁保护
+- [ ] 锁 TTL 是否大于任务最大执行时间
+- [ ] 锁释放是否在 `finally` 块中
+- [ ] 业务逻辑是否有幂等性保护
+- [ ] 是否有超时控制（外部 HTTP 调用、DB 查询）
+- [ ] 是否记录了结构化任务执行日志
+- [ ] BullMQ 队列是否配置了 `removeOnComplete: true`（避免 Redis 内存堆积）
+- [ ] 长任务是否使用 BullMQ 而非 `@Cron`
+
 ## References
 
 See skill: `nestjs-patterns` for full NestJS architecture patterns.

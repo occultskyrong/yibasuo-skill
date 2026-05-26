@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.9.0] - 2026-05-26
+
+### Added
+- 定时任务规范：6步生命周期 + 幂等性 + 错误处理 + 分布式协调 + 日志可观测性（`rules/common/patterns.md`）
+- 定时任务规范（Java）：@Scheduled 约束、自定义线程池、Redis 分布式锁、Quartz/XXL-Job 集成（`rules/java/patterns.md`）
+- 定时任务规范（TypeScript）：@nestjs/schedule、BullMQ、Redis 分布式锁（`rules/typescript/patterns.md`）
+- 定时任务审查项：Java reviewer (+8) + TypeScript reviewer (+10)
+- MySQL 索引规范：基于 p3c §3-4，命名、10条设计规则、EXPLAIN 验证、反模式、审查清单（`rules/java/patterns.md`）
+- 索引审查项：Java reviewer (+9)
+
+### Changed
+- Commit type 规范：非功能变更（docs/chore/refactor）改为 PATCH 创建 tag，不再跳过（`references/commit-conventions.md`）
+
 ## [2.8.6] - 2026-05-23
 
 ### Changed

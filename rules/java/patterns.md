@@ -263,6 +263,188 @@ deleted_at DATETIME COMMENT '逻辑删除（NULL=未删除）'
 - 逻辑删除：`deleted_at` + MyBatis-Plus `@TableLogic`；关联表物理删除；日志表物理删除
 - 数据库用户：`{库名}_{环境}`，禁止 root
 
+### 索引
+
+遵循《阿里巴巴 Java 开发手册》MySQL 数据库规约 §3-4。
+
+#### 命名
+
+索引命名格式：`{前缀}_{表名}_{列名缩写}`
+
+| 前缀 | 类型 | 示例 |
+|------|------|------|
+| `pk_` | 主键索引 | `pk_order_id` |
+| `uk_` | 唯一索引 | `uk_user_phone` |
+| `idx_` | 普通索引 | `idx_order_user_status` |
+
+- 表名可缩写（如 `order_item` → `oi`），同一库内保持一致
+- 联合索引列名用下划线连接，按列顺序排列：`idx_order_user_id_status`
+- 名称不超过 64 字符，过长时缩写中间列名
+
+#### 设计规则
+
+**1. 防重双保险**
+
+业务层校验 + 数据库唯一索引缺一不可。业务校验返回友好提示，唯一索引防止并发写入绕过。
+
+```sql
+-- 业务层：先查后插（SELECT → INSERT）
+-- 数据库：唯一索引兜底
+ALTER TABLE `order` ADD UNIQUE INDEX `uk_order_trade_no` (`trade_no`);
+```
+
+**2. 最左前缀原则**
+
+联合索引按定义顺序从最左列开始匹配。
+
+```sql
+-- 联合索引 (a, b, c)
+-- 走索引：WHERE a=1、WHERE a=1 AND b=2、WHERE a=1 AND c=2（仅 a 走索引）
+-- 不走：  WHERE b=2、WHERE c=3
+```
+
+将区分度高、查询频繁的列放在联合索引最左侧。
+
+**3. 禁止索引列上使用函数、计算、类型转换**
+
+```sql
+-- BAD — 函数包裹
+SELECT * FROM `order` WHERE DATE(created_at) = '2026-01-01';
+-- BAD — 列参与运算
+SELECT * FROM `order` WHERE amount * 100 > 50000;
+-- BAD — 隐式类型转换（phone 是 VARCHAR，传了 INT）
+SELECT * FROM `user` WHERE phone = 13800138000;
+
+-- GOOD — 值侧做转换
+SELECT * FROM `order` WHERE created_at >= '2026-01-01 00:00:00' AND created_at < '2026-01-02 00:00:00';
+-- GOOD — 运算移到值侧
+SELECT * FROM `order` WHERE amount > 50000 / 100;
+-- GOOD — 显式字符串
+SELECT * FROM `user` WHERE phone = '13800138000';
+```
+
+**4. 单表索引数建议 ≤5**
+
+每个索引占用磁盘空间，增删改时需维护 B+Tree。不是越多越好。
+
+**5. 覆盖索引优先，避免回表**
+
+查询列全部在索引中时，直接从索引树取数据，无需回聚集索引。
+
+```sql
+-- 联合索引 idx_user_status_created (status, created_at)
+-- 覆盖索引：查询列都在索引中，Extra = Using index
+SELECT status, created_at FROM `user` WHERE status = 1 ORDER BY created_at;
+-- 需回表：SELECT 含非索引列
+SELECT id, status, name, created_at FROM `user` WHERE status = 1;
+```
+
+**6. LIKE 仅右模糊走索引**
+
+```sql
+-- 走索引
+SELECT * FROM `user` WHERE name LIKE '张%';
+-- 不走
+SELECT * FROM `user` WHERE name LIKE '%张' OR name LIKE '%张%';
+```
+
+全模糊搜索场景使用 Elasticsearch 等全文检索引擎。
+
+**7. 区分度低的列不适合单独建索引**
+
+区分度 = `SELECT COUNT(DISTINCT col) / COUNT(*) FROM table`。区分度 < 0.1（如性别、布尔值）不单独建索引，可放在联合索引非最左位置。
+
+```sql
+-- BAD — 性别区分度极低
+ALTER TABLE `user` ADD INDEX `idx_user_gender` (`gender`);
+-- OK — 放在联合索引后面
+ALTER TABLE `user` ADD INDEX `idx_user_gender_status` (`gender`, `status`);
+```
+
+**8. 外键列建索引**
+
+项目禁止物理外键，但业务关联查询频繁。引用列必须建索引。
+
+```sql
+-- order.user_id 关联 user.id
+ALTER TABLE `order` ADD INDEX `idx_order_user_id` (`user_id`);
+```
+
+**9. JOIN 列字符集/排序规则一致**
+
+两列 CHARACTER SET 和 COLLATION 必须一致，否则索引失效。
+
+```sql
+SHOW FULL COLUMNS FROM `order` WHERE Field = 'trade_no';
+SHOW FULL COLUMNS FROM `order_item` WHERE Field = 'order_trade_no';
+-- 确保两者 COLLATION 完全一致
+```
+
+**10. 索引失效的常见写法**
+
+| 写法 | 走索引 | 说明 |
+|------|:---:|------|
+| `WHERE col IS NULL` | 是 | — |
+| `WHERE col IS NOT NULL` | 否 | 负向条件 |
+| `WHERE col != value` | 否 | 负向条件 |
+| `WHERE col NOT IN (...)` | 否 | 负向条件 |
+| `WHERE col IN (1, 2, 3)` | 是 | IN 实质是等值查询 |
+| `WHERE col1 = 1 OR col2 = 2` | 否 | 改写为 UNION ALL |
+| `WHERE col LIKE 'abc%'` | 是 | 右模糊 |
+| `WHERE col LIKE '%abc'` | 否 | 左模糊 |
+| `WHERE func(col) = x` | 否 | 函数包裹 |
+
+#### EXPLAIN 验证
+
+所有新增或修改的查询 SQL 必须通过 EXPLAIN 验证。
+
+```sql
+EXPLAIN SELECT * FROM `order` WHERE user_id = 100 AND status = 'PAID';
+```
+
+| 指标 | 最低要求 | 理想值 |
+|------|---------|--------|
+| `type` | `range` 及以上 | `const` / `eq_ref` / `ref` |
+| `rows` | 与数据量级匹配 | 尽可能小 |
+| `Extra` | 无 `Using filesort` / `Using temporary`（大数据量） | `Using index`（覆盖索引） |
+
+`type` 从优到劣：
+
+```
+system > const > eq_ref > ref > range > index > ALL
+```
+
+- `ALL`（全表扫描）：必须优化，表数据量 < 1000 行除外
+- `index`（全索引扫描）：数据量小时可接受，大表必须优化
+- `range` 及以上：可接受
+
+#### 反模式
+
+- 无脑加索引，以为索引越多查询越快
+- 区分度极低（<0.1）的列单独建索引（如 `is_deleted`、`gender`）
+- 联合索引列顺序随意，不考虑实际查询模式
+- 索引列上使用函数、计算或隐式类型转换
+- `SELECT *` 导致无法利用覆盖索引
+- `!=` / `NOT IN` / `OR` 不拆分改写
+- JOIN 列字符集不一致不检查
+- 不写 EXPLAIN，凭感觉认为"这个查询应该走索引"
+- 生产环境对大表直接加索引（应使用 `pt-online-schema-change` 或低峰期操作）
+
+#### 审查清单
+
+- [ ] 每个索引是否有明确对应的业务查询
+- [ ] 联合索引列顺序是否符合最左前缀原则
+- [ ] 唯一约束是否有业务层校验 + 数据库唯一索引双保险
+- [ ] 查询 SQL 是否避免在索引列上使用函数、计算、类型转换
+- [ ] 负向条件（`!=`/`NOT IN`）和 `OR` 是否已改写
+- [ ] LIKE 查询是否仅使用右模糊
+- [ ] JOIN 关联列字符集/排序规则是否一致
+- [ ] 外键列（关联查询列）是否已建索引
+- [ ] 单表索引数是否 ≤ 5
+- [ ] 核心查询是否通过 EXPLAIN 验证（`type` ≥ `range`）
+- [ ] 是否优先使用覆盖索引避免回表
+- [ ] 区分度 < 0.1 的列是否未单独建索引
+
 ### 迁移
 
 详见 `rules/common/patterns.md` 数据库迁移规范。
@@ -285,6 +467,166 @@ public static final String TOKEN_KEY = PREFIX + ":token:";
 - AOP 切面拦截 `@RequirePerm` 注解
 - `@Async` 异步写入 `admin_operate_log`
 - 请求参数中 password/secret 字段脱敏，截断至 2048 字符
+
+## 定时任务
+
+> 语言无关的核心规范见 [common/patterns.md](../common/patterns.md) 定时任务章节。本文档补充 Java/Spring Boot 特定实现。
+
+### @Scheduled 约束
+
+```java
+// GOOD — cron 外置，调度与业务分离，异步执行
+@Component
+public class OrderExpireTask {
+    private final OrderExpireService service;
+    private final TaskExecutor taskExecutor;
+
+    @Scheduled(cron = "${task.order-expire.cron}")
+    public void execute() {
+        taskExecutor.execute(() -> service.expireOrders());
+    }
+}
+
+// BAD — cron 硬编码，业务逻辑直接写在调度方法中
+@Scheduled(cron = "0 0 * * * ?")
+public void expireOrders() {
+    // 100 行业务代码...
+}
+```
+
+| 规则 | 说明 |
+|------|------|
+| cron 外置 | 通过 `@Scheduled(cron = "${...}")` 从配置文件读取，禁止硬编码 |
+| 调度与业务分离 | `@Scheduled` 方法只做锁获取 + 委托调用，业务逻辑在独立 Service |
+| 默认单线程 | `@Scheduled` 默认只有 1 个调度线程，多个任务会互相阻塞 |
+| 配置独立线程池 | 生产环境必须配置 `TaskScheduler` 线程池，池大小 >= 定时任务数 |
+| `fixedDelay` vs `fixedRate` | 优先 `fixedDelay`（上一次完成后间隔），避免任务堆积 |
+
+### 自定义调度线程池
+
+```java
+@Configuration
+@EnableScheduling
+public class SchedulingConfig implements SchedulingConfigurer {
+
+    @Override
+    public void configureTasks(ScheduledTaskRegistrar registrar) {
+        registrar.setScheduler(taskScheduler());
+    }
+
+    @Bean
+    public TaskScheduler taskScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(Runtime.getRuntime().availableProcessors());
+        scheduler.setThreadNamePrefix("scheduled-");
+        scheduler.setAwaitTerminationSeconds(60);
+        scheduler.setWaitForTasksToCompleteOnShutdown(true);
+        return scheduler;
+    }
+}
+```
+
+- `setWaitForTasksToCompleteOnShutdown(true)` — 优雅关闭时等待任务完成
+- `setAwaitTerminationSeconds(60)` — 最多等待 60 秒
+
+### 分布式锁实现（Redis）
+
+多实例环境下，使用 Redis SET NX PX 保证任务互斥：
+
+```java
+@Component
+public class TaskLockManager {
+    private final StringRedisTemplate redis;
+
+    private static final String LOCK_PREFIX =
+        System.getenv().getOrDefault("REDIS_KEY_PREFIX", "app:dev") + ":task:lock:";
+
+    /**
+     * 尝试获取锁，返回是否获取成功。
+     * @param taskName 任务名
+     * @param ttlSeconds 锁超时时间（必须 > 任务最大执行时间）
+     */
+    public boolean tryLock(String taskName, long ttlSeconds) {
+        String key = LOCK_PREFIX + taskName;
+        String value = hostname();
+        return Boolean.TRUE.equals(
+            redis.opsForValue()
+                .setIfAbsent(key, value, Duration.ofSeconds(ttlSeconds))
+        );
+    }
+
+    /** 释放锁（Lua 原子操作，校验持有者）。 */
+    public void unlock(String taskName) {
+        String key = LOCK_PREFIX + taskName;
+        String value = hostname();
+        String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+        redis.execute(new DefaultRedisScript<>(script, Long.class), List.of(key), value);
+    }
+
+    private String hostname() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (Exception e) {
+            return "unknown";
+        }
+    }
+}
+```
+
+关键点：
+- `setIfAbsent` = `SET NX`，原子操作
+- Lua 脚本释放：先校验持有者再删除，防止误删他人锁
+- 锁 TTL 必须大于任务最大执行时间；无法预估时使用看门狗续期
+
+### 使用示例
+
+```java
+@Component
+public class OrderExpireTask {
+    private final OrderExpireService service;
+    private final TaskLockManager lockManager;
+
+    private static final String TASK_NAME = "order:expire:cancel";
+    private static final long LOCK_TTL = 300;
+
+    @Scheduled(cron = "${task.order-expire.cron}")
+    public void execute() {
+        if (!lockManager.tryLock(TASK_NAME, LOCK_TTL)) {
+            log.warn("Task skipped: another instance is running. task={}", TASK_NAME);
+            return;
+        }
+        try {
+            service.expireOrders();
+        } finally {
+            lockManager.unlock(TASK_NAME);
+        }
+    }
+}
+```
+
+### Quartz / XXL-Job 集成
+
+框架自带集群协调时，优先使用框架能力而非自建锁：
+
+- **Quartz**：启用集群模式（`org.quartz.jobStore.isClustered=true`），框架自动管理任务互斥
+- **XXL-Job**：路由策略选"故障转移"（单实例执行）或"分片广播"（多实例并行，各自处理不同分片）
+
+额外约束：
+- 任务处理器（JobHandler）中同样需要幂等性保护
+- 分片广播模式：通过分片参数确定当前实例处理的数据范围
+- 调度中心的任务参数通过环境变量或配置中心注入，禁止硬编码
+
+### 审查清单
+
+- [ ] cron 表达式是否外置到配置文件
+- [ ] 是否配置了自定义 `TaskScheduler` 线程池（池大小 >= 任务数）
+- [ ] `@Scheduled` 方法是否简洁（只做锁 + 委托，不超过 10 行）
+- [ ] 多实例部署时是否有分布式锁保护
+- [ ] 锁 TTL 是否大于任务最大执行时间
+- [ ] 锁释放是否在 `finally` 块中
+- [ ] 业务逻辑是否有幂等性保护
+- [ ] 是否有超时控制（外部调用、整体任务）
+- [ ] 是否记录了任务执行日志（任务名、耗时、处理条数）
 
 ## References
 

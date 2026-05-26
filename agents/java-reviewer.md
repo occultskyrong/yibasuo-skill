@@ -45,11 +45,31 @@ If any CRITICAL security issue is found, stop and escalate to `security-reviewer
 - **Unbounded list endpoints**: Returning `List<T>` from endpoints without `Pageable` and `Page<T>`
 - **Missing `@Modifying`**: Any `@Query` that mutates data requires `@Modifying` + `@Transactional`
 - **Dangerous cascade**: `CascadeType.ALL` with `orphanRemoval = true` — confirm intent is deliberate
+- **Missing index on query columns**: Frequently queried columns (`WHERE`, `JOIN`, `ORDER BY`) without corresponding index — leads to full table scan. Business foreign key columns (even without physical FK) must have an index
+- **Function on indexed column**: `WHERE DATE(created_at) = ?`, `WHERE amount * 100 > ?`, or implicit type conversion (comparing VARCHAR column with integer) — disables index entirely
+
+### MEDIUM -- Database / Index
+- **Too many indexes (>5 per table)**: Each index adds write overhead on INSERT/UPDATE/DELETE. Verify each index maps to a real query pattern
+- **Missing EXPLAIN verification**: New or modified queries in PR without EXPLAIN output — confirm `type` is `range` or better, no `Using filesort` / `Using temporary` on large tables
+- **Low-cardinality column has standalone index**: Columns with cardinality < 0.1 (e.g. `gender`, `is_deleted`) should not have a dedicated index; place them in a compound index in a non-leading position instead
+- **LIKE with leading wildcard**: `WHERE name LIKE '%keyword'` or `LIKE '%keyword%'` — index cannot be used; full-text search scenarios should use Elasticsearch
+- **OR condition not rewritten**: `WHERE a = 1 OR b = 2` — consider rewriting as `UNION ALL` of two indexed queries
+- **JOIN columns with mismatched collation**: Two joined columns with different CHARACTER SET or COLLATION — index is silently ignored
+- **Missing unique index as data integrity guard**: Business-layer uniqueness check exists but no `UNIQUE INDEX` in database — concurrency gap under multi-instance deployment
 
 ### MEDIUM -- Concurrency and State
 - **Mutable singleton fields**: Non-final instance fields in `@Service` / `@Component` are a race condition
 - **Unbounded `@Async`**: `CompletableFuture` or `@Async` without a custom `Executor` — default creates unbounded threads
-- **Blocking `@Scheduled`**: Long-running scheduled methods that block the scheduler thread
+- **Blocking `@Scheduled`**: Long-running scheduled methods that block the scheduler thread — use `@Async` or `TaskExecutor`
+
+### MEDIUM -- Scheduled Tasks
+- **Default single-thread scheduler**: `@Scheduled` uses 1 thread by default — configure `TaskScheduler` with pool size >= task count
+- **Missing distributed lock**: Multi-instance deployment without Redis lock or Quartz clustering — tasks will run on every instance
+- **Hardcoded cron**: `@Scheduled(cron = "0 0 * * * ?")` — must read from config (`"${...}"`)
+- **No timeout control**: External calls inside scheduled tasks without timeout — may hang indefinitely
+- **No idempotency guard**: Processing without dedup key or state check — duplicate execution will cause data issues
+- **Lock not in finally**: Lock release outside `finally` block — exception leaves lock un-released
+- **Missing execution log**: No INFO-level summary log with task name, duration, and record count — cannot monitor
 
 ### MEDIUM -- Java Idioms and Performance
 - **String concatenation in loops**: Use `StringBuilder` or `String.join`
