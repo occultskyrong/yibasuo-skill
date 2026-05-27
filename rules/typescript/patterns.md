@@ -11,7 +11,16 @@ paths:
 
 ## NestJS Layered Architecture
 
-严格分层，绝不越层调用：
+严格分层，绝不越层调用。默认使用 Express 驱动；如使用 Fastify（`@nestjs/platform-fastify`），注意以下差异：
+
+| 差异 | Express | Fastify |
+|------|---------|---------|
+| 请求/响应类型 | `Request` / `Response` | `FastifyRequest` / `FastifyReply` |
+| 中间件 | `app.use()` | 需用 `@fastify/*` 插件 |
+| Helmet | `helmet()` | `@fastify/helmet` |
+| CSRF | `csrf-csrf` | `@fastify/csrf-protection` |
+
+其余分层规则（Controller→Service→Repository）与驱动无关。
 
 ```
 Controller → Service → Repository → Database

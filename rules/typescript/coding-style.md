@@ -264,3 +264,56 @@ src/
 
 - Controller 返回业务数据，全局 ResponseInterceptor 统一包装为 `ApiResponse`
 - 禁止在响应中暴露堆栈或内部错误信息
+
+### `satisfies` 操作符 (TS 4.9+)
+
+优先用 `satisfies` 替代 `as` 断言——`satisfies` 保留字面量类型且校验，`as` 绕过类型检查：
+
+```typescript
+// GOOD — satisfies 校验结构，保留字面量类型
+const config = {
+  port: 3000,
+  host: 'localhost',
+} satisfies Record<string, string | number>;
+// config.port 类型是 number（字面量），不是 string | number
+
+// BAD — as 不校验，可能遗漏字段
+const config = {
+  port: 3000,
+} as Record<string, string | number>; // 编译通过，但缺字段
+```
+
+### 泛型约束
+
+NestJS 中泛型广泛用于 Repository 模式和 ApiResponse 封装：
+
+```typescript
+// 基本约束
+function findById<T extends { id: number }>(repo: Repository<T>, id: number): Promise<T | null> {
+  return repo.findOneBy({ id } as any);
+}
+
+// 泛型工具类型
+type CreateUserDto = Pick<User, 'username' | 'phone'>;
+type UpdateUserDto = Partial<Omit<User, 'id' | 'createdAt'>>;
+type UserResponse = Omit<User, 'password' | 'deletedAt'>;
+```
+
+- `Pick` — 选取部分字段
+- `Omit` — 排除部分字段
+- `Partial` — 所有字段可选
+- `Required` — 所有字段必填
+
+### Branded Types（防 ID 混用）
+
+对 ID 类型使用 branded types 防止"stringly typed"错误：
+
+```typescript
+type UserId = string & { readonly __brand: 'UserId' };
+type OrderId = string & { readonly __brand: 'OrderId' };
+
+function getUser(id: UserId): Promise<User> { ... }
+
+// 编译报错：OrderId 不能赋值给 UserId
+getUser(orderId); // Type Error
+```

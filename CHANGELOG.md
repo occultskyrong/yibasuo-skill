@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.9.4] - 2026-05-26
+
+### Added
+- common/patterns.md 新增 API 版本控制规范（从 java/patterns.md 提升到 common 层）
+- java/coding-style.md 新增 equals/hashCode 规范、集合处理规范、控制语句规范、Virtual Threads 规范
+- typescript/coding-style.md 新增 `satisfies` 操作符、泛型约束、Branded Types 规范
+- typescript/patterns.md 新增 Fastify 驱动差异对照表
+
 ## [2.9.3] - 2026-05-26
 
 ### Added

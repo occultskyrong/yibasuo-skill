@@ -56,6 +56,19 @@ Encapsulate data access behind a consistent interface:
 - JSON key 使用 lowerCamelCase
 - 语言特定实现见 `rules/java/patterns.md` 和 `rules/typescript/patterns.md`
 
+### API 版本控制
+
+不兼容的接口变更使用 URL 版本号，新旧并存，等消费者迁移完成后删除旧版：
+
+| 变更类型 | 处理 |
+|---------|------|
+| 加字段 | 直接加，消费者忽略未知字段 |
+| 改字段名/类型/含义 | 新建 `/v2/xxx`，新旧并存 |
+| 删字段 | 同上 |
+| 消费者未对接 | 不兼容变更可直接改 |
+
+旧版接口标注 `@Deprecated`，保留至所有消费者迁移完成。语言特定实现见 `rules/java/patterns.md`。
+
 ## 数据库迁移
 
 ```
