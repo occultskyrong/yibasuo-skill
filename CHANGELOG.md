@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.9.1] - 2026-05-26
+
+### Changed
+- 工作流新增文档同步规则：每阶段增量更新 CLAUDE.md，提交前全量梳理 CLAUDE.md + README.md
+- 阶段 5 提交流程新增「文档更新」步骤（步骤 6）
+- 阶段 5 tag 规则对齐 commit-conventions.md：所有类型均创建 tag
+- README 阶段 5 流程描述补充「文档更新」
+
 ## [2.9.0] - 2026-05-26
 
 ### Added

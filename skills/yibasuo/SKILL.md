@@ -1,6 +1,6 @@
 ---
 name: yibasuo
-version: "2.9.0"
+version: "2.9.1"
 description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段1-4连续执行，阶段0与提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer, java-reviewer, typescript-reviewer]
@@ -84,6 +84,8 @@ requires:
  都需确认                    交互:确认                         都需确认
 ```
 
+**文档同步**：每个阶段结束时，若变更影响项目架构/模块/端口/技术栈，增量更新 `CLAUDE.md` 对应章节。阶段 5 提交前全量梳理 `CLAUDE.md` + `README.md`，确保与代码现状一致。
+
 ### 0. 需求确认
 
 1. 理解输入，识别模糊点。多子系统**先拆解**，逐个处理
@@ -148,11 +150,14 @@ requires:
    - [x] 构建通过（或已处理缺失警告）
    - [x] 无 console.log / 调试残留
    - [x] 接口返回含 `requestId`（= traceId）和 `metadata`（timestamp/method/endpoint），格式符合 `rules/java/patterns.md` 规范
-6. **生成 commit message**：遵循 [Conventional Commits](references/commit-conventions.md)（`<type>[!]: <desc>`），破坏性变更加 `!`
-7. **展示确认**（两种模式都必确认）
-8. `git add` + `git commit`
-9. **创建 tag**：遵循 [SemVer](references/commit-conventions.md#semver-tag)，根据 type 确定 MAJOR/MINOR/PATCH。非功能变更（docs/chore/refactor）不创建 tag。**标签不可变**
-10. 询问是否 push（含 `--tags`）。引导 PR/合并策略
+6. **文档更新**（提交前全量梳理）：
+   - `CLAUDE.md`：架构图、模块清单、端口分配、常用命令、环境对照 — 确保与代码现状一致
+   - `README.md`：功能说明、使用方式 — 确保与实际变更匹配
+7. **生成 commit message**：遵循 [Conventional Commits](references/commit-conventions.md)（`<type>[!]: <desc>`），破坏性变更加 `!`
+8. **展示确认**（两种模式都必确认）
+9. `git add` + `git commit`
+10. **创建 tag**：遵循 [SemVer](references/commit-conventions.md#semver-tag)，根据 type 确定 MAJOR/MINOR/PATCH。**标签不可变**
+11. 询问是否 push（含 `--tags`）。引导 PR/合并策略
 
 ## 中断与恢复
 

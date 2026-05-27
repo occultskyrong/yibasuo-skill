@@ -1,4 +1,4 @@
-# 一把梭 (yibasuo) — 全流程开发管线 v2.9.0
+# 一把梭 (yibasuo) — 全流程开发管线 v2.9.1
 
 > 需求 → 规划 → 架构 → 测试驱动开发 → 审查 → 提交。7 个内置 Agent 强制执行，消除 AI 编码的随机性。
 
@@ -28,7 +28,7 @@ cd /tmp/yibasuo-skill && bash install.sh --codex
 | 2. 架构 | architect agent：ADR、接口契约、数据变更 |
 | 3. 测试驱动开发 | tdd-guide agent：RED→GREEN→IMPROVE、覆盖率≥80% |
 | 4. 审查 | code-reviewer + security-reviewer 并行，CRITICAL/HIGH 拦截 |
-| 5. 提交 | 格式检查→构建验证→Conventional Commit→SemVer Tag→Push |
+| 5. 提交 | 格式检查→构建验证→**文档更新（CLAUDE/README）**→Conventional Commit→SemVer Tag→Push |
 
 ## ⚠️ Token 消耗说明
 
