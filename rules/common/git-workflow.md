@@ -7,7 +7,7 @@
 <optional body>
 ```
 
-Types: feat, fix, refactor, docs, test, chore, perf, ci
+Types: feat, fix, refactor, docs, test, chore, perf, ci, style
 
 ## Branch Naming
 

@@ -598,7 +598,7 @@ public class TaskLockManager {
 关键点：
 - `setIfAbsent` = `SET NX`，原子操作
 - Lua 脚本释放：先校验持有者再删除，防止误删他人锁
-- 锁 TTL 必须大于任务最大执行时间；无法预估时使用看门狗续期
+- 锁 TTL 必须大于任务最大执行时间；无法预估时使用看门狗续期（定期 `EXPIRE` 延长 TTL，间隔 = TTL/3）
 
 ### 使用示例
 

@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.9.6] - 2026-05-26
+
+### Added
+- SKILL.md 跨会话恢复新增 `.yibasuo-state.json` schema 定义
+- common/security.md 新增安全日志结构化规范（登录失败/权限拒绝/密码修改/角色变更/敏感操作）
+- java/security.md 新增 JWT Algorithm Confusion 防护
+- web/static-website-checklist.md 新增 SRI + CSP 检查项
+
+### Fixed
+- common/security.md CSRF 表述精确化（cookie 中存 token 才需要）
+- typescript/security.md 进程退出策略区分 uncaughtException vs unhandledRejection
+- java/patterns.md 分布式锁看门狗续期补充具体策略（TTL/3 间隔）
+- common/git-workflow.md commit 类型表增加 `style:`
+- CLAUDE.md 产物结构更新（rules 文件数 + references 清单）
+- README.md 任务适配表与 SKILL.md 对齐（8 种场景）
+
 ## [2.9.5] - 2026-05-26
 
 ### Fixed

@@ -20,14 +20,17 @@ yibasuo-skill/
 ├── agents/ (7 files)      # planner / architect / tdd-guide / java-reviewer
 │                          # typescript-reviewer / code-reviewer / security-reviewer
 ├── rules/
-│   ├── common/  (10 files)
-│   ├── java/    (6 files)
-│   ├── typescript/ (6 files)
-│   └── web/     (5 files)
+│   ├── common/  (11 files)   # patterns/security/concurrency/testing/coding-style/...
+│   ├── java/    (6 files)    # patterns/security/testing/coding-style/logging/hooks
+│   ├── typescript/ (6 files) # patterns/security/testing/coding-style/logging/hooks
+│   └── web/     (5 files)    # patterns/testing/coding-style/hooks/static-website-checklist
 └── skills/
     ├── yibasuo/
-    │   ├── SKILL.md                       # 核心技能（~160 行）
-    │   └── references/commit-conventions.md
+    │   ├── SKILL.md                       # 核心技能（~210 行）
+    │   └── references/
+    │       ├── commit-conventions.md      # Conventional Commits + SemVer
+    │       ├── codegraph.md              # CodeGraph 集成（可选）
+    │       └── infrastructure-review.md  # 基础设施配置审查清单
     └── git-workflow/
         └── SKILL.md                       # Git 提交规范（独立可用）
 ```

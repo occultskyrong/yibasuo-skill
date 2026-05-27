@@ -7,6 +7,8 @@
 - [ ] `target="_blank"` 链接是否包含 `rel="noopener noreferrer"`（防止 tab-nabbing）
 - [ ] 是否存在 `http://` 明文链接（应全部使用 `https://`）
 - [ ] 第三方脚本是否异步加载（`async`/`defer`）
+- [ ] CDN 资源是否添加 `integrity` 属性（Subresource Integrity，防供应链攻击）
+- [ ] 是否配置 `Content-Security-Policy`（限制脚本/样式来源）
 - [ ] 是否有硬编码的 API Key 或敏感信息
 
 ## 二、CDN & 网络（CRITICAL）

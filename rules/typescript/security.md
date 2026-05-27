@@ -36,7 +36,7 @@ if (!process.env.JWT_SECRET) {
 
 ## 进程退出策略
 
-**不要因为未捕获异常自动退出进程**。记录错误让编排层（Docker/K8s/pm2）决定是否重启。
+`unhandledRejection`：记录错误，不主动退出（编排层决定重启）。`uncaughtException`：进程处于不确定状态，记录错误后应退出（`process.exit(1)`），让编排层重启。
 
 ```typescript
 process.on('unhandledRejection', (reason) => {

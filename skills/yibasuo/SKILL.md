@@ -1,6 +1,6 @@
 ---
 name: yibasuo
-version: "2.9.5"
+version: "2.9.6"
 description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段1-4连续执行，阶段0与提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer, java-reviewer, typescript-reviewer]
@@ -174,7 +174,18 @@ requires:
 - 随时可中断，重说"继续梭"恢复
 - 说"回到阶段 X"重做，说"从阶段 X 开始梭"或"梭到审查就行"
 - **阶段 3 中断恢复**：先运行测试命令，根据结果判断当前所处 RED/GREEN/IMPROVE 阶段再继续
-- **跨会话恢复**：每个阶段结束时在 `.yibasuo-state.json` 写入当前状态（阶段号、需求卡片摘要、关键决策），重新打开会话时读取恢复
+- **跨会话恢复**：每个阶段结束时在 `.yibasuo-state.json` 写入当前状态，重新打开会话时读取恢复
+
+```json
+{
+  "stage": 3,
+  "mode": "auto",
+  "requirement": { "title": "...", "type": "feat", "scope": "...", "acceptance": ["..."] },
+  "decisions": ["ADR: 使用 Redis 分布式锁", "接口: POST /api/orders"],
+  "coverage": 85,
+  "updatedAt": "2026-05-26 10:00:00.000"
+}
+```
 - **模式切换**：说"停一下"在当前最小步骤完成后暂停（如当前测试循环完成），不强制回滚
 
 ### 跳过阶段约束
