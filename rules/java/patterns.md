@@ -246,7 +246,13 @@ new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
 ### 审计字段
 
-每张业务表必须包含：
+| 表类型 | id | created_by/updated_by | created_at/updated_at | deleted_at | 删除策略 |
+|--------|:---:|:---:|:---:|:---:|------|
+| 业务主表 | ✅ | ✅ | ✅ | ✅ | 逻辑删除（`deleted_at` + `@TableLogic`） |
+| 关联表（中间表） | ✅ | ❌ | ❌ | ❌ | 物理删除 |
+| 日志表 | ✅ | ❌ | ✅ | ❌ | 物理删除 |
+
+**业务表**模板（6 个审计字段）：
 
 ```sql
 id         BIGINT   NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
@@ -255,6 +261,21 @@ created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 updated_by INT      COMMENT '更新人 ID',
 updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 deleted_at DATETIME COMMENT '逻辑删除（NULL=未删除）'
+```
+
+**关联表**模板（无审计字段，仅自增主键）：
+
+```sql
+id      BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
+-- 关联字段...
+```
+
+**日志表**模板（仅 created_at，物理删除）：
+
+```sql
+id         BIGINT   NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
+-- 日志字段...
+created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 ```
 
 ### 核心约束
