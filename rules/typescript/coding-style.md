@@ -260,15 +260,7 @@ src/
 
 ### API Response Convention
 
-Use a consistent envelope — in NestJS projects, the convention is `status` codes rather than boolean:
+遵循 `rules/common/patterns.md` API Response Format 定义的统一信封结构。NestJS 实现见 `rules/typescript/patterns.md`。
 
-```typescript
-interface ApiResponse<T> {
-  status: number   // 0=success, 1=success with message, >=2=error
-  message?: string
-  data?: T
-}
-```
-
-- Controller returns the service result directly; a global interceptor wraps into `ApiResponse`
-- Never expose stack traces or internal errors in the response
+- Controller 返回业务数据，全局 ResponseInterceptor 统一包装为 `ApiResponse`
+- 禁止在响应中暴露堆栈或内部错误信息

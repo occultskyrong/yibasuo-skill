@@ -24,11 +24,37 @@ Encapsulate data access behind a consistent interface:
 
 ### API Response Format
 
-Use a consistent envelope for all API responses:
-- Include a success/status indicator
-- Include the data payload (nullable on error)
-- Include an error message field (nullable on success)
-- Include metadata for paginated responses (total, page, limit)
+遵循《阿里巴巴 Java 开发手册》前后端规约。所有 API 响应使用统一信封：
+
+```json
+{
+  "code": 0,
+  "message": "操作成功",
+  "data": {...},
+  "requestId": "a1b2c3d4e5f6",
+  "metadata": {
+    "timestamp": "2026-05-26 10:00:00.000",
+    "method": "POST",
+    "endpoint": "/api/users",
+    "count": 100,
+    "totalPages": 10,
+    "currentPage": 1,
+    "pageSize": 10
+  }
+}
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `code` | `number \| string` | 成功=0，失败=String 业务错误码 |
+| `message` | `string` | 用户提示信息 |
+| `data` | `T \| null` | 业务数据，空列表返回 `[]`，禁止 `null` |
+| `requestId` | `string` | **= traceId**，Gateway 生成，全链路透传 |
+| `metadata` | `object` | 请求上下文 + 分页（非分页接口仅含 timestamp/method/endpoint） |
+
+- requestId 不是独立 UUID，而是 traceId。Gateway 生成 → 经 `X-Trace-Id` 头透传 → 写入日志 + 返回给客户端
+- JSON key 使用 lowerCamelCase
+- 语言特定实现见 `rules/java/patterns.md` 和 `rules/typescript/patterns.md`
 
 ## 数据库迁移
 

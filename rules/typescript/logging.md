@@ -165,7 +165,6 @@ Node.js 生态通常依赖容器/平台收集日志（stdout → Docker → ELK/
 
 ```typescript
 import pino from 'pino';
-import { pino } from 'pino';
 import { createWriteStream } from 'fs';
 import { createRotatingFileStream } from 'rotating-file-stream';
 

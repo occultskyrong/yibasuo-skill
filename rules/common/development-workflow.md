@@ -20,7 +20,7 @@ The Feature Implementation Workflow describes the development pipeline: research
    - Identify dependencies and risks
    - Break down into phases
 
-2. **TDD Approach**
+2. **TDD Approach** _(MANDATORY for new features and bug fixes; MAY skip for config changes, docs, README updates)_
    - Use **tdd-guide** agent
    - Write tests first (RED)
    - Implement to pass tests (GREEN)

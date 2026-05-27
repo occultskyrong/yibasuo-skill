@@ -92,14 +92,9 @@ async login() { ... }
 
 ### CSRF
 
-基于 cookie 的会话需要 CSRF 保护：
+基于 cookie 的会话需要 CSRF 保护（推荐 `csrf-csrf` 或 `@fastify/csrf-protection`，**禁止使用已废弃的 `csurf`**）。
 
-```typescript
-import * as csurf from 'csurf';
-app.use(csurf({ cookie: true }));
-```
-
-JWT API（Bearer token）不需要 CSRF — 浏览器不会自动附加 `Authorization` 头。
+JWT API（Bearer token）不需要 CSRF — 浏览器不会自动附加 `Authorization` 头。如果项目仅使用 JWT 鉴权，可不配置 CSRF。
 
 ## 输入验证
 

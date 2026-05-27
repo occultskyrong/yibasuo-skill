@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.9.2] - 2026-05-26
+
+### Fixed
+- typescript/logging.md 修复重复 import 语句
+- typescript/security.md 移除已废弃 `csurf` 推荐，改为 `csrf-csrf`
+- typescript/coding-style.md 移除与 patterns.md 冲突的 ApiResponse 定义，改为引用 common 层
+
+### Added
+- common/security.md 大幅扩充：OWASP A01 访问控制、A08 反序列化、A10 SSRF、XXE、密码存储、安全头、依赖安全、敏感数据保护
+- common/patterns.md ApiResponse 格式从四原则升级为完整定义（含字段/类型/requestId=traceId/metadata）
+- common/concurrency.md 新建：p3c 并发编程规范（线程池、CompletableFuture、ThreadLocal、锁、并发集合、volatile）
+- common/development-workflow.md TDD 步骤标注 MANDATORY 等级，明确可跳过场景
+
 ## [2.9.1] - 2026-05-26
 
 ### Changed
