@@ -42,10 +42,9 @@ yibasuo-skill/
 
 | 提交前缀 | 版本升级 |
 |---------|:--:|
-| `fix:` `fix!:` | PATCH |
+| `feat!:` `fix!:` `BREAKING CHANGE:` | MAJOR |
 | `feat:` | MINOR |
-| `feat!:` `BREAKING CHANGE:` | MAJOR |
-| `docs:` `chore:` `style:` `refactor:` `perf:` `test:` `ci:` | 不升级 |
+| `fix:` `docs:` `chore:` `style:` `refactor:` `perf:` `test:` `ci:` | PATCH |
 
 **标签不可变**：`push --tags` 后永不 `tag -d` 重打，错误发新版本。
 

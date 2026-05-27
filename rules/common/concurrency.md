@@ -1,6 +1,6 @@
 # 并发编程规范
 
-> 基于《阿里巴巴 Java 开发手册》p3c 第五章"并发编程"。语言特定实现见 `rules/java/` 和 `rules/typescript/`。
+> 基于《阿里巴巴 Java 开发手册》p3c 第五章"并发编程"。本文件主要覆盖 Java 并发，TypeScript/Node.js 并发见 `rules/typescript/patterns.md`（Promise 并发控制、EventLoop 防阻塞、Worker Threads）。
 
 ## 线程池
 

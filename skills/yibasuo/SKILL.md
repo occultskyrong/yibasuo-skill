@@ -1,6 +1,6 @@
 ---
 name: yibasuo
-version: "2.9.4"
+version: "2.9.5"
 description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段1-4连续执行，阶段0与提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer, java-reviewer, typescript-reviewer]
@@ -129,6 +129,8 @@ requires:
 3. Agent 失败 → **展示错误，暂停**
 4. 展示覆盖率。未达 80% → 暂停修复。达标则继续。
 
+**门禁**：覆盖率 ≥ 80% 且所有测试通过。不达标不进入阶段 4。
+
 ### 4. 审查
 
 1. 按技术栈 **并行**启动：Java→`java-reviewer`，Node.js/前端→`typescript-reviewer` + `security-reviewer`
@@ -139,6 +141,8 @@ requires:
 6. MEDIUM/LOW → 展示建议，不强制
 7. 默认（自动）无 CRITICAL/HIGH 则继续
 8. 有 CodeGraph 时：`codegraph query "<变更符号>"` 验证所有引用点已更新
+
+**门禁**：CRITICAL = 0 且 HIGH = 0。不达标不进入阶段 5。
 
 ### 5. 提交
 
@@ -161,7 +165,7 @@ requires:
    - `README.md`：功能说明、使用方式 — 确保与实际变更匹配
 7. **生成 commit message**：遵循 [Conventional Commits](references/commit-conventions.md)（`<type>[!]: <desc>`），破坏性变更加 `!`
 8. **展示确认**（两种模式都必确认）
-9. `git add` + `git commit`
+9. `git add <具体文件>`（精确添加，禁止 `git add -A`）+ `git commit`
 10. **创建 tag**：遵循 [SemVer](references/commit-conventions.md#semver-tag)，根据 type 确定 MAJOR/MINOR/PATCH。**标签不可变**
 11. 询问是否 push（含 `--tags`）。引导 PR/合并策略
 
@@ -190,7 +194,7 @@ requires:
 |------|------|
 | 新功能 | 完整 6 阶段 |
 | 重构 | 阶段 0 简化为范围确认，阶段 2 侧重影响分析，阶段 3 侧重回归测试（确保现有测试不 break） |
-| Bug 修复 | 跳过 1-2，直接 测试驱动开发 + 审查 + 提交 |
+| Bug 修复 | 跳过 0-2，阶段 3(TDD)→4→5 |
 | 依赖升级 | 跳过 0-1，阶段 2 做兼容性分析，阶段 3 跑全量回归，阶段 4 增加 breaking change 审查 |
 | 数据库迁移 | 阶段 0 确认迁移范围 + 大表风险评估，阶段 5 迁移文件不可变检查 |
 | 单文件小改 | 不建议用一把梭，直接手改 + code-reviewer |

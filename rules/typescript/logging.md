@@ -35,8 +35,6 @@ paths:
 
 ```typescript
 // NestJS — main.ts
-import { Logger } from '@nestjs/common';
-
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn', 'log', 'debug'].filter(level => {

@@ -68,10 +68,12 @@
 - 用户输入的 URL 必须校验协议（仅 http/https）、域名（白名单）、禁止内网地址
 - 禁止 `file://`、`gopher://`、`dict://` 等协议
 - HTTP 客户端设置超时和最大响应大小
+- **IPv6 绕过防护**：`http://[::1]`、`http://[0:0:0:0:0:ffff:127.0.0.1]` 同样属于内网
+- **DNS Rebinding 防护**：解析 URL 后获取实际 IP，校验是否属于内网 CIDR（`127.0.0.0/8`、`10.0.0.0/8`、`172.16.0.0/12`、`192.168.0.0/16`、`::1`、`fc00::/7`）
 
 ## 反序列化安全 (A08)
 
-- Java：禁止 `ObjectInputStream` 反序列化不受信数据；Jackson 禁用 `enableDefaultTyping`
+- Java：禁止 `ObjectInputStream` 反序列化不受信数据；Jackson 禁用 `enableDefaultTyping`（2.10+ 用 `activateDefaultTyping`）；SnakeYAML 必须使用 `SafeConstructor`
 - JavaScript：禁止 `eval()`、`new Function()` 处理用户输入
 - 如需序列化，使用安全的 JSON 格式，不使用 Java 原生序列化
 
@@ -96,6 +98,7 @@
 | `X-Frame-Options` | `DENY` 或 `SAMEORIGIN` | 防止点击劫持 |
 | `Content-Security-Policy` | 按项目配置 | 限制资源加载来源 |
 | `Referrer-Policy` | `strict-origin-when-cross-origin` | 控制 Referer 泄露 |
+| `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` | 限制浏览器特性访问 |
 
 - 生产环境禁止 `server.error.include-stacktrace=always`（Spring Boot）或等效配置
 - 禁用 debug 模式、移除默认凭据

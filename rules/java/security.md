@@ -125,7 +125,7 @@ MyBatis 全部使用 `#{}` 参数化，禁止 `${}` 拼接用户输入（排序�
 ## Spring Security
 
 - BCrypt cost=12，通过 `SecurityConfig` Bean 注入，响应中 password 字段 `@JsonIgnore`
-- JWT: HS256 签名，access_token 24h，refresh_token 7d
+- JWT: HS256 签名，access_token 15-60min，refresh_token 7d
 - Token 写入 Redis `{prefix}:token:{userId}:{jti}`，登出/强制下线时 JTI 加入黑名单
 
 ## 数据权限

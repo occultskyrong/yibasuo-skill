@@ -1,5 +1,33 @@
 # Changelog
 
+## [2.9.5] - 2026-05-26
+
+### Fixed
+- ApiResponse `code` 类型统一为 `number`（common/java/ts 三处一致）
+- ApiResponse `data` 类型澄清：空列表 `[]`，单条无结果可 `null`，错误响应 `null`
+- ApiResponse `metadata` 必填/可选字段明确
+- TS Interceptor/Filter 示例与 ApiResponse 接口对齐（`status`→`code`，补全字段）
+- JWT 过期时间 24h→15-60min（java/security.md）
+- bcrypt cost 统一为 12（ts/security.md 10→12）
+- SSRF 增加 IPv6/DNS Rebinding 防护
+- 反序列化增加 SnakeYAML SafeConstructor 提醒
+- SemVer 规则三处统一（CLAUDE.md/commit-conventions.md：非功能变更=PATCH）
+- Commit 类型表增加 `style:`
+- Bug 修复行表述明确：跳过 0-2，阶段 3→4→5
+- 阶段 3/4 新增显式门禁条件
+- `git add` 精确添加约束
+- `as any` 泛型示例改为 `as FindOptionsWhere<T>`
+- SimpleDateFormat→DateTimeFormatter（Java 21 推荐）
+- hostname() 锁持有者标识改为 hostname:PID
+- 控制语句规则补充 `try` 块
+- NoSQL 注入示例改为类型检查（替代 String 转换）
+- testing.md "ALL required" 补充项目类型限定
+- 测试命名格式统一为英文
+- concurrency.md 标注 Java 为主，TS 见 patterns.md
+- 移除 logging.md 未使用的 Logger import
+- supertest import 改为默认导入
+- 安全头增加 Permissions-Policy
+
 ## [2.9.4] - 2026-05-26
 
 ### Added

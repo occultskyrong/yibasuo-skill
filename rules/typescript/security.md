@@ -148,18 +148,21 @@ await prisma.$queryRaw`SELECT * FROM users WHERE name = ${name}`;
 await collection.find({ username: req.body.username });
 
 // GOOD — 类型校验后传入
-const username = String(req.body.username);
+if (typeof req.body.username !== 'string') {
+  throw new BadRequestException('username must be a string');
+}
+const username = req.body.username;
 await collection.find({ username });
 ```
 
 ## 认证
 
 - 不要自研加密算法 — 使用成熟库（bcrypt、Argon2）
-- 密码用 bcrypt 存储（cost factor >= 10）：
+- 密码用 bcrypt 存储（cost factor = 12）：
 
 ```typescript
 import * as bcrypt from 'bcrypt';
-const hash = await bcrypt.hash(password, 10);
+const hash = await bcrypt.hash(password, 12);
 const match = await bcrypt.compare(password, hash);
 ```
 

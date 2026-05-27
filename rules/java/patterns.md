@@ -149,9 +149,9 @@ String message = switch (result) {
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| `code` | Object | 成功=0(Integer)，失败=String（业务错误码）|
+| `code` | Integer | 成功=0，失败=正整数业务错误码 |
 | `message` | String | 用户提示信息 |
-| `data` | T | 业务数据，空列表返回 `[]` |
+| `data` | T | 业务数据。空列表返回 `[]`，单条查询无结果可返回 `null`，错误响应 `data` 为 `null` |
 | `requestId` | String | **= traceId**，Gateway 生成后全链路透传，前端报错时回传此值即可定位日志 |
 | `metadata` | Object | 请求上下文 + 分页，非分页接口仅含 timestamp/method/endpoint |
 
@@ -227,8 +227,8 @@ API 输入/输出、JSON 序列化、数据库 DateTime、日志时间戳均使�
 @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS", timezone = "Asia/Shanghai")
 private LocalDateTime createdAt;
 
-// SimpleDateFormat（线程安全用 ThreadLocal）
-new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+// DateTimeFormatter（天然线程安全，Java 8+ 推荐）
+DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 ```
 
 - 时区统一 `Asia/Shanghai`
@@ -586,9 +586,10 @@ public class TaskLockManager {
 
     private String hostname() {
         try {
-            return InetAddress.getLocalHost().getHostName();
-        } catch (Exception e) {
-            return "unknown";
+            return InetAddress.getLocalHost().getHostName()
+                + ":" + ProcessHandle.current().pid();
+        } catch (UnknownHostException e) {
+            return "unknown:" + ProcessHandle.current().pid();
         }
     }
 }

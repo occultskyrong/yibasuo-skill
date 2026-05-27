@@ -9,7 +9,7 @@
 | 破坏性变更 | `feat!:` `fix!:` | `feat!: 重构ApiResponse code类型` |
 | 新功能 | `feat:` | `feat: 增加用户导出功能` |
 | Bug 修复 | `fix:` | `fix: 修复登录超时无提示` |
-| 文档/杂项 | `docs:` `chore:` | `docs: 更新README安装说明` |
+| 文档/杂项 | `docs:` `chore:` `style:` | `docs: 更新README安装说明` |
 | 重构/性能 | `refactor:` `perf:` | `refactor: 提取公共校验方法` |
 | 测试/CI | `test:` `ci:` | `test: 补充边界条件用例` |
 

@@ -137,7 +137,7 @@ Use descriptive names with `@DisplayName`:
 
 ## 测试命名
 
-方法名使用 `方法名_场景_预期行为` 格式，配合 `@DisplayName`：
+方法名使用 `methodName_scenario_expectedBehavior` 格式，配合 `@DisplayName` 中文描述：
 
 ```java
 @Test

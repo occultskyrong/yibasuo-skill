@@ -290,7 +290,7 @@ NestJS 中泛型广泛用于 Repository 模式和 ApiResponse 封装：
 ```typescript
 // 基本约束
 function findById<T extends { id: number }>(repo: Repository<T>, id: number): Promise<T | null> {
-  return repo.findOneBy({ id } as any);
+  return repo.findOneBy({ id } as FindOptionsWhere<T>);
 }
 
 // 泛型工具类型

@@ -173,7 +173,17 @@ export class UsersController { ... }
 export class ResponseInterceptor implements NestInterceptor {
   intercept(ctx: ExecutionContext, next: CallHandler): Observable<ApiResponse> {
     return next.handle().pipe(
-      map(data => ({ status: 0, data })),
+      map(data => ({
+        code: 0,
+        message: '操作成功',
+        data,
+        requestId: getTraceId(),
+        metadata: {
+          timestamp: dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'),
+          method: ctx.switchToHttp().getRequest().method,
+          endpoint: ctx.switchToHttp().getRequest().url,
+        },
+      })),
     );
   }
 }
@@ -189,16 +199,21 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     if (exception instanceof HttpException) {
       return response.status(exception.getStatus()).json({
-        status: 2,
-        message: exception.message,
+        code: 2,
+        message: '请求错误',
+        data: null,
+        requestId: getTraceId(),
+        metadata: null,
       });
     }
 
-    // Unexpected error — log detail, return generic
     this.logger.error('Unhandled exception', exception);
     return response.status(500).json({
-      status: 99,
+      code: 99,
       message: 'Internal server error',
+      data: null,
+      requestId: getTraceId(),
+      metadata: null,
     });
   }
 }

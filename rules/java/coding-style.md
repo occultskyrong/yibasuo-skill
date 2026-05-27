@@ -177,7 +177,7 @@ for (Item item : list) {
 遵循 p3c 控制语句规约：
 
 - `switch` 必须有 `default` 分支（即使只是 break）
-- `if/else/for/while/do` 必须使用大括号，即使只有一行
+- `if/else/for/while/do/try` 必须使用大括号，即使只有一行
 - 三目运算符注意自动拆箱 NPE
 - `if-else` 嵌套不超过 3 层，优先使用卫语句
 
@@ -206,7 +206,7 @@ Spring Boot 4.0 支持 `spring.threads.virtual.enabled=true`：
 - **适用场景**：IO 密集型（HTTP 调用、数据库查询）、大量并发连接
 - **不适用场景**：CPU 密集型计算、需要精确控制线程数的场景
 - **`synchronized` 导致 pinning** — Virtual Thread 持有 `synchronized` 锁时会 pin 到平台线程，改用 `ReentrantLock`
-- **ThreadLocal 内存开销** — 每个 Virtual Thread 都会创建 ThreadLocal 前本，大量 VT + 大 ThreadLocal = 内存爆炸
+- **ThreadLocal 内存开销** — 每个 Virtual Thread 都会创建 ThreadLocal 副本，大量 VT + 大 ThreadLocal = 内存爆炸
 
 ```java
 // GOOD — Virtual Thread 下用 ReentrantLock

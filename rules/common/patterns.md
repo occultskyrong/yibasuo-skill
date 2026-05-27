@@ -46,11 +46,11 @@ Encapsulate data access behind a consistent interface:
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| `code` | `number \| string` | 成功=0，失败=String 业务错误码 |
+| `code` | `number` | 成功=0，失败=正整数业务错误码 |
 | `message` | `string` | 用户提示信息 |
-| `data` | `T \| null` | 业务数据，空列表返回 `[]`，禁止 `null` |
+| `data` | `T` | 业务数据。空列表返回 `[]`，单条查询无结果可返回 `null`，错误响应 `data` 为 `null` |
 | `requestId` | `string` | **= traceId**，Gateway 生成，全链路透传 |
-| `metadata` | `object` | 请求上下文 + 分页（非分页接口仅含 timestamp/method/endpoint） |
+| `metadata` | `object` | 请求上下文 + 分页。必填：timestamp/method/endpoint。分页专属：count/totalPages/currentPage/pageSize |
 
 - requestId 不是独立 UUID，而是 traceId。Gateway 生成 → 经 `X-Trace-Id` 头透传 → 写入日志 + 返回给客户端
 - JSON key 使用 lowerCamelCase
