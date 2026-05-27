@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.7] - 2026-05-28
+
+### Fixed
+- typescript/security.md ExceptionFilter 统一使用 `code` 字段（修复 `status`→`code`），补全 `data`/`requestId`/`metadata` 字段
+- common/testing.md TDD 强制等级与 development-workflow.md 对齐（补例外：config/docs/README 可跳过）
+- common/security.md 新增令牌失效规范（密码修改/用户禁用/密钥轮换时必须使 JWT 失效）
+
 ## [2.9.6] - 2026-05-26
 
 ### Added

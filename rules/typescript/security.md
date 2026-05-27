@@ -181,16 +181,21 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     if (exception instanceof HttpException) {
       return response.status(exception.getStatus()).json({
-        status: 2,
-        message: exception.message,  // 已知异常，message 安全
+        code: 2,
+        message: '请求错误',
+        data: null,
+        requestId: getTraceId(),
+        metadata: null,
       });
     }
 
-    // 未知异常 — 记录完整详情，返回通用消息
     logger.error('Unhandled error', exception);
     return response.status(500).json({
-      status: 99,
+      code: 99,
       message: 'Internal server error',
+      data: null,
+      requestId: getTraceId(),
+      metadata: null,
     });
   }
 }

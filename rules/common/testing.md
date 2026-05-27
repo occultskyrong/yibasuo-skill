@@ -9,7 +9,7 @@ Test Types（后端服务项目 ALL required，其他项目类型按需选择）
 
 ## Test-Driven Development
 
-MANDATORY workflow:
+MANDATORY for new features and bug fixes; MAY skip for config changes, docs, README updates:
 1. Write test first (RED)
 2. Run test - it should FAIL
 3. Write minimal implementation (GREEN)
