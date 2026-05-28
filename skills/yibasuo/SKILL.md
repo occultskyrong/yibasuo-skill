@@ -146,7 +146,10 @@ requires:
 
 ### 5. 提交
 
-1. **启动验证**（NestJS 项目）：运行 `<pkg> start:dev` 或 `npm start`，确认服务能正常启动（无 DI 错误、无 crash），验证通过后停掉进程再继续
+1. **启动验证**：
+   - Java：`./mvnw spring-boot:run` 或 `mvn spring-boot:run`，确认无 Bean 创建失败、端口冲突
+   - NestJS：`<pkg> start:dev` 或 `npm start`，确认无 DI 错误、无 crash
+   - 验证通过后停掉进程再继续
 2. **环境检查**：非 git 仓库警告暂停，`git diff --stat`
 3. **格式检查**（按技术栈）：
    - Node.js/前端：`<pkg>` prettier → `<pkg>` eslint → ts-prune（僵尸代码扫描，列清单不自动删）
