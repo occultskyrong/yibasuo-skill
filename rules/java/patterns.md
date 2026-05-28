@@ -149,7 +149,7 @@ String message = switch (result) {
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| `code` | Integer | 成功=0，失败=正整数业务错误码 |
+| `code` | String | 成功=`"0"`，失败=业务枚举名（如 `"BAD_REQUEST"`）。**不是 Integer**：`BusinessCode` 枚举输出 String 错误码，与 NestJS 层的 `number \| string` 互通 |
 | `message` | String | 用户提示信息 |
 | `data` | T | 业务数据。空列表返回 `[]`，单条查询无结果可返回 `null`，错误响应 `data` 为 `null` |
 | `requestId` | String | **= traceId**，Gateway 生成后全链路透传，前端报错时回传此值即可定位日志 |
