@@ -28,7 +28,7 @@ cd /tmp/yibasuo-skill && bash install.sh --codex
 | 2. 架构 | architect agent：ADR、接口契约、数据变更 |
 | 3. 测试驱动开发 | tdd-guide agent：RED→GREEN→IMPROVE、覆盖率≥80% |
 | 4. 审查 | code-reviewer + security-reviewer 并行，CRITICAL/HIGH 拦截 |
-| 5. 提交 | 格式检查→构建验证→**文档更新（CLAUDE/README）**→Conventional Commit→SemVer Tag→Push |
+| 5. 提交 | 启动验证→格式→构建→文档更新(CLAUDE/README)→Conventional Commit→SemVer Tag→Push |
 
 ## ⚠️ Token 消耗说明
 
@@ -59,6 +59,8 @@ cd /tmp/yibasuo-skill && bash install.sh --codex
 | Bug 修复 | 跳过 0-2，阶段 3(TDD)→4→5 |
 | 依赖升级 | 跳过 0-1，阶段 2 兼容性分析，阶段 3 全量回归，阶段 4 breaking change 审查 |
 | 数据库迁移 | 阶段 0 确认范围+大表风险，阶段 5 迁移文件不可变检查 |
+| 单文件小改 | 不建议用，直接手改 + code-reviewer |
+| 纯研究 / 调研 | 不适用，用 planner agent 出调研报告 |
 | 生成说明文档 | 收集项目信息 → 调用 ui-ux-pro-max 生成 HTML |
 
 ## 更新
@@ -71,4 +73,4 @@ cd /tmp/yibasuo-skill && git pull && bash install.sh --force
 
 ## 自包含
 
-安装后即用，无需外部依赖：7 个 Agent + 4 套 Rules（common/java/typescript/web）+ git-workflow 技能，`install.sh` 一键安装。
+安装后即用：7 个 Agent + 4 套 Rules（common/java/typescript/web）+ git-workflow 技能，`install.sh` 一键安装。覆盖 HTTP/BFF 和 gRPC 微服务全场景，另配 [yibasuo-infra](https://github.com/occultskyrong/yibasuo-infra) 初始化项目骨架。
