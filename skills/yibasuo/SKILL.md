@@ -26,7 +26,7 @@ requires:
 2. **简洁优先** — 最少代码解决问题，不添加未请求的功能
 3. **手术刀改动** — 只改任务相关代码，不顺手重构；死代码只提不删
 4. **循环验证** — 每阶段定义成功标准，不达标不回；覆盖率≥80%、CRITICAL=0 是底线
-5. **破坏性变更需确认** — 删除文件、删除代码块、改接口签名、数据库删表/删字段等操作，必须先向用户说明：删除什么、为什么删、影响范围（哪些调用方/引用方会受影响）。**用户明确同意后方可执行**。执行后在项目根目录 `.yibasuo-deletions.log` 追加一条记录（时间、文件路径、原因、用户确认状态）
+5. **破坏性变更需确认** — 删除文件/代码块/接口签名/数据库表或字段等操作，必须先说明删除什么、为什么、影响范围。**用户同意后方可执行**，执行后在 `.yibasuo-deletions.log` 追加记录
 6. **前端校验不替代后端** — 前端做参数校验是 UX 优化（即时反馈、减少无效请求），**后端绝不信任前端传来的任何数据**。所有入参必须在后端重新完整校验（类型、长度、范围、格式、业务规则），即使前端已经校验过。防止绕过前端直接调 API 的攻击行为
 7. **List 查询必须分页** — 所有列表查询必须含 `PageRequest`（page, page_size），默认 20 上限 100。响应必须含 `PageResponse`（page, page_size, total）
 
@@ -46,27 +46,7 @@ requires:
 
 ## 前端项目差异
 
-前端分两类，流程不同：
-
-**静态网站项目**（公司官网、产品主页、落地页）：
-
-| 阶段 | 静态网站 |
-|------|---------|
-| 2 架构 | 页面结构 + 资源清单 |
-| 4 审查 | typescript-reviewer + `static-website-checklist` + **a11y/WCAG 无障碍检查** + 多设备响应式断点 |
-| 5 提交 | prettier+eslint + 备案检查 + **Lighthouse 性能基线** |
-
-**管理后台项目**（pts-admin 类，含登录/权限/CRUD/数据看板）：
-
-| 阶段 | 管理后台 |
-|------|---------|
-| 0 需求 | + **头脑风暴**：竞品参考（2-3 个同类后台截图+分析）、用户角色矩阵、核心操作路径白板 |
-| 2 架构 | **组件树 + 路由权限设计 + Token 存储策略（httpOnly cookie vs localStorage）+ 组件库选型（Ant Design/Element Plus）+ 表单校验策略（Zod/Yup schema）+ API 对接清单** |
-| 3 TDD | RED→GREEN→IMPROVE + **异步状态覆盖**（loading/skeleton/empty/error 每个数据组件必测） |
-| 4 审查 | typescript-reviewer + `static-website-checklist` + 权限矩阵验证 + 响应式断点 + **富文本 XSS（DOMPurify）** + **文件上传校验（类型/大小/路径遍历）** + **CSP 响应头验证** |
-| 5 提交 | prettier+eslint + 备案检查 + `lighthouse` 性能基线 |
-
-管理后台阶段 0 产出物增加：竞品分析卡片（2-3 款、含截图 URL + UX 优缺点）、用户角色表（谁、能看什么、能干什么）、关键页面线框图描述。
+前端项目（Vue/React）在标准流程上有差异化阶段，详见 [references/frontend-flows.md](references/frontend-flows.md)。
 
 **命名规范**：Git 分支 `feat/YYMMDD_desc`（见 `rules/common/git-workflow.md`）、Java 文件 PascalCase、NestJS 文件 snake_case、文档 `YYYYMMDD - 标题.md`。
 
@@ -177,30 +157,9 @@ requires:
 - 随时可中断，重说"继续梭"恢复
 - 说"回到阶段 X"重做，说"从阶段 X 开始梭"或"梭到审查就行"
 - **阶段 3 中断恢复**：先运行测试命令，根据结果判断当前所处 RED/GREEN/IMPROVE 阶段再继续
-- **跨会话恢复**：每个阶段结束时在 `.yibasuo-state.json` 写入当前状态，重新打开会话时读取恢复
-
-```json
-{
-  "stage": 3,
-  "mode": "auto",
-  "requirement": { "title": "...", "type": "feat", "scope": "...", "acceptance": ["..."] },
-  "decisions": ["ADR: 使用 Redis 分布式锁", "接口: POST /api/orders"],
-  "coverage": 85,
-  "updatedAt": "2026-05-26 10:00:00.000"
-}
-```
-- **模式切换**：说"停一下"在当前最小步骤完成后暂停（如当前测试循环完成），不强制回滚
-
-### 跳过阶段约束
-
-| 阶段 | 可跳过 | 条件 |
-|------|:---:|------|
-| 0 需求 | ✅ | Bug 修复、配置变更等需求明确的场景 |
-| 1 规划 | ✅ | Bug 修复、单文件改动 |
-| 2 架构 | ✅ | Bug 修复、不涉及接口/数据变更 |
-| 3 TDD | ❌ | **不可跳过**。如需跳过必须显式声明"我承担跳过 TDD 的风险"并记录到 commit message |
-| 4 审查 | ❌ | **不可跳过**。CRITICAL/HIGH 必须修复 |
-| 5 提交 | — | 无法跳过（最终步骤） |
+- **跨会话恢复**：每个阶段结束写入 `.yibasuo-state.json`（字段: stage/mode/requirement/decisions/coverage），新会话读取恢复
+- **模式切换**：说"停一下"在当前最小步骤完成后暂停，不强制回滚
+- **跳过约束**：阶段 0-2 可按需跳过，阶段 3(TDD) 和阶段 4(审查) **不可跳过**（跳过 TDD 需显式声明风险并记入 commit message）
 
 ## 任务适配
 
