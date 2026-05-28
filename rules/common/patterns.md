@@ -56,6 +56,24 @@ Encapsulate data access behind a consistent interface:
 - JSON key 使用 lowerCamelCase
 - 语言特定实现见 `rules/java/patterns.md` 和 `rules/typescript/patterns.md`
 
+### gRPC 微服务分层
+
+与 HTTP/BFF 分层不同，gRPC 微服务不需要 Controller、ApiResponse、鉴权层：
+
+| 层 | 职责 | HTTP/BFF 对应 |
+|----|------|--------------|
+| Service Impl | gRPC 入口，替代 Controller | Controller |
+| Service（业务） | 纯业务逻辑，无鉴权 | Service |
+| Provider / Mapper | 数据访问（轻量微服务可省略） | Repository |
+| Interceptor（gRPC） | traceId 透传、日志、异常转换 | HTTP Filter / Middleware |
+
+核心差异：
+- **无 ApiResponse** — gRPC 有原生错误通道（Status + trailers），不在 response message 里塞 code/message
+- **不鉴权** — 信任 BFF 传来的身份（gRPC metadata `x-user-id` 等）
+- **错误处理** — 用 `StatusRuntimeException`（Java）/ `RpcException`（NestJS），BFF 层映射为 HTTP ApiResponse
+
+语言特定实现见 `rules/java/patterns.md` 和 `rules/typescript/patterns.md`。
+
 ### API 版本控制
 
 不兼容的接口变更使用 URL 版本号，新旧并存，等消费者迁移完成后删除旧版：

@@ -21,6 +21,48 @@ public interface OrderRepository {
 
 具体实现处理存储细节（JPA、JDBC、测试用内存实现）。
 
+## gRPC 微服务分层
+
+> 语言无关规范见 [common/patterns.md](../common/patterns.md) gRPC 微服务分层。本文档补充 Java/Spring Boot 特定实现。
+
+```
+gRPC Client → {Service}Impl (@GrpcService) → Service → Mapper → Database
+                │                               │          │
+                ▼                               ▼          ▼
+              Proto 序列化                    业务逻辑    数据访问
+```
+
+| 层 | 注解/组件 | 职责 |
+|----|----------|------|
+| `{Service}Impl` | `@GrpcService` | gRPC 入口，proto message↔Entity 转换，委托 Service |
+| Service | `@Service` | 纯业务逻辑，**不含鉴权代码**（信任 BFF 传来的身份） |
+| Mapper | MyBatis-Plus `BaseMapper` | 数据访问（轻量微服务可省略，直接调用其他服务） |
+| Interceptor | `ServerInterceptor` | traceId 透传（metadata→MDC）、异常日志 |
+
+### 与 HTTP/BFF 的关键差异
+
+- **无 `@RestController`、无 `@Controller`** — 入口是 `@GrpcService` 注解的实现类
+- **无 `ApiResponse`** — gRPC 用 `StatusRuntimeException` 报告错误，不在 proto message 中包 code/message
+- **无 `@RestControllerAdvice`** — 异常处理走 `ServerInterceptor` 或 `StatusRuntimeException`
+- **无 Spring Security** — 不鉴权，从 gRPC metadata 读取 `x-user-id` 等身份信息（BFF 填入）
+- **web-application-type: none** — 不启动 HTTP 端口
+- **参数校验** — proto3 自带类型约束，业务校验在 Service 中做
+
+### gRPC Status → HTTP 映射（BFF 层）
+
+BFF 层捕获 gRPC 异常后按以下规则映射为 HTTP `ApiResponse`：
+
+| gRPC Status | HTTP | 说明 |
+|-------------|:----:|------|
+| `NOT_FOUND` | 404 | 资源不存在 |
+| `INVALID_ARGUMENT` | 400 | 参数错误 |
+| `ALREADY_EXISTS` | 409 | 唯一约束冲突 |
+| `PERMISSION_DENIED` | 403 | 权限不足 |
+| `UNAUTHENTICATED` | 401 | 未认证 |
+| `INTERNAL` | 500 | 内部错误 |
+| `UNAVAILABLE` | 502 | 服务不可用 |
+| `DEADLINE_EXCEEDED` | 504 | 超时 |
+
 ## Service Layer
 
 业务逻辑放在 Service 层，Controller 和 Repository 保持轻薄：

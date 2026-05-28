@@ -30,6 +30,45 @@ Controller → Service → Repository → Database
   parsing    logic       access
 ```
 
+## NestJS gRPC 微服务分层
+
+> 语言无关规范见 [common/patterns.md](../common/patterns.md) gRPC 微服务分层。
+
+```
+gRPC Client → Controller (@GrpcMethod) → Service → Repository/DAO → Database
+                │                           │           │
+                ▼                           ▼           ▼
+              Proto 序列化                 业务逻辑     数据访问
+```
+
+| 层 | 装饰器/组件 | 职责 |
+|----|------------|------|
+| Controller | `@GrpcMethod()` | gRPC 入口，proto message↔DTO 转换 |
+| Service | `@Injectable()` | 纯业务逻辑，**不含鉴权代码** |
+| Repository | TypeORM/Prisma | 数据访问（轻量微服务可省略） |
+| Interceptor | gRPC metadata | traceId 透传（metadata→AsyncLocalStorage） |
+
+### 与 HTTP NestJS 的关键差异
+
+- **`NestFactory.createMicroservice(Transport.GRPC)`** 而非 `NestFactory.create(ExpressHttpServer)`
+- **无 `@Get`/`@Post`** — 用 `@GrpcMethod()` 替代
+- **无 `ApiResponse`** — gRPC 用 `RpcException`（`@grpc/grpc-js` status 码）
+- **无 JWT Guard** — 不鉴权，从 gRPC metadata 读取 `x-user-id`
+- **无 `ValidationPipe`** — proto 自带类型约束，业务校验手动做
+
+### gRPC Status → HTTP 映射（BFF 层）
+
+| gRPC Status | HTTP |
+|-------------|:----:|
+| NOT_FOUND (5) | 404 |
+| INVALID_ARGUMENT (3) | 400 |
+| ALREADY_EXISTS (6) | 409 |
+| PERMISSION_DENIED (7) | 403 |
+| UNAUTHENTICATED (16) | 401 |
+| INTERNAL (13) | 500 |
+| UNAVAILABLE (14) | 502 |
+| DEADLINE_EXCEEDED (4) | 504 |
+
 ### Controller
 
 Thin. Parse HTTP input, delegate to service, return DTO:
