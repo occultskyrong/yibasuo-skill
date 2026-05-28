@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.10.0] - 2026-05-28
+
+### Added
+- gRPC 微服务分层规范：common/java/typescript 三级定义
+- common/patterns.md 新增 gRPC 分层定义（无 ApiResponse、不鉴权、BFF Status 映射）
+- java/patterns.md 新增 gRPC 分层（@GrpcService、ServerInterceptor、Status→HTTP 映射表）
+- typescript/patterns.md 新增 gRPC 分层（@GrpcMethod、RpcException、Transport.GRPC）
+- yibasuo-infra 新增 NestJS gRPC 微服务模板（目录结构/proto/通信约定/main.ts）
+
+### Changed
+- SKILL.md 精简 236→195 行（前端差异提取+红线压缩+跳过约束合并）
+
+### Fixed
+- ApiResponse code 改为 `number|string` 并标注实际项目用法，防止反复修改
+
 ## [2.9.7] - 2026-05-28
 
 ### Fixed
