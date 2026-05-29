@@ -92,8 +92,9 @@ requires:
 
 1. `Agent({ subagent_type: "architect" })`，prompt 含：需求 + 计划 + 语言规范。要求产出 ADR（决策/后果/替代方案）+ 接口契约 + 数据变更
 2. 自检 P0 问题（缺关键决策/接口遗漏/数据变更缺失），**至少 3 轮、最多 5 轮**。即使无 P0 也跑满 3 轮以充分打磨。5 轮后仍有 P0 → 暂停等用户决定
-3. Agent 失败 → **展示错误，暂停**
-4. 默认（自动）直接继续。交互模式问"方案 OK？"
+3. 若数据变更涉及 DDL（建表/加列/改列/加索引等），架构产出必须包含对应的 Flyway 迁移文件（`YYYYMMDD-{描述}.sql`），遵循 `rules/common/patterns.md` 迁移规范。Java 项目在 `src/main/resources/db/migration/` 下，NestJS 项目在 `migrations/` 下
+4. Agent 失败 → **展示错误，暂停**
+5. 默认（自动）直接继续。交互模式问"方案 OK？"
 
 ### 3. 测试驱动开发
 
@@ -143,6 +144,7 @@ requires:
    - [x] 构建通过（或已处理缺失警告）
    - [x] 无 console.log / 调试残留
    - [x] 接口返回含 `requestId`（= traceId）和 `metadata`（timestamp/method/endpoint），格式符合 `rules/java/patterns.md` 规范
+   - [x] DDL 变更已创建对应的迁移文件（`YYYYMMDD-{描述}.sql`），含回滚脚本或 `[IRREVERSIBLE]` 标记
 6. **文档更新**（提交前全量梳理）：
    - `CLAUDE.md`：架构图、模块清单、端口分配、常用命令、环境对照 — 确保与代码现状一致
    - `README.md`：功能说明、使用方式 — 确保与实际变更匹配
