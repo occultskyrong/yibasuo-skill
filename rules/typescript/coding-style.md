@@ -237,6 +237,22 @@ export class UsersService {
 }
 ```
 
+### Dependency Management
+
+- 新增 npm 包必须通过 `<pkg> add <package>` 安装，**禁止手动编辑 `package.json`** 或直接 `import` 不声明
+- 版本号由包管理器写入 `package.json` + lockfile，**lockfile 必须提交**（`package-lock.json` / `pnpm-lock.yaml`）
+- 禁止依赖全局安装的包（`npm install -g`）—— 所有依赖必须是项目级
+- 区分 `dependencies`（运行时）和 `devDependencies`（构建/测试/格式）
+
+```bash
+# GOOD
+pnpm add @nestjs/schedule
+npm install --save @nestjs/schedule
+
+# BAD — 手动编辑 package.json 再 npm install
+# BAD — import 了但没加到 package.json，靠全局安装碰运气
+```
+
 ### Module Organization
 
 ```
