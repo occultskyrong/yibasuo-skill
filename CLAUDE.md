@@ -54,7 +54,7 @@ yibasuo-skill/
 ### 发布流程
 
 1. 定版本号 → 2. 同步 `VERSION` + `SKILL.md`(3个) + `README.md` → 3. 追加 `CHANGELOG.md`
-4. `git add -A && git commit -m "<type>[!]: <desc> (vX.Y.Z)"`
+4. `git add <具体文件> && git commit -m "<type>[!]: <desc>"`（精确添加，发布流程允许 `-A` 仅限版本同步文件）
 5. `git tag -a vX.Y.Z -m "yibasuo-skill vX.Y.Z — <summary>"`
 6. `git push origin master --tags`
 7. `bash install.sh --verify` 确认 5 处一致 + tag 在 HEAD
@@ -82,16 +82,13 @@ yibasuo-skill/
 - `skills/git-workflow/SKILL.md` — Git 提交操作规范（独立可用，`install.sh` 同时安装）
 - `skills/yibasuo/references/commit-conventions.md` — Conventional Commits + SemVer 标签规则
 
-## GitHub 发布前脱敏清单
+## 发布前脱敏清单
 
-每次公开推送前扫描：
+每次发布前扫描（仓库仅托管 GitHub，无 GitLab 同步）：
 
 | # | 检查项 | 排除区域 |
 |---|--------|---------|
-| 1 | 私有 Git 地址 | README, install.sh |
-| 2 | 项目名称映射 | 全仓库 |
-| 3 | 内网 IP/域名 | rules 示例代码 |
-| 4 | 用户名/本地路径 | 全仓库 |
-| 5 | 硬编码密钥/密码 | 全仓库 |
-
-**脱敏后**：GitHub URL 占位、`example.com`/`localhost` 示例、本地配置外部加载。
+| 1 | 内网 IP/域名 | rules 示例代码 |
+| 2 | 用户名/本地路径 | 全仓库 |
+| 3 | 硬编码密钥/密码 | 全仓库 |
+| 4 | 模板占位符 `YOUR_USER` 保留 | .codex-plugin/plugin.json |

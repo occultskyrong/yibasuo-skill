@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.10.1] - 2026-05-28
+
+### Added
+- SKILL.md 阶段2架构+阶段5验证 新增 DDL 迁移文件检查
+- TS coding-style 新增依赖管理规范（禁止手动编辑 package.json）
+
+### Changed
+- CLAUDE.md 发布流程：`git add -A` 改为精确添加
+- CLAUDE.md 脱敏清单：移除 GitLab 相关项，简化为 GitHub only
+
 ## [2.10.0] - 2026-05-28
 
 ### Added
