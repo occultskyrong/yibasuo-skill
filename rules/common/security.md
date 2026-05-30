@@ -27,6 +27,8 @@
 2. 生产环境通过 env 覆盖
 3. 不用于高敏感场景（支付密钥、生产 DB 密码、OAuth Secret）
 
+**禁止占位字符串**：JWT Secret、加密密钥、Token 盐值等需随机生成的值，**禁止使用 `changeme`、`your_secret_here`、`TODO` 等占位字符串**。开发环境直接用 `openssl rand -hex 32` 或等效方法生成，生产环境通过 env/secret manager 注入。
+
 - 启动时验证生产密钥是否已配置
 - 轮换所有已暴露的密钥
 
