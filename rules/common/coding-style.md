@@ -78,6 +78,27 @@ Use named constants for meaningful thresholds, delays, and limits.
 
 Split large functions into focused pieces with clear responsibilities.
 
+## 注释
+
+### 必须加注释的场景
+
+- **Bug 修复**：在修复的关键代码处注释"为什么这么修"，方便后续维护者理解修复逻辑
+- **非显而易见的逻辑**：算法选择、边界处理、性能优化等不直观的代码
+- **公共接口/API**：Java 用 Javadoc（`@param`/`@return`/`@throws`），TypeScript 用 JSDoc（`@param`/`@returns`）
+- **`@Deprecated`**：标注废弃方法/类时必须写替代方案
+
+### 禁止的注释
+
+- 代码自解释时画蛇添足的注释（如 `// 设置 name` 注释 `setName()`）
+- 被注释掉的代码块（除非附带了"为什么保留"的说明和日期）
+- 过期/错误的注释（修改代码时必须同步更新注释）
+
+### TODO / FIXME
+
+- `TODO` 用于计划实现但暂时搁置的功能，格式：`// TODO(username): 描述`
+- `FIXME` 用于已知但暂未修复的问题，格式：`// FIXME(username): 问题描述`
+- 禁止用 TODO 代替功能需求的正确记录
+
 ## Code Quality Checklist
 
 Before marking work complete:
@@ -88,3 +109,4 @@ Before marking work complete:
 - [ ] Proper error handling
 - [ ] No hardcoded values (use constants or config)
 - [ ] No mutation (immutable patterns used)
+- [ ] Bug fix includes explanatory comments at key code locations

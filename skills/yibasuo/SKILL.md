@@ -106,7 +106,7 @@ requires:
    - 前端 → `<pkg> test`，Vitest+Testing Library，Playwright E2E
    - **强制 agent 先 Read 项目的 `rules/<lang>/testing.md` 再动手**
    - 有 CodeGraph 时：`codegraph affected <改动文件>` 自动定位受影响测试，加速 RED 阶段
-2. RED → GREEN → IMPROVE，**目标覆盖率 ≥ 80%**（与 `rules/common/testing.md` 一致）
+2. RED → GREEN → IMPROVE，**目标覆盖率 ≥ 80%**（与 `rules/common/testing.md` 一致）。Bug 修复时，在修复关键代码处加注释说明**为什么这样修**
 3. Agent 失败 → **展示错误，暂停**
 4. 展示覆盖率。未达 80% → 暂停修复。达标则继续。
 
