@@ -30,6 +30,63 @@ Controller → Service → Repository → Database
   parsing    logic       access
 ```
 
+## NestJS Module 设计原则
+
+### 单一权责（强制）
+
+每个 Module 只负责一个明确的业务领域。**即便当前只存在唯一关联的两个实体，也必须分拆为独立的 Module**，不得因"当前只有这两个"而合并。
+
+```typescript
+// BAD — Order 和 Payment 合并在一个 Module
+@Module({
+  controllers: [OrderController, PaymentController],
+  providers: [OrderService, PaymentService],
+})
+export class OrderModule {}
+
+// GOOD — 各自独立
+@Module({
+  controllers: [OrderController],
+  providers: [OrderService],
+})
+export class OrderModule {}
+
+@Module({
+  controllers: [PaymentController],
+  providers: [PaymentService],
+  imports: [OrderModule],  // 跨 Module 通过 imports 关联
+})
+export class PaymentModule {}
+```
+
+| 原则 | 说明 |
+|------|------|
+| 一 Module 一领域 | Module 命名必须反映单一业务领域（`UserModule`、`OrderModule`，禁止 `UserOrderModule`） |
+| 当前唯一不代表未来唯一 | 即使当前 A 和 B 是唯一关联的，未来可能引入 C、D，合并会导致重构成本 |
+| 跨 Module 通过 `imports` 关联 | NestJS 的 `imports`/`exports` 机制本身就是为跨 Module 依赖设计的 |
+| Controller 数量 ≤ 3 | 单个 Module 中 Controller 数量超过 3 个时，考虑拆分 |
+
+### Module 组织
+
+```
+modules/
+├── user/
+│   ├── user.module.ts
+│   ├── user.controller.ts
+│   ├── user.service.ts
+│   └── dto/
+├── order/
+│   ├── order.module.ts
+│   ├── order.controller.ts
+│   ├── order.service.ts
+│   └── dto/
+└── payment/
+    ├── payment.module.ts
+    ├── payment.controller.ts
+    ├── payment.service.ts
+    └── dto/
+```
+
 ## NestJS gRPC 微服务分层
 
 > 语言无关规范见 [common/patterns.md](../common/patterns.md) gRPC 微服务分层。
