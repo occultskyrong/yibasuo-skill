@@ -1,6 +1,15 @@
-# 一把梭 (yibasuo) — 全流程开发管线 v2.10.0
+# 一把梭 (yibasuo) — 全流程开发管线 v2.10.1
 
 > 需求 → 规划 → 架构 → 测试驱动开发 → 审查 → 提交。7 个内置 Agent + 4 套 Rules，流程化消除 AI 编码的随机性。
+
+### 触发词速查
+
+| 想要什么 | 说什么 |
+|---------|--------|
+| 全流程开发 | `一把梭` `全流程` `梭哈` |
+| 每步确认 | `一步步梭` `交互梭` `确认梭` |
+| 只补注释不写代码 | `注释` |
+| 初始化项目 | [yibasuo-infra](https://github.com/occultskyrong/yibasuo-infra) |
 
 ## 1. 安装
 
@@ -37,7 +46,7 @@ cd /tmp/yibasuo-skill && bash install.sh --codex # Codex
 
 | 步骤 | 动作 |
 |------|------|
-| 1.1 | 读取项目代码（有 CodeGraph 则用 `codegraph context` 替代手工读） |
+| 1.1 | CodeGraph 获取项目结构摘要；检查项目 CLAUDE.md 是否存在，有则增量更新（架构/模块/端口/命令） |
 | 1.2 | 调用 `planner` agent：输入需求卡片 + 项目结构 + 语言规范 |
 | 1.3 | 产出：任务分解、依赖关系图、风险点列表 |
 
@@ -58,7 +67,7 @@ cd /tmp/yibasuo-skill && bash install.sh --codex # Codex
 | 步骤 | 动作 |
 |------|------|
 | 3.1 | 调用 `tdd-guide` agent：先读项目 `rules/<lang>/testing.md`，再动手 |
-| 3.2 | RED → GREEN → IMPROVE：Java→JUnit5+Mockito+Testcontainers / Node→Vitest+supertest / 前端→Vitest+Testing Library |
+| 3.2 | RED → GREEN → IMPROVE：Java→JUnit5+Mockito+Testcontainers / Node→Vitest+supertest / 前端→Vitest+Testing Library；Bug 修复时关键代码处加注释说明根因 |
 | 3.3 | 展示覆盖率报告 |
 
 **门禁**：覆盖率 ≥ 80% 且所有测试通过。不达标不进入阶段 4。
@@ -82,7 +91,7 @@ cd /tmp/yibasuo-skill && bash install.sh --codex # Codex
 | 5.2 | 环境检查：非 git 仓库警告，`git diff --stat` |
 | 5.3 | 格式检查：Node/前端→prettier+eslint+ts-prune / Java→p3c(pmd) |
 | 5.4 | 构建验证（Node/前端）：`<pkg> build` |
-| 5.5 | 完成前验证：测试通过 + 无 CRITICAL/HIGH + 格式已执行 + 构建通过 + 无调试残留 + 接口返回含 requestId/metadata |
+| 5.5 | 完成前验证：测试通过 + 无 CRITICAL/HIGH + 格式已执行 + 构建通过 + 无调试残留 + 接口含 requestId/metadata + DDL 变更含迁移文件 |
 | 5.6 | 文档更新：全量梳理 CLAUDE.md（架构/模块/端口/命令）+ README.md |
 | 5.7 | 生成 commit message（Conventional Commits） |
 | 5.8 | 展示确认（两种模式都必确认） |
@@ -114,7 +123,7 @@ cd /tmp/yibasuo-skill && bash install.sh --codex # Codex
 | `testing.md` | 覆盖率≥80%、TDD: RED→GREEN→IMPROVE、AAA 模式、Mock 策略 |
 | `development-workflow.md` | 研究复用→规划→TDD→审查→提交 全流程 |
 | `git-workflow.md` | 分支命名 `feat/YYMMDD_desc`、Conventional Commits、SemVer Tag、敏感文件检查 |
-| `coding-style.md` | 不可变性优先、KISS/DRY/YAGNI、命名规范、文件组织 |
+| `coding-style.md` | 不可变性、命名规范、**注释规范**（何时加/禁止项/TODO-FIXME）、文件组织、错误处理 |
 | `code-review.md` | 审查清单、严重级别（CRITICAL/HIGH/MEDIUM/LOW）、Agent 选择、安全审查触发条件 |
 | `agents.md` | 7 个 Agent 的职责定义和调用时机 |
 | `performance.md` | 模型选择策略、Context Window 管理 |
@@ -126,7 +135,7 @@ cd /tmp/yibasuo-skill && bash install.sh --codex # Codex
 | `patterns.md` | Repository/Service/Controller 分层、构造器注入、DTO 映射、API 返回结构、时间格式、数据库索引规范（p3c）、定时任务、gRPC 分层 |
 | `security.md` | Spring Security 配置、AES-256 PII 加密、JWT HS256 签名、Redis Token 黑名单、数据权限 DataScopeHelper、BCrypt cost=12 |
 | `testing.md` | JUnit5+AssertJ+Mockito、Testcontainers（禁止 H2）、JaCoCo、AIR 原则、测试命名 |
-| `coding-style.md` | POJO 规范、equals/hashCode 一致性、集合处理、控制语句、Virtual Threads |
+| `coding-style.md` | POJO 规范、equals/hashCode、集合处理、控制语句、Virtual Threads、**Javadoc 强制范围**、@Transactional/@Async 注释要求 |
 | `logging.md` | SLF4J+Logback、AsyncAppender、traceId(MDC)、JSON 格式(prod)、敏感数据脱敏 |
 
 ### 5.3 TypeScript（NestJS 11+ / Node 24 LTS）
@@ -136,7 +145,7 @@ cd /tmp/yibasuo-skill && bash install.sh --codex # Codex
 | `patterns.md` | Controller→Service→Repository 分层、DTO/Guard/Interceptor/ExceptionFilter、API 返回结构、定时任务+BullMQ、gRPC 分层 |
 | `security.md` | Helmet/CORS/CSRF(禁止 csurf)、速率限制(@nestjs/throttler)、NoSQL 注入、JWT、bcrypt cost=12 |
 | `testing.md` | Vitest+supertest+Playwright、Mock 策略、异步状态覆盖（loading/skeleton/empty/error） |
-| `coding-style.md` | `satisfies` 优先于 `as`、泛型约束(`Pick`/`Omit`/`Partial`)、Branded Types、模块组织、`__` 私有前缀 |
+| `coding-style.md` | `satisfies`、泛型约束、Branded Types、**JSDoc 强制范围**、类型注释边界、NestJS 注释、**依赖管理**（禁止手动编辑 package.json） |
 | `logging.md` | pino、traceId(AsyncLocalStorage)、结构化日志、时间格式 `yyyy-MM-dd HH:mm:ss.SSS` |
 
 ### 5.4 Web（Vue / React）
