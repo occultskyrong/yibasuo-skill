@@ -158,6 +158,7 @@ cd /tmp/yibasuo-skill && bash install.sh --codex # Codex
 | 依赖升级 | 跳过 0-1，阶段 2→兼容分析，阶段 3→全量回归，阶段 4→breaking change 审查 |
 | 数据库迁移 | 阶段 0→确认迁移范围+大表风险评估，阶段 5→迁移文件不可变检查 |
 | 单文件小改 | 不建议用一把梭，直接手改 + code-reviewer |
+| 注释 | 扫描缺少注释的 public 方法/复杂逻辑，按规范补充 Javadoc/JSDoc，不修改业务逻辑 |
 | 纯研究/调研 | 不适用，用 planner agent 出调研报告 |
 
 ## 7. Token 消耗

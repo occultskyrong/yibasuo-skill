@@ -174,6 +174,7 @@ requires:
 | 数据库迁移 | 阶段 0 确认迁移范围 + 大表风险评估，阶段 5 迁移文件不可变检查 |
 | 单文件小改 | 不建议用一把梭，直接手改 + code-reviewer |
 | 纯研究 / 调研 | 不适用一把梭，用 planner agent 出调研报告 |
+| **注释** | 扫描项目中缺少注释的 public 方法（Javadoc/JSDoc）、复杂逻辑、非直观业务规则，按 `rules/common/coding-style.md` 注释规范补充。不修改业务逻辑，仅补注释 |
 | **生成说明文档** | 收集项目信息（README/CLAUDE/package.json/pom.xml）→ 整理为结构化文档 → 调用 `ui-ux-pro-max` skill 生成 HTML |
 
 ## 示例
