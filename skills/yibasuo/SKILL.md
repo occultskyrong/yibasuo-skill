@@ -81,7 +81,9 @@ requires:
 
 ### 1. 规划
 
-1. **先读项目代码**（有 CodeGraph 则用 `nvm use 22 && codegraph context "<需求>"` 替代手工读代码）
+1. **有 CodeGraph 则先执行**：
+   - `nvm use 22 && codegraph context "<需求>"` 获取项目结构摘要（替代手工读代码）
+   - 检查项目是否已有 `CLAUDE.md`，若有则读取并增量更新（架构/模块/端口/命令等章节）
 2. `Agent({ subagent_type: "planner" })`，prompt 含：需求卡片 + 项目结构摘要（CodeGraph 输出） + 语言规范。要求输出任务分解、依赖关系图、风险点列表
 3. Agent 失败 → **展示错误，暂停**（两种模式都停）
 4. 默认（自动）直接继续。交互模式问"计划 OK？"
