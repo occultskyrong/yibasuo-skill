@@ -225,6 +225,116 @@ synchronized (this) {
 }
 ```
 
+## 注释与 Javadoc
+
+> 继承 [common/coding-style.md](../common/coding-style.md) 注释规范，参考 p3c 注释规约。
+
+### Javadoc 强制范围
+
+| 位置 | 要求 |
+|------|:---:|
+| 所有 `public` 类/接口/枚举/Record | **必须** |
+| 所有 `public` / `protected` 方法 | **必须** |
+| 所有 `public` 字段（含枚举常量） | **必须** |
+| 自定义异常类 | **必须** |
+| private 方法 | 逻辑复杂时写，简单 getter/setter 可省略 |
+
+```java
+/**
+ * 园区业务聚合服务。所有写操作通过本 Service，确保事务边界清晰。
+ *
+ * @since 2.1.0
+ */
+@Service
+public class GardenService {
+    /** 新激活冷却时间（秒），防止同一园区在窗口期内重复触发 */
+    private static final long ACTIVATION_COOLDOWN_SECONDS = 300L;
+
+    /**
+     * 激活园区并初始化默认班级。
+     *
+     * @param gardenId   园区唯一标识，不能为 null
+     * @param operatorId 管理员 ID，用于审计日志
+     * @return 激活后的园区快照
+     * @throws GardenNotFoundException 园区不存在或已逻辑删除
+     */
+    @Transactional
+    public GardenVO activate(Long gardenId, Long operatorId) { ... }
+
+    /** 简单 getter 可不写 Javadoc */
+    public Long getId() { return id; }
+}
+```
+
+### Javadoc 标签规范
+
+标签按固定顺序：`@param` → `@return` → `@throws` → `@see` → `@since` → `@deprecated`
+
+| 标签 | 说明 |
+|------|------|
+| `@param` | 参数名+描述+约束（"不能为 null""范围 1-100"） |
+| `@return` | 返回值描述，void 省略 |
+| `@throws` | checked 异常 + 重要的 unchecked 异常 |
+| `@see` | 引用关联类/方法 |
+| `@since` | 引入此 API 的版本号 |
+| `@deprecated` | **必须**配合 `{@link}` 写出替代方案和计划移除版本 |
+| `{@code}` / `{@link}` | 行内代码引用/类型链接 |
+
+禁止空 Javadoc（`/** */` 或无描述的标签）。
+
+### 行注释 vs 块注释
+
+| 场景 | 方式 |
+|------|------|
+| 单行逻辑解释 | `//`，放在代码**上一行**，不放在行尾 |
+| 多行逻辑解释 | 多行 `//`，**禁止 `/* */`**（避免和注释掉的代码歧义） |
+
+### 声明式注解必须注释
+
+`@Transactional`、`@Async`、`@Cacheable`、`@Retryable` 等改变方法行为但不可见的注解，**必须注释原因**：
+
+```java
+/**
+ * 注销园区，级联清理班级、课程数据。
+ * <p>通过 {@link Transactional} 保证四表写入原子性。</p>
+ */
+@Transactional(rollbackFor = Exception.class)
+public void deactivate(Long gardenId) { ... }
+
+/**
+ * 导出花名册为 Excel。
+ * <p>通过 {@link Async} 异步: 生成耗时 3-10 秒，避免阻塞 HTTP 线程。</p>
+ */
+@Async("exportExecutor")
+public CompletableFuture<File> exportRoster(Long classId) { ... }
+
+/**
+ * 查询用户权限编码列表。
+ * <p>通过 {@link Cacheable} 缓存 10 分钟: 权限变更频率低，命中率 > 95%。</p>
+ */
+@Cacheable(value = "yms:admin:perms", key = "#userId")
+public List<String> getPermissions(Long userId) { ... }
+```
+
+### @Deprecated 规范
+
+```java
+/**
+ * @deprecated 自 2.5.0 起，请使用 {@link #deactivate(Long)} 替代。
+ *             计划在 3.0.0 移除此方法。
+ */
+@Deprecated(since = "2.5.0", forRemoval = true)
+public void disable(Long gardenId) { deactivate(gardenId); }
+```
+
+### 不推荐的注释
+
+- 注释翻译代码：`// 获取用户名 → return user.getName()`
+- 注释掉的代码块（Git 负责历史，立即删除）
+- 日志当注释：调试完不删的 `log.info("进入方法")`
+- 日期/个人署名：`// 2024-01 by zhangsan` → `git blame`
+- 长篇注释替代方法提取 → **提取成方法，方法名即是注释**
+
 ## References
 
 See skill: `java-coding-standards` for full coding standards with examples.

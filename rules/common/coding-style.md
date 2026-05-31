@@ -80,23 +80,58 @@ Split large functions into focused pieces with clear responsibilities.
 
 ## 注释
 
+参考：阿里巴巴 Java 开发手册 p3c 注释规约。
+
 ### 必须加注释的场景
 
-- **Bug 修复**：在修复的关键代码处注释"为什么这么修"，方便后续维护者理解修复逻辑
-- **非显而易见的逻辑**：算法选择、边界处理、性能优化等不直观的代码
-- **公共接口/API**：Java 用 Javadoc（`@param`/`@return`/`@throws`），TypeScript 用 JSDoc（`@param`/`@returns`）
-- **`@Deprecated`**：标注废弃方法/类时必须写替代方案
+| 场景 | 说明 |
+|------|------|
+| **Bug 修复** | 必须注释根因 + 修复思路，不写 "fix bug" |
+| **复杂算法** | 算法名称、核心思路、为什么选这个算法 |
+| **非直观业务规则** | 业务背景、为什么这样处理 |
+| **Magic Number** | 值的含义、为什么是这个值、来源依据 |
+| **Workaround / Hack** | 临时方案原因、正确做法、关联 issue |
+| **性能敏感的代码选择** | 为什么用这个数据结构、benchmark 结果 |
+| **非显而易见的副作用** | 修改了外部状态、调用了有副作用的操作 |
+| **跨模块隐式依赖** | 依赖了不明显的上游数据格式或下游行为 |
+| **公共接口/API** | Java Javadoc / TypeScript JSDoc |
+| **@Deprecated** | 必须写出替代方案 |
 
-### 禁止的注释
+### 注释内容要求
 
-- 代码自解释时画蛇添足的注释（如 `// 设置 name` 注释 `setName()`）
-- 被注释掉的代码块（除非附带了"为什么保留"的说明和日期）
-- 过期/错误的注释（修改代码时必须同步更新注释）
+**为什么 > 做什么**：代码本身描述 "做什么"，注释必须解释 "为什么"。
 
-### TODO / FIXME
+```
+// BAD — 复述代码
+// 遍历用户列表
+for (User user : users) { ... }
 
-- `TODO` 用于计划实现但暂时搁置的功能，格式：`// TODO(username): 描述`
-- `FIXME` 用于已知但暂未修复的问题，格式：`// FIXME(username): 问题描述`
+// GOOD — 解释为什么
+// 先查缓存再查库，避免瞬时高并发穿透到 DB
+for (User user : users) { ... }
+```
+
+- 修改代码时**必须同步更新注释**。审查时注释与代码不一致视为 HIGH 级别问题
+- 注释语言统一（同项目内中文或英文二选一）
+
+### 禁止项
+
+- **注释掉的代码**：直接删除，Git 保留历史
+- **情绪化注释**：`// 天坑，别动` → 改为解释技术原因
+- **手工变更日志**：`// 2024-01 by xx: 新增XX` → 用 Git commit/CHANGELOG
+- **画蛇添足**：`// 设置用户名` 注释 `setUsername()`
+- **被注释掉的 import**
+
+### 特殊标记
+
+| 标记 | 含义 | 格式 |
+|------|------|------|
+| `TODO` | 待完成 | `// TODO(owner): 描述 [target_version]` |
+| `FIXME` | 已知问题 | `// FIXME: 描述（必须有原因和方案）` |
+| `HACK` | 临时方案 | `// HACK: reason. TODO(#ticket): proper fix` |
+| `XXX` | 严重需关注 | `// XXX: critical issue` |
+
+- TODO/FIXME 必须有责任人和具体说明，不能只写 "后面改"
 - 禁止用 TODO 代替功能需求的正确记录
 
 ## Code Quality Checklist
