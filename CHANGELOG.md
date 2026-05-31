@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.11.0] - 2026-05-28
+
+### Added
+- 注释规范体系：common/java/typescript 三级 + git-workflow commit body + PR 模板
+- 新增「注释」任务类型：触发后按规范补充 Javadoc/JSDoc，不修改业务逻辑
+- 阶段 1 规划新增 CodeGraph 检查 CLAUDE.md 并增量更新
+- TS coding-style 新增依赖管理规范（禁止手动编辑 package.json）
+- SKILL.md 阶段 2/5 新增 DDL 迁移文件检查
+
 ## [2.10.1] - 2026-05-28
 
 ### Added

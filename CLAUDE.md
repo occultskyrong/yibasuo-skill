@@ -53,12 +53,12 @@ yibasuo-skill/
 
 ### 发布流程
 
-1. 定版本号 → 2. 同步 `VERSION` + `SKILL.md`(3个) + `README.md` → 3. 追加 `CHANGELOG.md`
-4. `git add <具体文件> && git commit -m "<type>[!]: <desc>"`（精确添加，发布流程允许 `-A` 仅限版本同步文件）
+1. 定版本号 → 2. 同步 `VERSION` + `SKILL.md` + `README.md` + `codex/SKILL.md` + `.codex-plugin/plugin.json` → 3. 追加 `CHANGELOG.md`
+4. `git add <具体文件> && git commit -m "<type>: <desc>"`
 5. `git tag -a vX.Y.Z -m "yibasuo-skill vX.Y.Z — <summary>"`
 6. `git push origin master --tags`
-7. `bash install.sh --verify` 确认 5 处一致 + tag 在 HEAD
-8. 更新 `github-release` 分支并推送 GitHub
+7. `echo vX.Y.Z > ~/.claude/skills/yibasuo/.installed-version` 同步本地安装
+8. 脱敏检查
 
 ## 技能设计
 
