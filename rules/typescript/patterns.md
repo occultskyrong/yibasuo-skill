@@ -64,7 +64,7 @@ export class PaymentModule {}
 | 一 Module 一领域 | Module 命名必须反映单一业务领域（`UserModule`、`OrderModule`，禁止 `UserOrderModule`） |
 | 当前唯一不代表未来唯一 | 即使当前 A 和 B 是唯一关联的，未来可能引入 C、D，合并会导致重构成本 |
 | 跨 Module 通过 `imports` 关联 | NestJS 的 `imports`/`exports` 机制本身就是为跨 Module 依赖设计的 |
-| Controller 数量 ≤ 3 | 单个 Module 中 Controller 数量超过 3 个时，考虑拆分 |
+| Controller 数量 > 3 | 单个 Module 中 Controller 数量超过 3 个时，Module 职责可能过宽，考虑拆分 |
 
 ### Module 组织
 
