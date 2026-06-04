@@ -534,36 +534,66 @@ public static final String TOKEN_KEY = PREFIX + ":token:";
 ## 定时任务
 
 > 语言无关的核心规范见 [common/patterns.md](../common/patterns.md) 定时任务章节。本文档补充 Java/Spring Boot 特定实现。
+>
+> **框架选型**：生产环境统一使用 **XXL-Job** 作为分布式任务调度平台。`@Scheduled` 仅限本地开发调试或单机部署的简单场景。
 
-### @Scheduled 约束
+### XXL-Job 集成
+
+**依赖**：`pom.xml` 添加 `xxl-job-core`（版本由 infra 模板统一管理）。
+
+**调度中心配置**（`application.yml`）：
+
+```yaml
+xxl:
+  job:
+    admin:
+      addresses: ${XXL_JOB_ADMIN_ADDRESSES}   # 调度中心地址
+    executor:
+      appname: ${XXL_JOB_EXECUTOR_APPNAME}     # 执行器名称
+      port: ${XXL_JOB_EXECUTOR_PORT:9999}
+      logpath: ${XXL_JOB_EXECUTOR_LOG_PATH:/data/applogs/xxl-job}
+```
+
+**执行器**：
 
 ```java
-// GOOD — cron 外置，调度与业务分离，异步执行
 @Component
-public class OrderExpireTask {
-    private final OrderExpireService service;
-    private final TaskExecutor taskExecutor;
+public class OrderExpireHandler {
 
-    @Scheduled(cron = "${task.order-expire.cron}")
+    @XxlJob("orderExpireHandler")
     public void execute() {
-        taskExecutor.execute(() -> service.expireOrders());
+        // 分片广播模式：通过分片参数确定当前实例处理的数据范围
+        int shardIndex = XxlJobHelper.getShardIndex();
+        int shardTotal = XxlJobHelper.getShardTotal();
+        orderExpireService.expireOrders(shardIndex, shardTotal);
     }
-}
-
-// BAD — cron 硬编码，业务逻辑直接写在调度方法中
-@Scheduled(cron = "0 0 * * * ?")
-public void expireOrders() {
-    // 100 行业务代码...
 }
 ```
 
 | 规则 | 说明 |
 |------|------|
-| cron 外置 | 通过 `@Scheduled(cron = "${...}")` 从配置文件读取，禁止硬编码 |
-| 调度与业务分离 | `@Scheduled` 方法只做锁获取 + 委托调用，业务逻辑在独立 Service |
-| 默认单线程 | `@Scheduled` 默认只有 1 个调度线程，多个任务会互相阻塞 |
-| 配置独立线程池 | 生产环境必须配置 `TaskScheduler` 线程池，池大小 >= 定时任务数 |
-| `fixedDelay` vs `fixedRate` | 优先 `fixedDelay`（上一次完成后间隔），避免任务堆积 |
+| Handler 命名 | `@XxlJob` 注解值在调度中心全局唯一，命名：`{领域}{动作}Handler`（如 `orderExpireHandler`） |
+| 路由策略 | 多实例优先"故障转移"（单实例执行），大数据量用"分片广播"（多实例并行，各处理不同分片） |
+| 阻塞策略 | 默认"单机串行"（`ExecutorBlockStrategyEnum.SERIAL_EXECUTION`），防止重复执行 |
+| 调度与业务分离 | Handler 只做分片参数解析 + 委托调用，业务逻辑在独立 Service |
+| 幂等保护 | 配合 Redis 分布式锁（见下方），防止调度中心网络抖动时重复触发 |
+
+### @Scheduled（仅限开发调试）
+
+`@Scheduled` 仅用于本地开发快速验证，生产环境必须迁移到 XXL-Job。
+
+```java
+// 仅限本地开发调试，生产禁止使用
+@Scheduled(cron = "${task.order-expire.cron}")
+public void execute() {
+    taskExecutor.execute(() -> service.expireOrders());
+}
+```
+
+| 规则 | 说明 |
+|------|------|
+| cron 外置 | 通过 `@Scheduled(cron = "${...}")` 从配置文件读取 |
+| 生产禁用 | 提交到 staging/prod 前必须替换为 XXL-Job Handler |
 
 ### 自定义调度线程池
 

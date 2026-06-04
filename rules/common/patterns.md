@@ -176,7 +176,7 @@ Encapsulate data access behind a consistent interface:
 
 多实例部署时必须保证任务互斥：
 
-- **优先使用框架内置能力**：Quartz 集群模式、XXL-Job 路由策略（故障转移/分片广播）、BullMQ 去重
+- **优先使用框架内置能力**：Java→XXL-Job（生产唯一方案，路由策略：故障转移/分片广播）、NestJS→BullMQ；禁止生产环境用 `@Scheduled`/@Cron 裸跑
 - **自建锁**：Redis `SET key value NX PX ttl` + Lua 脚本原子释放
 - **锁粒度**：按任务名加锁，不同任务互不影响
 - **锁续期**：执行时间不固定的长任务，启动 watchdog 协程/线程定期续期
