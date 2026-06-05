@@ -1,13 +1,24 @@
 # Changelog
 
-## [2.11.0] - 2026-05-28
+## [2.11.0] - 2026-06-05
 
 ### Added
 - 注释规范体系：common/java/typescript 三级 + git-workflow commit body + PR 模板
 - 新增「注释」任务类型：触发后按规范补充 Javadoc/JSDoc，不修改业务逻辑
-- 阶段 1 规划新增 CodeGraph 检查 CLAUDE.md 并增量更新
+- 阶段 1 规划新增 CodeGraph 检查 CLAUDE.md + init 前置检查
 - TS coding-style 新增依赖管理规范（禁止手动编辑 package.json）
 - SKILL.md 阶段 2/5 新增 DDL 迁移文件检查
+- NestJS Module 设计原则：单一权责 + 跨 Module 通过 imports 关联
+- TS 模块组织：src/ 下只允许 1 层，module 直接铺开
+- 定时任务框架选型：Java→XXL-Job 生产唯一方案，@Scheduled 仅限开发调试
+- Codex 兼容性：install.sh SKILL_DEST 修复 + Codex 版同步至 2.11.0 + plugin.json 占位符修复
+- infra 新增 --codex 安装支持 + NestJS 模板移除 modules/ 中间层
+
+### Fixed
+- ApiResponse code 改回 number|string 并标注实际项目用法
+- typescript/logging.md 重复 import 修复
+- typescript/security.md csurf 废弃替换
+- 注释规范：禁止单行 /* */ 块注释
 
 ## [2.10.1] - 2026-05-28
 
