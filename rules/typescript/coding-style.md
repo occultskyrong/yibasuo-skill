@@ -273,6 +273,30 @@ src/
 - One feature per module directory
 - Cross-cutting code in `common/`, not duplicated in each module
 - Keep controllers thin: parse HTTP input, delegate to service, return DTO
+- **禁止 `src/` 下超过 2 层嵌套**。如需更深层级，要么把下层拆到 `src/modules/` 下作为独立 module，要么把文件夹展平
+
+```typescript
+// BAD — src/modules/ 下嵌套了 3+ 层
+src/modules/order/
+  └── submodules/
+      └── payment/
+          └── services/
+              └── payment.service.ts
+
+// GOOD — 拆到 src/modules/ 下作为独立 module
+src/modules/order/
+  └── order.module.ts
+src/modules/payment/
+  └── payment.module.ts
+
+// GOOD — 展平为单层
+src/modules/order/
+  ├── order.module.ts
+  ├── order.service.ts
+  └── payment/
+      ├── payment.module.ts
+      └── payment.service.ts
+```
 
 ### API Response Convention
 
