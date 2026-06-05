@@ -68,8 +68,10 @@ export class PaymentModule {}
 
 ### Module 组织
 
+Module 直接铺在 `src/` 下，禁止嵌套。
+
 ```
-modules/
+src/
 ├── user/
 │   ├── user.module.ts
 │   ├── user.controller.ts

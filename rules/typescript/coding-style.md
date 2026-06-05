@@ -255,40 +255,55 @@ npm install --save @nestjs/schedule
 
 ### Module Organization
 
+Module 直接铺在 `src/` 下，每个 module 一个顶层目录。
+
 ```
 src/
 ├── main.ts
 ├── app.module.ts
 ├── common/               # Cross-cutting: filters, guards, interceptors, pipes
 ├── config/               # env validation, configuration loaders
-└── modules/
-    └── <feature>/
-        ├── <feature>.module.ts
-        ├── <feature>.controller.ts
-        ├── <feature>.service.ts
-        ├── dto/
-        └── entities/
+├── user/
+│   ├── user.module.ts
+│   ├── user.controller.ts
+│   ├── user.service.ts
+│   ├── dto/
+│   └── entities/
+├── order/
+│   ├── order.module.ts
+│   ├── order.controller.ts
+│   ├── order.service.ts
+│   ├── dto/
+│   └── entities/
+└── payment/
+    ├── payment.module.ts
+    ├── payment.service.ts
+    └── dto/
 ```
 
 - One feature per module directory
 - Cross-cutting code in `common/`, not duplicated in each module
 - Keep controllers thin: parse HTTP input, delegate to service, return DTO
-- **`src/modules/` 下只允许 1 层 module 目录**，禁止子目录嵌套。如需拆分，必须把子目录提升为独立的顶层 module
+- **`src/` 下只允许 1 层**，每个 module 是一个顶层目录，禁止目录嵌套。模块内文件直接铺开，可含 `dto/`、`entities/` 等辅助目录
 
 ```typescript
-// BAD — src/modules/ 下有嵌套
-src/modules/order/
+// BAD — src/ 下有嵌套
+src/order/
   └── payment/              ← 嵌套在 order 下面
       ├── payment.module.ts
       └── payment.service.ts
 
-// GOOD — 拆分为两个并列 module
-src/modules/order/
+// GOOD — module 直接铺在 src 下
+src/order/
   ├── order.module.ts
-  └── order.service.ts
-src/modules/payment/
+  ├── order.service.ts
+  ├── order.controller.ts
+  ├── dto/
+  └── entities/
+src/payment/
   ├── payment.module.ts
-  └── payment.service.ts
+  ├── payment.service.ts
+  └── dto/
 ```
 
 ### API Response Convention
