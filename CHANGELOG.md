@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.11.1] - 2026-06-06
+
+### Changed
+- TS 目录结构规范提升为 CRITICAL 级：`##` 独立章节 + typescript-reviewer HIGH 检查 + SKILL.md 阶段 4 必检
+- 目录规范从 `### Module Organization` 提升为 `## 目录结构 (CRITICAL)`
+
 ## [2.11.0] - 2026-06-05
 
 ### Added
