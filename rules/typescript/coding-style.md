@@ -259,11 +259,10 @@ npm install --save @nestjs/schedule
 
 ### 规则
 
-- **`src/` 下只允许 1 层**，每个 module 是 `src/` 的直接子目录
-- **禁止目录嵌套**（如 `src/order/payment/`）—— 必须拆分为 `src/order/` + `src/payment/` 两个平级 module
-- **禁止 `modules/` 中间层**（如 `src/modules/order/`）—— 多余且增加路径深度
+- **禁止 `modules/` 中间层**（如 `src/modules/user/`）—— module 直接放在 `src/` 下
+- **子模块仅当同领域且无外部引用时可嵌套**：子模块只被父模块内部使用 → 允许嵌套；子模块一旦被父模块外的任何模块 import → **必须提升为 `src/` 下顶层 module**
 - **跨 module import 用相对路径**，禁止 `src/xxx` 绝对路径（生产构建和 Jest 都会挂）
-- 模块内可含 `dto/`、`entities/` 等辅助目录，但不能再嵌套子模块目录
+- 模块内可含 `dto/`、`entities/` 等辅助目录
 
 ### 正确结构
 
@@ -279,40 +278,47 @@ src/
 │   ├── user.service.ts
 │   ├── dto/
 │   └── entities/
-├── order/
+├── order/                # 订单领域
 │   ├── order.module.ts
 │   ├── order.controller.ts
 │   ├── order.service.ts
 │   ├── dto/
-│   └── entities/
-└── payment/
+│   ├── entities/
+│   └── items/            # 子模块：订单明细，仅 order 内部使用 ✓
+│       ├── order-items.module.ts
+│       ├── order-items.service.ts
+│       └── dto/
+└── payment/              # 支付领域（多个模块引用，必须顶层） ✓
     ├── payment.module.ts
     ├── payment.service.ts
     └── dto/
 ```
 
-### 禁止的结构
+### 违规结构
 
 ```typescript
-// BAD — 嵌套在 order 下面
+// BAD — payment 被 order 和 invoice 同时引用，却嵌套在 order 下面
 src/order/
-  └── payment/
-      ├── payment.module.ts    // 应提升为 src/payment/
+  └── payment/              ← invoice 无法引用嵌套的子模块
+      └── payment.module.ts   // 必须提升为 src/payment/
 
 // BAD — modules/ 中间层
-src/modules/user/               // 应改为 src/user/
+src/modules/user/            // 应改为 src/user/
 
 // BAD — src/ 绝对路径
 import { UserService } from 'src/user/user.service';  // Jest/prod 都会挂
+
 // GOOD — 相对路径
 import { UserService } from '../user/user.service';
 ```
 
-### Module Organization
+### 判断标准
 
-- One feature per module directory
-- Cross-cutting code in `common/`, not duplicated in each module
-- Keep controllers thin: parse HTTP input, delegate to service, return DTO
+| 条件 | 处理 |
+|------|------|
+| 子模块仅被父模块 import | ✅ 可嵌套 |
+| 子模块被父模块外的**任何**模块 import | ❌ 必须提升为 `src/` 顶层 |
+| 不确定将来是否会被外部引用 | ❌ 直接放顶层（提前拆分成本最低） |
   ├── payment.service.ts
   └── dto/
 ```

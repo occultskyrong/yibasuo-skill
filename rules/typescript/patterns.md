@@ -65,7 +65,7 @@ export class PaymentModule {}
 | 当前唯一不代表未来唯一 | 即使当前 A 和 B 是唯一关联的，未来可能引入 C、D，合并会导致重构成本 |
 | 跨 Module 通过 `imports` 关联 | NestJS 的 `imports`/`exports` 机制本身就是为跨 Module 依赖设计的 |
 | Controller 数量 > 3 | 单个 Module 中 Controller 数量超过 3 个时，Module 职责可能过宽，考虑拆分 |
-| **`src/` 下只允许 1 层** | Module 是 `src/` 的直接子目录，禁止 `src/modules/` 中间层和子目录嵌套。详见 `rules/typescript/coding-style.md` |
+| **模块嵌套必须属同一领域** | 子模块仅父模块内部使用时允许嵌套；一旦被外部模块 import → 必须提升为 `src/` 顶层。详见 `rules/typescript/coding-style.md` |
 
 ### Module 组织
 

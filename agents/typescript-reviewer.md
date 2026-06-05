@@ -80,9 +80,9 @@ You DO NOT refactor or rewrite code — you report findings only.
 - **Large bundle imports**: `import _ from 'lodash'` — use named imports or tree-shakeable alternatives
 
 ### HIGH -- Directory Structure
-- **Nested modules under `src/`**: `src/order/payment/` — payment must be promoted to `src/payment/`. `src/` allows only 1 level per module
-- **`modules/` intermediate layer**: `src/modules/user/` — remove the `modules/` wrapper, use `src/user/` directly
-- **`src/` absolute imports**: `import { X } from 'src/user/user.service'` — breaks production builds and Jest; use relative imports `../user/user.service`
+- **跨领域嵌套子模块**: 子模块被父模块外的模块 import → 必须提升为 `src/` 顶层。仅父模块内部使用的子模块允许嵌套
+- **`modules/` 中间层**: `src/modules/user/` — 移除 `modules/` 包装，直接用 `src/user/`
+- **`src/` 绝对路径 import**: `import { X } from 'src/user/user.service'` — 生产构建和 Jest 都会挂；用相对路径 `../user/user.service`
 
 ### MEDIUM -- Best Practices
 - **`console.log` left in production code**: Use a structured logger
