@@ -253,16 +253,26 @@ npm install --save @nestjs/schedule
 # BAD — import 了但没加到 package.json，靠全局安装碰运气
 ```
 
-### Module Organization
+## 目录结构 (CRITICAL)
 
-Module 直接铺在 `src/` 下，每个 module 一个顶层目录。
+> **审查必检项，违反视为 HIGH 级别问题。**
+
+### 规则
+
+- **`src/` 下只允许 1 层**，每个 module 是 `src/` 的直接子目录
+- **禁止目录嵌套**（如 `src/order/payment/`）—— 必须拆分为 `src/order/` + `src/payment/` 两个平级 module
+- **禁止 `modules/` 中间层**（如 `src/modules/order/`）—— 多余且增加路径深度
+- **跨 module import 用相对路径**，禁止 `src/xxx` 绝对路径（生产构建和 Jest 都会挂）
+- 模块内可含 `dto/`、`entities/` 等辅助目录，但不能再嵌套子模块目录
+
+### 正确结构
 
 ```
 src/
 ├── main.ts
 ├── app.module.ts
-├── common/               # Cross-cutting: filters, guards, interceptors, pipes
-├── config/               # env validation, configuration loaders
+├── common/               # 跨模块共享：filters, guards, interceptors, pipes
+├── config/               # 环境变量校验、配置加载
 ├── user/
 │   ├── user.module.ts
 │   ├── user.controller.ts
@@ -281,27 +291,28 @@ src/
     └── dto/
 ```
 
+### 禁止的结构
+
+```typescript
+// BAD — 嵌套在 order 下面
+src/order/
+  └── payment/
+      ├── payment.module.ts    // 应提升为 src/payment/
+
+// BAD — modules/ 中间层
+src/modules/user/               // 应改为 src/user/
+
+// BAD — src/ 绝对路径
+import { UserService } from 'src/user/user.service';  // Jest/prod 都会挂
+// GOOD — 相对路径
+import { UserService } from '../user/user.service';
+```
+
+### Module Organization
+
 - One feature per module directory
 - Cross-cutting code in `common/`, not duplicated in each module
 - Keep controllers thin: parse HTTP input, delegate to service, return DTO
-- **`src/` 下只允许 1 层**，每个 module 是一个顶层目录，禁止目录嵌套。模块内文件直接铺开，可含 `dto/`、`entities/` 等辅助目录
-
-```typescript
-// BAD — src/ 下有嵌套
-src/order/
-  └── payment/              ← 嵌套在 order 下面
-      ├── payment.module.ts
-      └── payment.service.ts
-
-// GOOD — module 直接铺在 src 下
-src/order/
-  ├── order.module.ts
-  ├── order.service.ts
-  ├── order.controller.ts
-  ├── dto/
-  └── entities/
-src/payment/
-  ├── payment.module.ts
   ├── payment.service.ts
   └── dto/
 ```

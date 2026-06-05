@@ -79,6 +79,11 @@ You DO NOT refactor or rewrite code — you report findings only.
 - **Missing `React.memo` / `useMemo`**: Expensive computations or components re-running on every render
 - **Large bundle imports**: `import _ from 'lodash'` — use named imports or tree-shakeable alternatives
 
+### HIGH -- Directory Structure
+- **Nested modules under `src/`**: `src/order/payment/` — payment must be promoted to `src/payment/`. `src/` allows only 1 level per module
+- **`modules/` intermediate layer**: `src/modules/user/` — remove the `modules/` wrapper, use `src/user/` directly
+- **`src/` absolute imports**: `import { X } from 'src/user/user.service'` — breaks production builds and Jest; use relative imports `../user/user.service`
+
 ### MEDIUM -- Best Practices
 - **`console.log` left in production code**: Use a structured logger
 - **Magic numbers/strings**: Use named constants or enums
