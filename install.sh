@@ -18,6 +18,7 @@ else
   BASE="${XDG_CONFIG_HOME:-$HOME/.claude}"
   SKILL_SRC="skills/$SKILL_NAME"
 fi
+SKILL_DEST="$BASE/skills/$SKILL_NAME"
 
 # Default repo URL
 REPO_URL="${YIBASUO_REPO:-git@github.com:occultskyrong/yibasuo-skill.git}"
@@ -223,9 +224,13 @@ if [[ "$FORCE" == "--force" ]]; then
   echo "  [+] agents/* (force overwritten)"
 fi
 
-# --- Agents ---
-echo ""
-echo "[4/4] Installing agents..."
+# --- Agents (CC only, Codex has no agent system) ---
+if [[ "$TARGET" == "codex" ]]; then
+  echo ""
+  echo "[4/4] Skipping agents (Codex does not support sub-agents)"
+else
+  echo ""
+  echo "[4/4] Installing agents..."
 AGENT_DEST="$BASE/agents"
 
 if [[ -d "$SCRIPT_DIR/agents" ]]; then
@@ -246,6 +251,7 @@ fi
 if [[ "$FORCE" == "--force" ]] && [[ -d "$SCRIPT_DIR/agents" ]]; then
   cp "$SCRIPT_DIR/agents"/*.md "$AGENT_DEST/"
 fi
+fi  # end of Codex agent skip block
 
 # --- Write installed version marker ---
 echo "$VERSION" > "$SKILL_DEST/.installed-version"
