@@ -191,3 +191,7 @@ cat ~/.claude/skills/yibasuo/.installed-version  # 查看版本
 
 - [yibasuo-infra](https://github.com/occultskyrong/yibasuo-infra) — 项目骨架初始化（Spring Boot / NestJS / gRPC）
 - [yibasuo-skill](https://github.com/occultskyrong/yibasuo-skill) — 全流程开发管线
+
+## 协议
+
+[MIT License](LICENSE) — 允许任何人随意使用、复制、修改、分发、出售。
