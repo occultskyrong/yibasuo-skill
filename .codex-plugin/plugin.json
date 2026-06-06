@@ -1,6 +1,6 @@
 {
   "name": "yibasuo",
-  "version": "2.11.1",
+  "version": "2.11.3",
   "description": "一把梭 (yibasuo) — 全流程开发管线。需求→规划→架构→测试驱动开发→审查→提交。每阶段需用户确认后继续。",
   "author": "occultskyrong",
   "homepage": "https://github.com/occultskyrong/yibasuo-skill",

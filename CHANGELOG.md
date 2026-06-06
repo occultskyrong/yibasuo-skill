@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.11.3] - 2026-06-06
+
+### Added
+- 阶段 5 新增 Migration 确认步骤：列出迁移文件内容 → 告知 Flyway 自动执行 → 用户确认（必确认）
+- infra Flyway 规范升级：明确依赖(flyway-mysql)+配置(flyway.table)+命名两种格式+启动顺序(ApplicationRunner 后于 Flyway)
+
 ## [2.11.2] - 2026-06-06
 
 ### Changed
