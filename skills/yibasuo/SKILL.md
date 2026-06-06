@@ -46,7 +46,7 @@ requires:
 
 ## 前端项目差异
 
-前端项目（Vue/React）在标准流程上有差异化阶段，详见 [references/frontend-flows.md](references/frontend-flows.md)。
+前端项目（Vue/React）使用独立流程规范：[references/frontend-flows.md](references/frontend-flows.md) — 场景路由（着陆页→taste-skill / 仪表盘→ui-ux-pro-max / 通用→frontend-design）→ 6 步迭代内环（方向确认→编码→审查→回退→浏览器验证）→ 8 条铁律（T1/T2/T3 分级门禁）。
 
 **命名规范**：Git 分支 `feat/YYMMDD_desc`（见 `rules/common/git-workflow.md`）、Java 文件 PascalCase、NestJS 文件 snake_case、文档 `YYYYMMDD - 标题.md`。
 
