@@ -148,15 +148,19 @@ requires:
    - [x] 构建通过（或已处理缺失警告）
    - [x] 无 console.log / 调试残留
    - [x] 接口返回含 `requestId`（= traceId）和 `metadata`（timestamp/method/endpoint），格式符合 `rules/java/patterns.md` 规范
-   - [x] DDL 变更已创建对应的迁移文件（`YYYYMMDD-{描述}.sql`），含回滚脚本或 `[IRREVERSIBLE]` 标记
-6. **文档更新**（提交前全量梳理）：
+   - [x] DDL 变更已创建对应的迁移文件（`V{n}__{描述}.sql` 或 `V{YYYYMMDD}__{描述}.sql`），含回滚脚本或 `[IRREVERSIBLE]` 标记
+6. **Migration 确认**（存在迁移文件时必须执行）：
+   - 列出本次提交包含的所有迁移文件及内容摘要
+   - 告知用户：**Flyway 在应用启动时自动执行**，已部署的迁移不可修改（改错发新迁移）
+   - **暂停，等用户确认。**（两种模式都必确认）
+7. **文档更新**（提交前全量梳理）：
    - `CLAUDE.md`：架构图、模块清单、端口分配、常用命令、环境对照 — 确保与代码现状一致
    - `README.md`：功能说明、使用方式 — 确保与实际变更匹配
-7. **生成 commit message**：遵循 [Conventional Commits](references/commit-conventions.md)（`<type>[!]: <desc>`），破坏性变更加 `!`
-8. **展示确认**（两种模式都必确认）
-9. `git add <具体文件>`（精确添加，禁止 `git add -A`）+ `git commit`
-10. **创建 tag**：遵循 [SemVer](references/commit-conventions.md#semver-tag)，根据 type 确定 MAJOR/MINOR/PATCH。**标签不可变**
-11. 询问是否 push（含 `--tags`）。引导 PR/合并策略
+8. **生成 commit message**：遵循 [Conventional Commits](references/commit-conventions.md)（`<type>[!]: <desc>`），破坏性变更加 `!`
+9. **展示确认**（两种模式都必确认）
+10. `git add <具体文件>`（精确添加，禁止 `git add -A`）+ `git commit`
+11. **创建 tag**：遵循 [SemVer](references/commit-conventions.md#semver-tag)，根据 type 确定 MAJOR/MINOR/PATCH。**标签不可变**
+12. 询问是否 push（含 `--tags`）。引导 PR/合并策略
 
 ## 中断与恢复
 
