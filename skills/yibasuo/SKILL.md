@@ -118,15 +118,18 @@ requires:
 
 ### 4. 审查
 
+每轮审查执行以下循环，**至少 3 轮、最多 5 轮**：
+
+**Round N**：
 1. 按技术栈 **并行**启动：Java→`java-reviewer`，Node.js/前端→`typescript-reviewer` + `security-reviewer`
-2. 任一 agent 失败 → **展示错误，暂停**
-3. NestJS 项目额外检查：`src/` 下是否只有 1 层? 是否有 `src/modules/` 中间层? import 是否用了 `src/` 绝对路径? 以上任一违反视为 HIGH
-4. CRITICAL/HIGH → **必须修复**（两种模式都拦截），修复前先写复现测试
-5. **基础设施配置审查**（主会话执行，agent 不负责），详见 [references/infrastructure-review.md](references/infrastructure-review.md)
-6. 修复后重审，**至少 3 轮、最多 5 轮**。即使无 CRITICAL/HIGH 也跑满 3 轮以充分审查。5 轮后仍有 → 暂停等用户决定
-7. MEDIUM/LOW → 展示建议，不强制
-8. 默认（自动）无 CRITICAL/HIGH 则继续
-9. 有 CodeGraph 时：`codegraph query "<变更符号>"` 验证所有引用点已更新
+2. NestJS 项目额外检查：`src/` 下是否只有 1 层 / `src/modules/` 中间层 / `src/` 绝对路径 import（违规=HIGH）
+3. 主会话同时执行**基础设施配置审查**，详见 [references/infrastructure-review.md](references/infrastructure-review.md)
+4. **输出审查清单**：按 CRITICAL > HIGH > MEDIUM > LOW 分级列出所有问题，每项附文件路径和修复建议
+5. **暂停，等用户确认**。用户确认修复范围后，主会话自动修复（CRITICAL 必修，HIGH 默认修，MEDIUM/LOW 用户选择）。修复后输出修复清单（已修/跳过/原因）
+6. 开始下一轮审查。即使全部通过也跑满 3 轮以充分审查
+7. 5 轮后仍有 CRITICAL/HIGH → 暂停等用户决定
+
+有 CodeGraph 时每轮末尾执行 `codegraph query "<变更符号>"` 验证引用点已更新。
 
 **门禁**：CRITICAL = 0 且 HIGH = 0。不达标不进入阶段 5。
 
