@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.13.0] - 2026-06-08
+
+### Added
+- Elasticsearch 索引命名规范（`rules/common/elasticsearch.md`）：ECS 对齐 `{dataset}-{namespace}` 格式 + 别名 + index template + ILM
+
 ## [2.12.2] - 2026-06-07
 
 ### Changed
