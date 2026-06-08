@@ -120,6 +120,8 @@ cd /tmp/yibasuo-skill && bash install.sh --codex # Codex
 | `patterns.md` | 统一返回结构 `{code,message,data,requestId,metadata}`、API 版本控制、HTTP/gRPC 分层、数据库迁移 6 步流程、定时任务生命周期 |
 | `security.md` | OWASP Top 10：访问控制、注入防护（SQL/NoSQL/XSS/XXE/SSRF）、反序列化、密码存储、安全头、依赖安全、令牌失效 |
 | `concurrency.md` | 线程池规范、CompletableFuture 超时、ThreadLocal 清理、锁使用、并发集合、Virtual Threads |
+| `elasticsearch.md` | 索引命名 `{dataset}-{namespace}`、读写别名、index template、ILM 策略 |
+| `mongodb.md` | 集合命名 `snake_case` 复数、字段 `camelCase`、混合文档设计、删前归档、索引策略 |
 | `testing.md` | 覆盖率≥80%、TDD: RED→GREEN→IMPROVE、AAA 模式、Mock 策略 |
 | `development-workflow.md` | 研究复用→规划→TDD→审查→提交 全流程 |
 | `git-workflow.md` | 分支命名 `feat/YYMMDD_desc`、Conventional Commits、SemVer Tag、敏感文件检查 |
