@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.14.0] - 2026-06-08
+
+### Added
+- MongoDB 规范（`rules/common/mongodb.md`）：camelCase 字段+混合文档设计+删前归档+索引策略+8项反模式+10项审查清单
+- ES 和 MongoDB 规范同步到 README 规则表
+
 ## [2.13.0] - 2026-06-08
 
 ### Added
