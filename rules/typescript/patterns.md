@@ -30,6 +30,68 @@ Controller → Service → Repository → Database
   parsing    logic       access
 ```
 
+## 数据库 Schema 管理
+
+### 禁止项
+
+| 操作 | 状态 | 原因 |
+|------|:---:|------|
+| `synchronize: true` | ❌ **禁止** | 生产环境自动同步表结构会造成数据丢失（删除列、修改类型） |
+| Entity 上使用 `@Index()` | ❌ **禁止** | 索引属于 DDL，必须通过 migration 管理，保证可追溯可回滚 |
+| `@Column` 改类型不写 migration | ❌ **禁止** | 同一条 schema 变更规则适用 |
+
+### 正确做法
+
+**TypeORM DataSource 配置**：
+
+```typescript
+// ormconfig.ts
+export default new DataSource({
+  ...
+  synchronize: false,   // 必须关闭
+  migrations: ['src/migrations/*.ts'],
+});
+```
+
+**索引通过 migration 创建**：
+
+```typescript
+// 1734096000-add-user-phone-index.ts
+export class AddUserPhoneIndex1234567 implements MigrationInterface {
+  async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.createIndex('user', new TableIndex({
+      name: 'idx_user_phone',
+      columnNames: ['phone'],
+    }));
+  }
+  async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.dropIndex('user', 'idx_user_phone');
+  }
+}
+```
+
+禁止在 Entity 中声明索引：
+
+```typescript
+// BAD — @Index 在 Entity 中
+@Entity()
+@Index(['phone'], { unique: true })
+export class User { ... }
+
+// GOOD — Entity 只声明字段结构，索引在 migration 中
+@Entity()
+export class User {
+  @Column()
+  phone: string;
+}
+```
+
+### 审查清单
+
+- [ ] TypeORM `synchronize` 为 `false`
+- [ ] Entity 中无 `@Index()`、`@Unique()` 装饰器
+- [ ] 所有索引有对应的 migration 文件（含 `up` 和 `down`）
+
 ## NestJS Module 设计原则
 
 ### 单一权责（强制）
