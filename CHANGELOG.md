@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.15.0] - 2026-06-08
+
+### Added
+- MySQL 自增 ID 从 1000-3000 随机数开始（防止按 ID 遍历 + 泄露数据量 + 合并冲突）
+- DDL 模板全部添加 `AUTO_INCREMENT={1000-3000随机值}`
+- infra java/nestjs 模板同步更新 AUTO_INCREMENT 起始值
+
 ## [2.14.0] - 2026-06-08
 
 ### Added
