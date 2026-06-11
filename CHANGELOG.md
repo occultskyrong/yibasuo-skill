@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.17.0] - 2026-06-08
+
+### Added
+- NestJS 禁止 Entity 索引+synchronize：索引必须走 migration，`synchronize: false` 强制
+
 ## [2.16.0] - 2026-06-08
 
 ### Added
