@@ -96,7 +96,7 @@ requires:
 
 1. `Agent({ subagent_type: "architect" })`，prompt 含：需求 + 计划 + 语言规范。要求产出 ADR（决策/后果/替代方案）+ 接口契约 + 数据变更
 2. 自检 P0 问题（缺关键决策/接口遗漏/数据变更缺失），**至少 3 轮、最多 5 轮**。即使无 P0 也跑满 3 轮以充分打磨。5 轮后仍有 P0 → 暂停等用户决定
-3. 若数据变更涉及 DDL（建表/加列/改列/加索引等），架构产出必须包含对应的 Flyway 迁移文件（`YYYYMMDD-{描述}.sql`），遵循 `rules/common/patterns.md` 迁移规范。Java 项目在 `src/main/resources/db/migration/` 下，NestJS 项目在 `migrations/` 下
+3. 若数据变更涉及 DDL（建表/加列/改列/加索引等），架构产出必须包含对应的迁移文件（`V{YYYYMMDD}__{描述}.sql`），遵循 `rules/common/patterns.md` 数据库迁移规范。Java 项目在 `src/main/resources/db/migration/` 下，NestJS 项目在 `migrations/` 下
 4. Agent 失败 → **展示错误，暂停**
 5. 默认（自动）直接继续。交互模式问"方案 OK？"
 
