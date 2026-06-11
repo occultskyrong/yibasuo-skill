@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.16.0] - 2026-06-08
+
+### Added
+- RESTful API 设计规范（`rules/common/patterns.md`）：URL 命名+HTTP 方法+查询参数+状态码+反模式
+
 ## [2.15.0] - 2026-06-08
 
 ### Added
