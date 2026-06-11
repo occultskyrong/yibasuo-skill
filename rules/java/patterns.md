@@ -294,30 +294,55 @@ DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 | 关联表（中间表） | ✅ | ❌ | ❌ | ❌ | 物理删除 |
 | 日志表 | ✅ | ❌ | ✅ | ❌ | 物理删除 |
 
+### 自增 ID 起始值
+
+自增 ID 必须从 **1000-3000 之间的随机数**开始，禁止从 1 开始：
+
+- 防止按 ID 遍历数据（`/api/order/1` → `/api/order/2`）
+- 防止泄露数据量级（id=1005 暗示有 1000+ 条）
+- 数据库合并时避免主键冲突
+
+```sql
+CREATE TABLE `order` (
+    ...
+) ENGINE=InnoDB AUTO_INCREMENT={1000-3000随机值};
+```
+
+同一个库内各表的起始值均匀散开（不聚集在某个数字附近），防止后期合并时冲突。
+
 **业务表**模板（6 个审计字段）：
 
 ```sql
-id         BIGINT   NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
-created_by INT      COMMENT '创建人 ID',
-created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-updated_by INT      COMMENT '更新人 ID',
-updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-deleted_at DATETIME COMMENT '逻辑删除（NULL=未删除）'
+CREATE TABLE `{table_name}` (
+    id         BIGINT   NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
+    created_by INT      COMMENT '创建人 ID',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_by INT      COMMENT '更新人 ID',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted_at DATETIME COMMENT '逻辑删除（NULL=未删除）',
+    PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT={1000-3000随机值} DEFAULT CHARSET=utf8mb4;
 ```
 
 **关联表**模板（无审计字段，仅自增主键）：
 
 ```sql
-id      BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
--- 关联字段...
+CREATE TABLE `{table_name}` (
+    id      BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
+    ...
+    PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT={1000-3000随机值} DEFAULT CHARSET=utf8mb4;
 ```
 
 **日志表**模板（仅 created_at，物理删除）：
 
 ```sql
-id         BIGINT   NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
--- 日志字段...
-created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+CREATE TABLE `{table_name}` (
+    id         BIGINT   NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
+    ...
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT={1000-3000随机值} DEFAULT CHARSET=utf8mb4;
 ```
 
 ### 核心约束
