@@ -6,30 +6,38 @@
 
 - 远端: `git@github.com:occultskyrong/yibasuo-skill.git`
 - 默认分支: `master`
-- 发布分支: `main`（GitHub 公开版，干净单 commit）
 
 ## 产物结构
 
 ```
 yibasuo-skill/
 ├── VERSION / CHANGELOG.md / README.md / CLAUDE.md
+├── LICENSE (MIT)
 ├── install.sh             # 一键安装 (--force, --codex, --verify)
 ├── .codex-plugin/plugin.json
-├── codex/SKILL.md         # Codex 版（纯内联指令，无 agent 依赖）
+├── codex/SKILL.md         # Codex 版（纯内联指令）
 ├── .gitignore
-├── agents/ (7 files)      # planner / architect / tdd-guide / java-reviewer
-│                          # typescript-reviewer / code-reviewer / security-reviewer
+├── agents/ (7 files)      # planner/architect/tdd-guide/java-reviewer
+│                          # typescript-reviewer/code-reviewer/security-reviewer
 ├── rules/
-│   ├── common/  (11 files)   # patterns/security/concurrency/testing/coding-style/...
-│   ├── java/    (6 files)    # patterns/security/testing/coding-style/logging/hooks
-│   ├── typescript/ (6 files) # patterns/security/testing/coding-style/logging/hooks
+│   ├── common/  (17 files)   # 渐进式拆分
+│   │   ├── patterns.md       # 规范路由（5列：文件+适配场景+审查触发+检查点）
+│   │   ├── api-response.md / api-versioning.md / restful-api.md
+│   │   ├── grpc-layering.md / time-format.md
+│   │   ├── table-structure.md / database-migration.md
+│   │   ├── scheduled-tasks.md / logging.md / testing.md
+│   │   ├── elasticsearch.md / mongodb.md
+│   │   └── security.md / coding-style.md / concurrency.md / ...
+│   ├── java/    (6 files)    # patterns(路由)+security+testing+coding-style+logging+hooks
+│   ├── typescript/ (6 files) # patterns(路由)+security+testing+coding-style+logging+hooks
 │   └── web/     (5 files)    # patterns/testing/coding-style/hooks/static-website-checklist
 └── skills/
     ├── yibasuo/
-    │   ├── SKILL.md                       # 核心技能（~210 行）
+    │   ├── SKILL.md                       # 核心技能（~220 行）
     │   └── references/
     │       ├── commit-conventions.md      # Conventional Commits + SemVer
-    │       ├── codegraph.md              # CodeGraph 集成（可选）
+    │       ├── codegraph.md              # CodeGraph 集成
+    │       ├── frontend-flows.md         # 前端开发规范（场景路由+迭代内环）
     │       └── infrastructure-review.md  # 基础设施配置审查清单
     └── git-workflow/
         └── SKILL.md                       # Git 提交规范（独立可用）
@@ -53,12 +61,12 @@ yibasuo-skill/
 
 ### 发布流程
 
-1. 定版本号 → 2. 同步 `VERSION` + `SKILL.md` + `README.md` + `codex/SKILL.md` + `.codex-plugin/plugin.json` → 3. 追加 `CHANGELOG.md`
-4. `git add <具体文件> && git commit -m "<type>: <desc>"`
-5. `git tag -a vX.Y.Z -m "yibasuo-skill vX.Y.Z — <summary>"`
-6. `git push origin master --tags`
-7. `echo vX.Y.Z > ~/.claude/skills/yibasuo/.installed-version` 同步本地安装
-8. 脱敏检查
+1. 定版本号 → 2. 同步 `VERSION` + `SKILL.md` + `README.md` + `codex/SKILL.md` + `.codex-plugin/plugin.json` → 3. **README 标题版本号（最容易漏）** → 4. 追加 `CHANGELOG.md`
+5. `git add <具体文件> && git commit -m "<type>: <desc>"`
+6. `git tag -a vX.Y.Z -m "yibasuo-skill vX.Y.Z — <summary>"`
+7. `git push origin master --tags`
+8. `echo vX.Y.Z > ~/.claude/skills/yibasuo/.installed-version`
+9. 脱敏检查
 
 ## 技能设计
 
@@ -70,25 +78,26 @@ yibasuo-skill/
 | 文件 | `skills/yibasuo/SKILL.md` | `codex/SKILL.md` |
 | 安装 | `./install.sh` | `./install.sh --codex` |
 
-逻辑等价：6 阶段管线、行为红线、语言适配完全一致。
+### Rules 加载机制（渐进式暴露）
 
-### Rules 加载机制
+- `rules/common/patterns.md` 为规范路由入口：5 列表格（文件 + 适配场景 + 审查触发条件 + 关键检查点）
+- 阶段 1 规划期：Read patterns.md 路由表 → 确定本次适用规范清单 → 注入 planner
+- 阶段 2 架构期：按适用规范对照自检（API→restful-api、DB→table-structure、gRPC→grpc-layering）
+- 阶段 4 审查期：全量规范逐条核对，清单按规范文件分组标注来源
+- Rules 按 `paths:` frontmatter 自动匹配语言
 
-- 阶段 1-2 (planner/architect)：不接触代码文件，需手动在 agent prompt 中注入 rules 上下文
-- 阶段 3-4 (tdd-guide/reviewer)：直接操作文件，rules 按 `paths:` 自动匹配
+### 规范架构
 
-### 其他发布技能
-
-- `skills/git-workflow/SKILL.md` — Git 提交操作规范（独立可用，`install.sh` 同时安装）
-- `skills/yibasuo/references/commit-conventions.md` — Conventional Commits + SemVer 标签规则
+```
+common/patterns.md (路由) → {topic}.md (细节)
+java/patterns.md (路由)  → 引用 common + Java 特有
+ts/patterns.md (路由)    → 引用 common + TS 特有
+```
 
 ## 发布前脱敏清单
-
-每次发布前扫描（仓库仅托管 GitHub，无 GitLab 同步）：
 
 | # | 检查项 | 排除区域 |
 |---|--------|---------|
 | 1 | 内网 IP/域名 | rules 示例代码 |
 | 2 | 用户名/本地路径 | 全仓库 |
 | 3 | 硬编码密钥/密码 | 全仓库 |
-| 4 | 模板占位符 `YOUR_USER` 保留 | .codex-plugin/plugin.json |
