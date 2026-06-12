@@ -7,249 +7,30 @@ paths:
 ---
 # TypeScript/JavaScript Patterns
 
-> This file extends [common/patterns.md](../common/patterns.md) with TypeScript/JavaScript specific content.
+> TypeScript/NestJS 特定规范路由。通用规范见 `rules/common/patterns.md`。
 
-## NestJS Layered Architecture
+## 架构
 
-严格分层，绝不越层调用。默认使用 Express 驱动；如使用 Fastify（`@nestjs/platform-fastify`），注意以下差异：
+| 规范 | 文件 | 覆盖 |
+|------|------|------|
+| API 响应格式 | `rules/common/api-response.md` | 信封、traceId |
+| RESTful API | `rules/common/restful-api.md` | URL 设计、HTTP 方法、状态码 |
+| API 版本控制 | `rules/common/api-versioning.md` | `/v2/xxx` 新旧并存 |
+| 时间格式 | `rules/common/time-format.md` | `yyyy-MM-dd HH:mm:ss.SSS` |
 
-| 差异 | Express | Fastify |
-|------|---------|---------|
-| 请求/响应类型 | `Request` / `Response` | `FastifyRequest` / `FastifyReply` |
-| 中间件 | `app.use()` | 需用 `@fastify/*` 插件 |
-| Helmet | `helmet()` | `@fastify/helmet` |
-| CSRF | `csrf-csrf` | `@fastify/csrf-protection` |
-
-其余分层规则（Controller→Service→Repository）与驱动无关。
+### NestJS 分层
 
 ```
 Controller → Service → Repository → Database
-   │            │          │
-   ▼            ▼          ▼
-  HTTP       Business    Data
-  parsing    logic       access
 ```
 
-## 数据库 Schema 管理
+分别位于：Controller（HTTP 解析）→ Service（业务逻辑）→ Repository（数据访问）。不越层调用。
 
-### 禁止项
+### 依赖注入
 
-| 操作 | 状态 | 原因 |
-|------|:---:|------|
-| `synchronize: true` | ❌ **禁止** | 生产环境自动同步表结构会造成数据丢失（删除列、修改类型） |
-| Entity 上使用 `@Index()` | ❌ **禁止** | 索引属于 DDL，必须通过 migration 管理，保证可追溯可回滚 |
-| `@Column` 改类型不写 migration | ❌ **禁止** | 同一条 schema 变更规则适用 |
-
-### 正确做法
-
-**TypeORM DataSource 配置**：
+始终构造器注入：
 
 ```typescript
-// ormconfig.ts
-export default new DataSource({
-  ...
-  synchronize: false,   // 必须关闭
-  migrations: ['src/migrations/*.ts'],
-});
-```
-
-**索引通过 migration 创建**：
-
-```typescript
-// 1734096000-add-user-phone-index.ts
-export class AddUserPhoneIndex1234567 implements MigrationInterface {
-  async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.createIndex('user', new TableIndex({
-      name: 'idx_user_phone',
-      columnNames: ['phone'],
-    }));
-  }
-  async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropIndex('user', 'idx_user_phone');
-  }
-}
-```
-
-禁止在 Entity 中声明索引：
-
-```typescript
-// BAD — @Index 在 Entity 中
-@Entity()
-@Index(['phone'], { unique: true })
-export class User { ... }
-
-// GOOD — Entity 只声明字段结构，索引在 migration 中
-@Entity()
-export class User {
-  @Column()
-  phone: string;
-}
-```
-
-### 审查清单
-
-- [ ] TypeORM `synchronize` 为 `false`
-- [ ] Entity 中无 `@Index()`、`@Unique()` 装饰器
-- [ ] 所有索引有对应的 migration 文件（含 `up` 和 `down`）
-
-## NestJS Module 设计原则
-
-### 单一权责（强制）
-
-每个 Module 只负责一个明确的业务领域。**即便当前只存在唯一关联的两个实体，也必须分拆为独立的 Module**，不得因"当前只有这两个"而合并。
-
-```typescript
-// BAD — Order 和 Payment 合并在一个 Module
-@Module({
-  controllers: [OrderController, PaymentController],
-  providers: [OrderService, PaymentService],
-})
-export class OrderModule {}
-
-// GOOD — 各自独立
-@Module({
-  controllers: [OrderController],
-  providers: [OrderService],
-})
-export class OrderModule {}
-
-@Module({
-  controllers: [PaymentController],
-  providers: [PaymentService],
-  imports: [OrderModule],  // 跨 Module 通过 imports 关联
-})
-export class PaymentModule {}
-```
-
-| 原则 | 说明 |
-|------|------|
-| 一 Module 一领域 | Module 命名必须反映单一业务领域（`UserModule`、`OrderModule`，禁止 `UserOrderModule`） |
-| 当前唯一不代表未来唯一 | 即使当前 A 和 B 是唯一关联的，未来可能引入 C、D，合并会导致重构成本 |
-| 跨 Module 通过 `imports` 关联 | NestJS 的 `imports`/`exports` 机制本身就是为跨 Module 依赖设计的 |
-| Controller 数量 > 3 | 单个 Module 中 Controller 数量超过 3 个时，Module 职责可能过宽，考虑拆分 |
-| **模块嵌套必须属同一领域** | 子模块仅父模块内部使用时允许嵌套；一旦被外部模块 import → 必须提升为 `src/` 顶层。详见 `rules/typescript/coding-style.md` |
-
-### Module 组织
-
-Module 直接铺在 `src/` 下，禁止嵌套。
-
-```
-src/
-├── user/
-│   ├── user.module.ts
-│   ├── user.controller.ts
-│   ├── user.service.ts
-│   └── dto/
-├── order/
-│   ├── order.module.ts
-│   ├── order.controller.ts
-│   ├── order.service.ts
-│   └── dto/
-└── payment/
-    ├── payment.module.ts
-    ├── payment.controller.ts
-    ├── payment.service.ts
-    └── dto/
-```
-
-## NestJS gRPC 微服务分层
-
-> 语言无关规范见 [common/patterns.md](../common/patterns.md) gRPC 微服务分层。
-
-```
-gRPC Client → Controller (@GrpcMethod) → Service → Repository/DAO → Database
-                │                           │           │
-                ▼                           ▼           ▼
-              Proto 序列化                 业务逻辑     数据访问
-```
-
-| 层 | 装饰器/组件 | 职责 |
-|----|------------|------|
-| Controller | `@GrpcMethod()` | gRPC 入口，proto message↔DTO 转换 |
-| Service | `@Injectable()` | 纯业务逻辑，**不含鉴权代码** |
-| Repository | TypeORM/Prisma | 数据访问（轻量微服务可省略） |
-| Interceptor | gRPC metadata | traceId 透传（metadata→AsyncLocalStorage） |
-
-### 与 HTTP NestJS 的关键差异
-
-- **`NestFactory.createMicroservice(Transport.GRPC)`** 而非 `NestFactory.create(ExpressHttpServer)`
-- **无 `@Get`/`@Post`** — 用 `@GrpcMethod()` 替代
-- **无 `ApiResponse`** — gRPC 用 `RpcException`（`@grpc/grpc-js` status 码）
-- **无 JWT Guard** — 不鉴权，从 gRPC metadata 读取 `x-user-id`
-- **无 `ValidationPipe`** — proto 自带类型约束，业务校验手动做
-
-### gRPC Status → HTTP 映射（BFF 层）
-
-| gRPC Status | HTTP |
-|-------------|:----:|
-| NOT_FOUND (5) | 404 |
-| INVALID_ARGUMENT (3) | 400 |
-| ALREADY_EXISTS (6) | 409 |
-| PERMISSION_DENIED (7) | 403 |
-| UNAUTHENTICATED (16) | 401 |
-| INTERNAL (13) | 500 |
-| UNAVAILABLE (14) | 502 |
-| DEADLINE_EXCEEDED (4) | 504 |
-
-### Controller
-
-Thin. Parse HTTP input, delegate to service, return DTO:
-
-```typescript
-@Controller('users')
-export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
-
-  @Get(':id')
-  async getById(@Param('id', ParseUUIDPipe) id: string) {
-    return this.usersService.getById(id);
-  }
-
-  @Post()
-  async create(@Body() dto: CreateUserDto) {
-    return this.usersService.create(dto);
-  }
-}
-```
-
-### Service
-
-所有业务逻辑放这里。不直接暴露 Entity，通过 DTO 映射：
-
-```typescript
-@Injectable()
-export class UsersService {
-  constructor(private readonly usersRepo: UsersRepository) {}
-
-  async getById(id: string): Promise<UserResponse> {
-    const user = await this.usersRepo.findById(id);
-    if (!user) throw new NotFoundException(`User not found: ${id}`);
-    return UserResponse.from(user);
-  }
-}
-```
-
-### Repository
-
-封装数据访问。用 Prisma、TypeORM 或原生 DB 驱动，对外暴露干净接口：
-
-```typescript
-@Injectable()
-export class UsersRepository {
-  constructor(private readonly prisma: PrismaService) {}
-
-  async findById(id: string): Promise<User | null> {
-    return this.prisma.user.findUnique({ where: { id } });
-  }
-}
-```
-
-## Dependency Injection
-
-Always **constructor injection**. Never property/field injection:
-
-```typescript
-// GOOD — constructor injection (testable, immutable, explicit)
 @Injectable()
 export class OrdersService {
   constructor(
@@ -257,442 +38,80 @@ export class OrdersService {
     private readonly paymentGateway: PaymentGateway,
   ) {}
 }
-
-// BAD — property injection (untestable, hidden dependencies)
-@Injectable()
-export class OrdersService {
-  @Inject() private ordersRepo: OrdersRepository;
-}
 ```
 
-## DTO Patterns
+### DTO 模式
 
-### Request DTOs — class-validator
+Request DTO 用 `class-validator`，Response DTO 用 plain objects + static factory。Response 不暴露内部字段（password、salt、审计列）。
+
+### 管道/守卫/拦截器
 
 ```typescript
-export class CreateUserDto {
-  @IsEmail()
-  email!: string;
-
-  @IsString()
-  @Length(2, 80)
-  name!: string;
-
-  @IsOptional()
-  @IsEnum(UserRole)
-  role?: UserRole;
-}
+app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
 ```
 
-### Response DTOs — plain objects or classes with static factory
+ResponseInterceptor 统一包装 `{code, message, data, requestId, metadata}`。
 
-```typescript
-export class UserResponse {
-  id: string;
-  email: string;
-  name: string;
+## gRPC
 
-  static from(entity: User): UserResponse {
-    return { id: entity.id, email: entity.email, name: entity.name };
-  }
-}
-```
-
-- Request DTOs use `class-validator` decorators for automatic validation
-- Response DTOs strip internal fields (password hashes, tokens, audit columns)
-- Never return ORM entities directly from controllers
-
-## Global Validation Pipe
-
-在 `main.ts` 中一次配置：
-
-```typescript
-app.useGlobalPipes(
-  new ValidationPipe({
-    whitelist: true,              // strip unknown properties
-    forbidNonWhitelisted: true,   // reject unknown properties
-    transform: true,              // auto-transform primitives
-    transformOptions: { enableImplicitConversion: true },
-  }),
-);
-```
-
-## Guards and Interceptors
-
-### Auth Guard
-
-```typescript
-@UseGuards(JwtAuthGuard)
-@Controller('users')
-export class UsersController { ... }
-```
-
-### Response Interceptor — wrap all responses in ApiResponse envelope
-
-```typescript
-@Injectable()
-export class ResponseInterceptor implements NestInterceptor {
-  intercept(ctx: ExecutionContext, next: CallHandler): Observable<ApiResponse> {
-    return next.handle().pipe(
-      map(data => ({
-        code: 0,
-        message: '操作成功',
-        data,
-        requestId: getTraceId(),
-        metadata: {
-          timestamp: dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'),
-          method: ctx.switchToHttp().getRequest().method,
-          endpoint: ctx.switchToHttp().getRequest().url,
-        },
-      })),
-    );
-  }
-}
-```
-
-### Exception Filter — catch all, log internally, return safe envelope
-
-```typescript
-@Catch()
-export class HttpExceptionFilter implements ExceptionFilter {
-  catch(exception: unknown, host: ArgumentsHost) {
-    const response = host.switchToHttp().getResponse<Response>();
-
-    if (exception instanceof HttpException) {
-      return response.status(exception.getStatus()).json({
-        code: 2,
-        message: '请求错误',
-        data: null,
-        requestId: getTraceId(),
-        metadata: null,
-      });
-    }
-
-    this.logger.error('Unhandled exception', exception);
-    return response.status(500).json({
-      code: 99,
-      message: 'Internal server error',
-      data: null,
-      requestId: getTraceId(),
-      metadata: null,
-    });
-  }
-}
-```
-
-## Configuration
-
-启动时校验环境变量，不在首次请求时才检查：
-
-```typescript
-// config/configuration.ts
-export default () => ({
-  port: parseInt(process.env.PORT, 10) || 3000,
-  database: {
-    host: process.env.DB_HOST,
-    port: parseInt(process.env.DB_PORT, 10) || 5432,
-  },
-});
-
-// config/validation.ts
-export function validateEnv(config: Record<string, unknown>) {
-  const schema = z.object({
-    PORT: z.string().default('3000'),
-    DB_HOST: z.string(),
-    DB_PORT: z.string().regex(/^\d+$/).default('5432'),
-    JWT_SECRET: z.string().min(32),
-  });
-  return schema.parse(config);
-}
-```
-
-Fail fast: if required env vars are missing, crash at boot — don't limp along.
-
-## 时间格式
-
-**统一传输格式：** `yyyy-MM-dd HH:mm:ss.SSS`（精确到毫秒）
-
-API 输入/输出、JSON 序列化、数据库 DateTime、日志时间戳均使用此格式。
-
-```typescript
-// dayjs 格式化
-dayjs().format('YYYY-MM-DD HH:mm:ss.SSS');
-
-// 原生 Date → 字符串
-new Date().toISOString(); // 不推荐：ISO格式
-// 推荐手写 formatter:
-const pad = (n: number, len = 2) => String(n).padStart(len, '0');
-const d = new Date();
-`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`;
-```
-
-- 时区统一 `Asia/Shanghai`
-- 禁止使用 `toISOString()`（ISO 8601 格式为 `T` 分隔、带时区后缀，与统一格式不兼容）
-- 禁止仅到秒（`HH:mm:ss` 无毫秒）
-
-## API Response Envelope
-
-遵循《阿里巴巴 Java 开发手册》前后端规约，Java / NestJS 使用相同结构：
-
-```json
-{
-  "code": 0,
-  "message": "操作成功",
-  "data": {...},
-  "requestId": "a1b2c3d4e5f6",
-  "metadata": {
-    "timestamp": "2026-05-21 19:00:00.111",
-    "method": "POST",
-    "endpoint": "/api/users",
-    "count": 100,
-    "currentPage": 1
-  }
-}
-```
-
-| 字段 | 类型 | 说明 |
+| 规范 | 文件 | 覆盖 |
 |------|------|------|
-| `code` | `number \| string` | 成功=0，失败=String 业务错误码 |
-| `message` | `string` | 用户提示信息 |
-| `data` | `T \| null` | 业务数据，空列表返回 `[]` |
-| `requestId` | `string` | **= traceId**，Gateway 生成后全链路透传 |
-| `metadata` | `object` | 请求上下文 + 分页（非分页接口仅含 timestamp/method/endpoint） |
+| gRPC 分层 | `rules/common/grpc-layering.md` | 通用分层、Status 映射 |
+| NestJS gRPC | 本文档 | @GrpcMethod(), RpcException, Transport.GRPC |
 
 ```typescript
-interface ApiResponse<T = unknown> {
-  code: number | string
-  message: string
-  data: T | null
-  requestId: string              // = traceId
-  metadata: {
-    timestamp: string            // yyyy-MM-dd HH:mm:ss.SSS
-    method: string
-    endpoint: string
-    count?: number
-    totalPages?: number
-    currentPage?: number
-    pageSize?: number
-  }
-}
+const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
+  transport: Transport.GRPC,
+  options: { package: ['service.v1'], protoPath: [join(__dirname, '../proto/service/v1/service.proto')] },
+});
 ```
 
-### requestId = traceId
+- 无 `@Get`/`@Post`，无 `ApiResponse`，无 JWT Guard
+- 用 `RpcException` 报告错误
 
-requestId 不是独立 UUID，而是 traceId。Gateway 生成 → 经 `X-Trace-Id` 头透传 → 写入日志 + 返回给客户端。一条链路一个值。
+## 数据库
 
-```typescript
-const traceId = req.headers['x-trace-id'] as string
-  || crypto.randomUUID().replace(/-/g, '');
-res.setHeader('X-Trace-Id', traceId);
-```
+| 规范 | 文件 | 覆盖 |
+|------|------|------|
+| 表结构 | `rules/common/table-structure.md` | 命名、审计字段、DDL |
+| 迁移 | `rules/common/database-migration.md` | 6 步流程 |
+| Schema 管理 | 本文档 | synchronize 禁止、@Index 禁止 |
 
-**强制项：** 空列表返回 `[]`，禁止 `null`。JSON key 使用 lowerCamelCase。
+### Schema 管理
 
-## 数据库迁移
-
-详见 `rules/common/patterns.md` 数据库迁移规范。
-
-## Custom Hooks (React)
-
-```typescript
-export function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value)
-
-  useEffect(() => {
-    const handler = setTimeout(() => setDebouncedValue(value), delay)
-    return () => clearTimeout(handler)
-  }, [value, delay])
-
-  return debouncedValue
-}
-```
-
-## Repository Pattern (Generic)
-
-```typescript
-interface Repository<T> {
-  findAll(filters?: Filters): Promise<T[]>
-  findById(id: string): Promise<T | null>
-  create(data: CreateDto): Promise<T>
-  update(id: string, data: UpdateDto): Promise<T>
-  delete(id: string): Promise<void>
-}
-```
+- ❌ `synchronize: true`
+- ❌ Entity 中 `@Index()` / `@Unique()` — 索引必须走 migration
+- ✅ 所有 DDL 通过 migration 管理
 
 ## 定时任务
 
-> 语言无关的核心规范见 [common/patterns.md](../common/patterns.md) 定时任务章节。本文档补充 TypeScript/NestJS 特定实现。
+| 规范 | 文件 | 覆盖 |
+|------|------|------|
+| 通用 | `rules/common/scheduled-tasks.md` | 生命周期、幂等、分布式协调 |
+| NestJS | 本文档 | @Cron, BullMQ, SchedulerRegistry |
 
-### @nestjs/schedule
+### BullMQ（重试/延迟/优先级场景）
 
 ```typescript
-// GOOD — cron 外置，调度与业务分离
-@Injectable()
-export class OrderExpireTask {
-  private readonly logger = new Logger(OrderExpireTask.name);
-
-  constructor(private readonly orderExpireService: OrderExpireService) {}
-
-  @Cron(CronExpression.EVERY_HOUR, { name: 'order:expire:cancel' })
-  async handleCron() {
-    const start = Date.now();
-    try {
-      const result = await this.orderExpireService.expireOrders();
-      this.logger.log({
-        task: 'order:expire:cancel',
-        duration_ms: Date.now() - start,
-        processed: result.processed,
-        success: result.success,
-        failed: result.failed,
-      });
-    } catch (error) {
-      this.logger.error({ task: 'order:expire:cancel', err: error }, 'Task failed');
-    }
-  }
-}
+await this.reportQueue.add('generate', { userId }, {
+  attempts: 3,
+  backoff: { type: 'exponential', delay: 2000 },
+  removeOnComplete: true,
+});
 ```
 
-| 规则 | 说明 |
+`@Cron` 用于简单定时触发，BullMQ 用于需要重试/延迟/进度追踪的任务。
+
+## Module 设计
+
+| 原则 | 说明 |
 |------|------|
-| cron 外置 | 通过 `ConfigService` 读取 cron，禁止硬编码字符串 |
-| 调度与业务分离 | `@Cron` 方法只做日志 + 委托，业务逻辑在独立 Service |
-| `name` 参数 | 必须设置，用于日志标识和运行时管理 |
-| `disabled` 参数 | 通过配置控制启用/禁用，方便紧急关闭 |
+| 单一权责 | 一 Module 一领域，禁止 `UserOrderModule` |
+| 跨 Module 通过 `imports` | NestJS imports/exports 机制 |
+| 子模块嵌套 | 仅父模块内部使用时允许，外部引用时提升为顶层 |
+| `src/` 下只允许 1 层 | 禁止 `src/modules/` 中间层 |
 
-### 动态 Cron（从配置读取）
+## React / 前端
 
-推荐在 `onModuleInit` 中通过 `SchedulerRegistry` 动态注册：
-
-```typescript
-@Injectable()
-export class DynamicTaskRegister implements OnModuleInit {
-  constructor(
-    private readonly schedulerRegistry: SchedulerRegistry,
-    private readonly config: ConfigService,
-    private readonly orderExpireTask: OrderExpireTask,
-  ) {}
-
-  onModuleInit() {
-    const cron = this.config.get<string>('TASK_ORDER_EXPIRE_CRON');
-    const job = new CronJob(cron, () => this.orderExpireTask.handleCron());
-    this.schedulerRegistry.addCronJob('order:expire:cancel', job);
-    job.start();
-  }
-}
-```
-
-### Bull / BullMQ 任务队列
-
-对于需要重试、延迟、优先级、进度追踪的任务，使用 BullMQ 而非 `@Cron`：
-
-```typescript
-// 生产者 — 在业务需要时入队
-@Injectable()
-export class ReportService {
-  constructor(@InjectQueue('report') private reportQueue: Queue) {}
-
-  async generate(userId: string) {
-    await this.reportQueue.add('generate', { userId }, {
-      attempts: 3,
-      backoff: { type: 'exponential', delay: 2000 },
-      removeOnComplete: true,
-      removeOnFail: 100,
-    });
-  }
-}
-
-// 消费者
-@Processor('report')
-export class ReportProcessor {
-  @Process('generate')
-  async handleGenerate(job: Job<{ userId: string }>) {
-    // 业务逻辑
-  }
-}
-```
-
-| 配置 | 推荐值 | 说明 |
-|------|--------|------|
-| `attempts` | 3 | 最大重试次数 |
-| `backoff.type` | `exponential` | 指数退避 |
-| `backoff.delay` | 2000 | 初始延迟 2 秒 |
-| `removeOnComplete` | `true` | 完成即清理，节省 Redis 内存 |
-| `removeOnFail` | 100 | 保留最近 100 条失败，便于排查 |
-
-### 分布式锁实现（Redis）
-
-```typescript
-@Injectable()
-export class TaskLockService {
-  constructor(@Inject('REDIS_CLIENT') private readonly redis: Redis) {}
-
-  private lockPrefix(): string {
-    return `${process.env.REDIS_KEY_PREFIX ?? 'app:dev'}:task:lock:`;
-  }
-
-  async tryLock(taskName: string, ttlSeconds: number): Promise<boolean> {
-    const key = `${this.lockPrefix()}${taskName}`;
-    const result = await this.redis.set(key, os.hostname(), 'EX', ttlSeconds, 'NX');
-    return result === 'OK';
-  }
-
-  async unlock(taskName: string): Promise<void> {
-    const key = `${this.lockPrefix()}${taskName}`;
-    const script = `
-      if redis.call('get', KEYS[1]) == ARGV[1] then
-        return redis.call('del', KEYS[1])
-      else
-        return 0
-      end
-    `;
-    await this.redis.eval(script, 1, key, os.hostname());
-  }
-}
-```
-
-使用示例：
-
-```typescript
-@Injectable()
-export class OrderExpireTask {
-  private readonly logger = new Logger(OrderExpireTask.name);
-  private static readonly TASK_NAME = 'order:expire:cancel';
-  private static readonly LOCK_TTL = 300;
-
-  constructor(
-    private readonly lock: TaskLockService,
-    private readonly service: OrderExpireService,
-  ) {}
-
-  async execute(): Promise<void> {
-    if (!(await this.lock.tryLock(OrderExpireTask.TASK_NAME, OrderExpireTask.LOCK_TTL))) {
-      this.logger.warn({ task: OrderExpireTask.TASK_NAME }, 'Task skipped: another instance running');
-      return;
-    }
-    try {
-      await this.service.expireOrders();
-    } finally {
-      await this.lock.unlock(OrderExpireTask.TASK_NAME);
-    }
-  }
-}
-```
-
-### 审查清单
-
-- [ ] cron 表达式是否从配置读取（非硬编码）
-- [ ] `@Cron` 方法是否简洁（只做日志 + 委托，不超过 15 行）
-- [ ] 是否设置了 `name` 参数
-- [ ] 多实例部署时是否有分布式锁保护
-- [ ] 锁 TTL 是否大于任务最大执行时间
-- [ ] 锁释放是否在 `finally` 块中
-- [ ] 业务逻辑是否有幂等性保护
-- [ ] 是否有超时控制（外部 HTTP 调用、DB 查询）
-- [ ] 是否记录了结构化任务执行日志
-- [ ] BullMQ 队列是否配置了 `removeOnComplete: true`（避免 Redis 内存堆积）
-- [ ] 长任务是否使用 BullMQ 而非 `@Cron`
-
-## References
-
-See skill: `nestjs-patterns` for full NestJS architecture patterns.
-See skill: `backend-patterns` for general backend patterns.
+- Custom Hooks：`use` 前缀，提取复用逻辑
+- Repository 泛型接口：`findAll/findById/create/update/delete`

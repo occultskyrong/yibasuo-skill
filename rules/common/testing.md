@@ -48,10 +48,28 @@ test('calculates similarity correctly', () => {
 
 ### Test Naming
 
-Use descriptive names that explain the behavior under test:
+Use descriptive names that explain the behavior under test. 格式：`方法名_场景_预期行为`：
+
+```java
+// Java
+@Test
+@DisplayName("findByPhone 手机号存在时返回用户")
+void findByPhone_should_return_user_when_phone_exists() { }
+```
 
 ```typescript
-test('returns empty array when no markets match query', () => {})
-test('throws error when API key is missing', () => {})
-test('falls back to substring search when Redis is unavailable', () => {})
+// TypeScript
+test('returns empty array when no records match query', () => {})
+test('throws NotFoundException when user does not exist', () => {})
 ```
+
+### Test Organization
+
+- 测试目录镜像 `src/` 结构：`src/user/user.service.ts` → `test/user/user.service.spec.ts`
+- 一被测文件一测试文件
+
+### Mock 原则
+
+- Mock 外部依赖（数据库、API、消息队列），不 Mock 被测对象本身
+- 集成测试使用**真实数据库**（Testcontainers / Docker），禁止内存数据库（H2、SQLite）
+- 语言特定 Mock 实现见 `rules/java/testing.md` 和 `rules/typescript/testing.md`
