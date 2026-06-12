@@ -117,7 +117,9 @@ cd /tmp/yibasuo-skill && bash install.sh --codex # Codex
 
 | 文件 | 覆盖内容 |
 |------|---------|
-| `patterns.md` | 统一返回结构 `{code,message,data,requestId,metadata}`、API 版本控制、HTTP/gRPC 分层、数据库迁移 6 步流程、定时任务生命周期 |
+| `patterns.md` | 统一返回结构、API 版本控制、RESTful API 设计、HTTP/gRPC 分层、定时任务 |
+| `table-structure.md` | MySQL 表结构：命名、字段类型（p3c）、审计字段矩阵、自增 ID 随机起始、3 种 DDL 模板、10 项审查清单 |
+| `database-migration.md` | 数据库迁移 6 步流程、幂等、回滚、大表变更策略、反模式 |
 | `security.md` | OWASP Top 10：访问控制、注入防护（SQL/NoSQL/XSS/XXE/SSRF）、反序列化、密码存储、安全头、依赖安全、令牌失效 |
 | `concurrency.md` | 线程池规范、CompletableFuture 超时、ThreadLocal 清理、锁使用、并发集合、Virtual Threads |
 | `elasticsearch.md` | 索引命名 `{dataset}-{namespace}`、读写别名、index template、ILM 策略 |
