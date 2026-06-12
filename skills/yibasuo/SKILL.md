@@ -35,7 +35,7 @@ requires:
 | 技术栈 | 注入要点 |
 |--------|---------|
 | Java | JUnit5+AssertJ+Mockito+Testcontainers，p3c，构造器注入，Logback |
-| Node.js / NestJS | Vitest+supertest，NestJS分层，pino，`__`私有前缀，Zod |
+| Node.js / NestJS | Vitest+supertest，NestJS分层，winston，`__`私有前缀，Zod |
 | Vue / React | Vitest+Testing Library，Pinia/Zustand，Playwright E2E，Prettier+ESLint |
 
 **包管理器检测**（Node.js / 前端项目）：根据锁文件自动选择 — `pnpm-lock.yaml`→pnpm、`yarn.lock`→yarn、`package-lock.json`→npm。优先级：pnpm > yarn > npm。以下文档用 `<pkg>` 指代检测到的包管理器。
@@ -72,7 +72,7 @@ requires:
 
 1. 理解输入，识别模糊点。多子系统**先拆解**，逐个处理
 2. 一次聚焦一个主题澄清（功能边界、交互细节、异常情况）；跨模块复杂需求可一次提 2-3 个关联问题
-3. 确认技术栈和影响范围
+3. 确认技术栈和影响范围。**Read `rules/common/patterns.md`** 确定项目技术栈匹配的规范清单（如 MySQL→table-structure.md、ES→elasticsearch.md）
 4. **头脑风暴**：展开发散思考，探索多种可能的实现方向。不急于收敛——先列出所有可行的技术路线和设计模式，再讨论各自的适用场景和边界条件。只有澄清过的简单需求可跳过此步
 5. **收敛为 2-3 种实现方案**，含 trade-off 和推荐理由
 6. 输出需求卡片（标题/类型/范围/验收标准/约束）
