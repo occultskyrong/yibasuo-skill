@@ -43,6 +43,7 @@ Encapsulate data access behind a consistent interface (findAll, findById, create
 | 定时任务 | `scheduled-tasks.md` | 所有后端项目 | 新增定时任务时 | 任务名 `{领域}:{动作}:{对象}`、cron 外置、分布式锁、幂等 |
 | 安全 | `security.md` | 所有项目 | 每次提交 | 硬编码密钥、输入校验、注入防护、HTTPS |
 | 并发 | `concurrency.md` | Java 项目 | 涉及线程/锁/异步时 | ThreadPoolExecutor、ReentrantLock、ThreadLocal 清理 |
+| 时间格式 | `time-format.md` | 所有后端项目 | 新增/修改代码时 | `yyyy-MM-dd HH:mm:ss.SSS`、Asia/Shanghai、禁止 ISO |
 | 日志 | `logging.md` | 所有后端项目 | 每次审查 | TraceId 注入、敏感数据脱敏、占位符非拼接、生产 JSON |
 | 编码规范 | `coding-style.md` | 所有项目 | 每次审查 | 不可变性、注释规范、命名、函数 <50 行 |
 | 测试 | `testing.md` | 所有后端项目 | 新增功能时 | 覆盖率 ≥80%、RED→GREEN→IMPROVE、AAA 模式 |
