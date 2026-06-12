@@ -86,17 +86,22 @@ requires:
    - 检查 `.codegraph/` 目录是否存在，不存在则 `nvm use 22 && codegraph init -i && codegraph index`
    - `nvm use 22 && codegraph context "<需求>"` 获取项目结构摘要（替代手工读代码）
    - 检查项目是否已有 `CLAUDE.md`，若有则读取并增量更新（架构/模块/端口/命令等章节）
-2. `Agent({ subagent_type: "planner" })`，prompt 含：需求卡片 + 项目结构摘要（CodeGraph 输出） + 语言规范。要求输出任务分解、依赖关系图、风险点列表
-3. Agent 失败 → **展示错误，暂停**（两种模式都停）
-4. 默认（自动）直接继续。交互模式问"计划 OK？"
+2. **加载规范路由**：Read `rules/common/patterns.md` + 语言特定 `rules/<lang>/patterns.md`，确定本次涉及的规范清单
+3. `Agent({ subagent_type: "planner" })`，prompt 含：需求卡片 + 项目结构摘要 + 语言规范 + 适用规范清单。要求输出任务分解、依赖关系图、风险点列表
+4. Agent 失败 → **展示错误，暂停**（两种模式都停）
+5. 默认（自动）直接继续。交互模式问"计划 OK？"
 
 **门禁**：计划必须含任务分解（≥2 个子任务）、依赖关系、风险点（≥1 个）。缺项不进入阶段 2。
 
 ### 2. 架构
 
-1. `Agent({ subagent_type: "architect" })`，prompt 含：需求 + 计划 + 语言规范。要求产出 ADR（决策/后果/替代方案）+ 接口契约 + 数据变更
-2. 自检 P0 问题（缺关键决策/接口遗漏/数据变更缺失），**至少 3 轮、最多 5 轮**。即使无 P0 也跑满 3 轮以充分打磨。5 轮后仍有 P0 → 暂停等用户决定
-3. 若数据变更涉及 DDL（建表/加列/改列/加索引等），架构产出必须包含对应的迁移文件（`V{YYYYMMDD}__{描述}.sql`），遵循 `rules/common/patterns.md` 数据库迁移规范。Java 项目在 `src/main/resources/db/migration/` 下，NestJS 项目在 `migrations/` 下
+1. `Agent({ subagent_type: "architect" })`，prompt 含：需求 + 计划 + 语言规范 + **适用规范清单**。要求产出 ADR（决策/后果/替代方案）+ 接口契约 + 数据变更
+2. **按适用规范自检**：
+   - 涉及 API → 对照 `restful-api.md`（URL、HTTP 方法、状态码）
+   - 涉及 gRPC → 对照 `grpc-layering.md`（分层、无鉴权、Status 映射）
+   - 涉及数据库 → 对照 `table-structure.md`（命名、字段类型、审计字段）+ `database-migration.md`（Flyway 命名、幂等）+ 产出迁移文件（`V{YYYYMMDD}__{描述}.sql`）
+   - 涉及 ES/MongoDB → 对照对应命名规范
+3. 自检 P0 问题，**至少 3 轮、最多 5 轮**。5 轮后仍有 P0 → 暂停等用户决定
 4. Agent 失败 → **展示错误，暂停**
 5. 默认（自动）直接继续。交互模式问"方案 OK？"
 
@@ -120,16 +125,23 @@ requires:
 
 每轮审查执行以下循环，**至少 3 轮、最多 5 轮**：
 
-**Round N**：
-1. 按技术栈 **并行**启动：Java→`java-reviewer`，Node.js/前端→`typescript-reviewer` + `security-reviewer`
-2. NestJS 项目额外检查：`src/` 下是否只有 1 层 / `src/modules/` 中间层 / `src/` 绝对路径 import（违规=HIGH）
-3. 主会话同时执行**基础设施配置审查**，详见 [references/infrastructure-review.md](references/infrastructure-review.md)
-4. **输出审查清单**：按 CRITICAL > HIGH > MEDIUM > LOW 分级列出所有问题，每项附文件路径和修复建议
-5. **暂停，等用户确认**。用户确认修复范围后，主会话自动修复（CRITICAL 必修，HIGH 默认修，MEDIUM/LOW 用户选择）。修复后输出修复清单（已修/跳过/原因）
-6. 开始下一轮审查。即使全部通过也跑满 3 轮以充分审查
-7. 5 轮后仍有 CRITICAL/HIGH → 暂停等用户决定
+**规范加载**（每轮开始）：
+Read `rules/common/patterns.md` → 根据项目技术栈，确定本次适用的规范清单。
 
-有 CodeGraph 时每轮末尾执行 `codegraph query "<变更符号>"` 验证引用点已更新。
+**Round N**：
+1. 按技术栈 **并行**启动审查 agent：Java→`java-reviewer`，Node.js/前端→`typescript-reviewer` + `security-reviewer`
+2. **通用规范审查**（主会话执行，逐条对照规范路由表）：
+   - 接口与协议：对照 `api-response.md`、`restful-api.md`、`api-versioning.md`、`grpc-layering.md`（如适用）
+   - 数据存储：对照 `table-structure.md`、`database-migration.md`、`mongodb.md`、`elasticsearch.md`（如适用）
+   - 通用机制：对照 `logging.md`、`security.md`、`coding-style.md`、`testing.md`、`time-format.md`
+3. NestJS 项目额外：`src/` 1 层 / 无 `src/modules/` / 相对路径 import / `synchronize: false` / 无 Entity `@Index()`
+4. **基础设施配置审查**，详见 [references/infrastructure-review.md](references/infrastructure-review.md)
+5. **输出审查清单**：CRITICAL > HIGH > MEDIUM > LOW 分级，每项附文件路径和修复建议。清单按规范分组，标注来源规范文件
+6. **暂停，等用户确认**。用户确认后自动修复（CRITICAL 必修，HIGH 默认修，MEDIUM/LOW 用户选择）。修复后输出修复清单
+7. 开始下一轮审查。即使全部通过也跑满 3 轮
+8. 5 轮后仍有 CRITICAL/HIGH → 暂停等用户决定
+
+有 CodeGraph 时每轮末尾 `codegraph query "<变更符号>"` 验证引用点。
 
 **门禁**：CRITICAL = 0 且 HIGH = 0。不达标不进入阶段 5。
 
