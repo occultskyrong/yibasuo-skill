@@ -1,6 +1,6 @@
 # Common Patterns
 
-> 通用规范路由入口。详细内容拆分到独立文件，按需查阅。
+> 通用规范路由入口。每个规范标注适配场景和审查触发条件，确保阶段 4 审查可逐项核对。
 
 ## Skeleton Projects
 
@@ -16,16 +16,34 @@ When implementing new functionality:
 
 Encapsulate data access behind a consistent interface (findAll, findById, create, update, delete). Business logic depends on the abstract interface, not the storage mechanism.
 
-## 独立规范
+## 规范路由
 
-| 规范 | 文件 | 覆盖 |
-|------|------|------|
-| API 响应格式 | `api-response.md` | `{code,message,data,requestId,metadata}` 信封 + traceId |
-| RESTful API | `restful-api.md` | URL 设计、HTTP 方法、查询参数、状态码 |
-| API 版本控制 | `api-versioning.md` | `/v2/xxx` 新旧并存、弃用策略 |
-| gRPC 分层 | `grpc-layering.md` | Service Impl→Service→Mapper 分层、Status→HTTP 映射 |
-| 表结构 | `table-structure.md` | 命名、字段类型（p3c）、审计字段、DDL 模板 |
-| 数据库迁移 | `database-migration.md` | 6 步流程、Flyway 命名、幂等、大表变更 |
-| 定时任务 | `scheduled-tasks.md` | 生命周期、幂等、分布式协调、反模式 |
-| ES 索引 | `elasticsearch.md` | 命名 `{dataset}-{namespace}`、别名、template、ILM |
-| MongoDB | `mongodb.md` | 集合命名、camelCase 字段、混合文档设计、归档 |
+### 接口与协议
+
+| 规范 | 文件 | 适配场景 | 审查触发条件 | 关键检查点 |
+|------|------|---------|------------|-----------|
+| API 响应格式 | `api-response.md` | 所有 HTTP 项目 | 新增/修改接口时 | `code` 类型、`requestId`=traceId、`metadata` 必填字段 |
+| RESTful API | `restful-api.md` | 所有 HTTP 项目 | 新增路由/Controller 时 | 名词复数、无动词、≤2 层嵌套、标准查询参数 |
+| API 版本控制 | `api-versioning.md` | 所有 HTTP 项目 | 不兼容接口变更时 | `/v2/xxx` 新旧并存、旧版 `@Deprecated` |
+| gRPC 分层 | `grpc-layering.md` | gRPC 微服务 | 新增 proto/Service 时 | 无 ApiResponse、不鉴权、StatusRuntimeException |
+
+### 数据存储
+
+| 规范 | 文件 | 适配场景 | 审查触发条件 | 关键检查点 |
+|------|------|---------|------------|-----------|
+| 表结构 | `table-structure.md` | MySQL 项目 | 建表/改表时 | 命名小写+下划线、INT 主键、DECIMAL 金额、`COMMENT` 必写、审计字段 |
+| 数据库迁移 | `database-migration.md` | MySQL 项目 | DDL 变更时 | `V{YYYYMMDD}__{描述}.sql`、一文件一事、已部署禁改、回滚脚本 |
+| MongoDB | `mongodb.md` | MongoDB 项目 | 新增集合/字段时 | camelCase 字段、ObjectId、混合文档设计、删前归档 |
+| ES 索引 | `elasticsearch.md` | ES 项目 | 新建索引时 | `{dataset}-{namespace}` 格式、读写别名、template |
+
+### 通用机制
+
+| 规范 | 文件 | 适配场景 | 审查触发条件 | 关键检查点 |
+|------|------|---------|------------|-----------|
+| 定时任务 | `scheduled-tasks.md` | 所有后端项目 | 新增定时任务时 | 任务名 `{领域}:{动作}:{对象}`、cron 外置、分布式锁、幂等 |
+| 安全 | `security.md` | 所有项目 | 每次提交 | 硬编码密钥、输入校验、注入防护、HTTPS |
+| 并发 | `concurrency.md` | Java 项目 | 涉及线程/锁/异步时 | ThreadPoolExecutor、ReentrantLock、ThreadLocal 清理 |
+| 编码规范 | `coding-style.md` | 所有项目 | 每次审查 | 不可变性、注释规范、命名、函数 <50 行 |
+| 测试 | `testing.md` | 所有后端项目 | 新增功能时 | 覆盖率 ≥80%、RED→GREEN→IMPROVE、AAA 模式 |
+| 开发流程 | `development-workflow.md` | 所有项目 | 新功能开发时 | 研究复用、TDD 强制、code-reviewer、CI 通过 |
+| Git 工作流 | `git-workflow.md` | 所有项目 | 提交/push 时 | 分支命名 `feat/YYMMDD_desc`、commit message、PR 模板 |
