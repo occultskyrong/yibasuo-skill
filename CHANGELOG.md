@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.17.2] - 2026-06-12
+
+### Changed
+- SKILL.md 各阶段集成规范路由：规划加载+架构对照+审查全量
+- README Token 消耗表更新（CodeGraph+规范路由后倍数降低）
+- 语言适配 winston 替换 pino（对齐 ai-foundation 实现）
+- CLAUDE.md 产物结构同步 + 渐进式暴露说明
+- skill-review 评分 73→76/80 (PASS)
+
 ## [2.17.1] - 2026-06-12
 
 ### Changed
