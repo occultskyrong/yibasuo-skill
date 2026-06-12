@@ -314,7 +314,7 @@ CREATE TABLE `order` (
 
 ```sql
 CREATE TABLE `{table_name}` (
-    id         BIGINT   NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
+    id         INT   NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
     created_by INT      COMMENT '创建人 ID',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_by INT      COMMENT '更新人 ID',
@@ -328,7 +328,7 @@ CREATE TABLE `{table_name}` (
 
 ```sql
 CREATE TABLE `{table_name}` (
-    id      BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
+    id      INT NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
     ...
     PRIMARY KEY (id)
 ) ENGINE=InnoDB AUTO_INCREMENT={1000-3000随机值} DEFAULT CHARSET=utf8mb4;
@@ -338,7 +338,7 @@ CREATE TABLE `{table_name}` (
 
 ```sql
 CREATE TABLE `{table_name}` (
-    id         BIGINT   NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
+    id         INT   NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
     ...
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     PRIMARY KEY (id)
