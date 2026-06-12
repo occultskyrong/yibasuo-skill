@@ -72,6 +72,8 @@ gRPC Client → {Service}Impl (@GrpcService) → Service → Mapper → Database
 
 ### 索引（p3c）
 
+**所有索引必须在 Flyway migration SQL 中创建，禁止在代码中通过注解声明索引。** MyBatis-Plus 实体类上不可使用任何索引相关注解。
+
 详见 `rules/common/table-structure.md` 命名规范。以下为 Java 特有：
 
 - 唯一索引 + 业务层校验双保险
