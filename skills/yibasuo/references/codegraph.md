@@ -1,6 +1,8 @@
-# CodeGraph 集成（可选）
+# CodeGraph 集成
 
-[CodeGraph](https://github.com/colbymchenry/codegraph) 预索引代码库，替代 agent 手工扫描文件，大幅减少 token 消耗。
+> **强制规则**：项目开启 CodeGraph 后，内部代码查询（理解功能逻辑、查找引用、定位调用链）**必须使用 CodeGraph 命令**，禁止用 grep/glob 手工扫描。`codegraph context/query/affected` 替代所有 `grep -rn` / `find | xargs grep` 操作。
+
+[CodeGraph](https://github.com/colbymchenry/codegraph) 预索引代码库，替代 agent 手工扫描文件，大幅减少 token 消耗（~62% 工具调用、~25% total token）。
 
 ## 环境要求
 

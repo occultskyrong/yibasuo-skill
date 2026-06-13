@@ -50,9 +50,9 @@ requires:
 
 **命名规范**：Git 分支 `feat/YYMMDD_desc`（见 `rules/common/git-workflow.md`）、Java 文件 PascalCase、NestJS 文件 snake_case、文档 `YYYYMMDD - 标题.md`。
 
-## CodeGraph 集成（可选）
+## CodeGraph 集成
 
-详见 [references/codegraph.md](references/codegraph.md) — 预索引代码库，替代 agent 扫描文件。初始化：`nvm use 22 && codegraph init -i && codegraph index`。
+项目初始化后必须启用 CodeGraph。**内部代码查询禁止使用 grep/glob 手工扫描**，必须走 CodeGraph 命令（`codegraph context` / `codegraph query` / `codegraph affected`）。详见 [references/codegraph.md](references/codegraph.md)。
 
 ## 工作流
 
