@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.18.0] - 2026-06-13
+
+### Added
+- CodeGraph 强制规则：内部代码查询禁止 grep/glob，必须使用 codegraph 命令
+- Java 禁止代码中声明索引：所有索引必须在 migration SQL 创建
+
 ## [2.17.2] - 2026-06-12
 
 ### Changed
