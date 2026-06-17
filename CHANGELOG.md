@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.20.0] - 2026-06-17
+
+### Added
+- TS coding-style 新增 `Async/Await vs .then()` (CRITICAL)：禁止 `.then()` 链式调用，统一 `async/await` + `try/catch`
+- ESLint 清单新增 `max-nested-callbacks` Error 规则（>1 层阻断 CI），配合编码规范双重拦截
+
 ## [2.19.0] - 2026-06-15
 
 ### Added

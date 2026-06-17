@@ -23,6 +23,7 @@
 | `prefer-arrow-callback` | 匿名函数优先箭头函数 |
 | `func-names` | 禁止匿名函数表达式（调试时堆栈看不到函数名） |
 | `no-loop-func` | 循环中禁止闭包引用外部变量 |
+| `max-nested-callbacks` | 禁止回调嵌套（>1 层），强制 async/await 替代 `.then()` 链 |
 
 ## Warn 级别
 
@@ -62,6 +63,7 @@ export default tseslint.defineConfig([
       'prefer-arrow-callback': 'error',
       'func-names': 'error',
       'no-loop-func': 'error',
+      'max-nested-callbacks': ['error', 1],
     },
   },
 ]);

@@ -175,6 +175,47 @@ async function loadUser(userId: string): Promise<User> {
 }
 ```
 
+## Async/Await vs .then() (CRITICAL)
+
+**禁止 `.then()` 链式调用**，所有异步操作统一使用 `async/await` + `try/catch`：
+
+```typescript
+// WRONG — .then() 链，错误处理割裂，堆栈丢失
+function loadData(userId: string): Promise<Dashboard> {
+  return fetchUser(userId)
+    .then(user => fetchOrders(user.id))
+    .then(orders => buildDashboard(orders))
+    .catch(err => { logger.error('load failed', err); throw err; })
+}
+
+// WRONG — .then() 和 await 混用
+async function loadData(userId: string): Promise<Dashboard> {
+  const user = await fetchUser(userId);
+  return fetchOrders(user.id).then(orders => buildDashboard(orders));
+}
+
+// CORRECT — 统一 async/await + try/catch
+async function loadData(userId: string): Promise<Dashboard> {
+  try {
+    const user = await fetchUser(userId);
+    const orders = await fetchOrders(user.id);
+    return buildDashboard(orders);
+  } catch (err) {
+    logger.error('load failed', err);
+    throw err;
+  }
+}
+```
+
+**为什么禁止 `.then()`：**
+
+1. **错误堆栈断裂** — `.then()` 每层都是新的 microtask，抛错时堆栈不连续
+2. **类型推断差** — TypeScript 对 `.then()` 链的返回值推断弱于 `await`
+3. **可读性差** — 嵌套/长链与同步代码风格割裂
+4. **调试困难** — 断点无法逐行步进
+
+**唯一例外**：非业务代码中需要 fire-and-forget + 不关心错误堆栈时可用 `.catch()`（如测试中 `void promise.catch(...)`）。业务代码零容忍。
+
 ## Input Validation
 
 Use Zod for schema-based validation and infer types from the schema:
