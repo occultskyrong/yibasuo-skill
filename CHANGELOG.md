@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.22.0] - 2026-06-17
+
+### Added
+- 4 张流程机制图（3x retina）：管道全景、TDD 循环、审查循环、Agent 矩阵
+- README ASCII 图全部替换为 PNG 图片
+
 ## [2.21.0] - 2026-06-17
 
 ### Changed

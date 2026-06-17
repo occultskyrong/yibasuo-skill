@@ -1,4 +1,4 @@
-# 一把梭 (yibasuo) — 全流程开发管线 v2.21.0
+# 一把梭 (yibasuo) — 全流程开发管线 v2.22.0
 
 > 需求 → 规划 → 架构 → 测试驱动开发 → 审查 → 提交。
 > 7 个内置 Agent + 4 套 Rules，流程化消除 AI 编码的随机性。
@@ -27,15 +27,11 @@ cd /tmp/yibasuo-skill && bash install.sh --codex # Codex
 
 ---
 
-## 流程概览
+## 工作流全景
 
-```
-0.需求确认 → 1.规划 → 2.架构 → 3.测试驱动开发 → 4.审查 → 5.提交
-    │            │         │          │            │
-    └──门禁──────┴──门禁───┴──门禁───┴──门禁──────┘
-```
+![工作流全景](docs/pipeline.png)
 
-每阶段结束有门禁检查，不达标不推进。自动模式跳过中间确认，提交前仍须确认。
+不达标不推进。阶段 0 和阶段 5 不论模式都必须确认。
 
 ---
 
@@ -69,6 +65,8 @@ cd /tmp/yibasuo-skill && bash install.sh --codex # Codex
 
 ### 阶段 3 · 测试驱动开发
 
+![TDD 循环](docs/tdd-loop.png)
+
 1. 调用 `tdd-guide` agent — 先读 `rules/<lang>/testing.md`
 2. RED → GREEN → IMPROVE — Bug 修复时关键代码加注释说明根因
 3. 展示覆盖率报告
@@ -77,10 +75,12 @@ cd /tmp/yibasuo-skill && bash install.sh --codex # Codex
 
 ### 阶段 4 · 审查
 
-1. 按技术栈并行启动 reviewer — Java → `java-reviewer`，Node/前端 → `typescript-reviewer` + `security-reviewer`
-2. CRITICAL / HIGH → 必须修复，修复前先写复现测试
-3. 修复后重审，至少 3 轮、最多 5 轮
-4. 基础设施配置审查（硬编码密钥、配置文件一致性等）
+![审查循环](docs/review-loop.png)
+
+1. ESLint 自动检测（Error 规则 = CRITICAL）→ agent 并行审查 → 规范逐条核对 → 基础设施审查
+2. 输出分级清单（CRITICAL > HIGH > MEDIUM > LOW），ESLint 错误单独标注
+3. CRITICAL 必修，HIGH 默认修；修复后重跑 ESLint 验证
+4. 至少 3 轮、最多 5 轮。5 轮后仍有 CRITICAL/HIGH → 暂停等用户决定
 
 **门禁**：CRITICAL = 0 且 HIGH = 0
 
@@ -88,10 +88,14 @@ cd /tmp/yibasuo-skill && bash install.sh --codex # Codex
 
 1. 启动验证（确认无启动错误后停进程）
 2. 环境检查 + `git diff --stat`
-3. 格式检查 + 构建验证
+3. 格式复核（ESLint 阶段 4 已过）+ 构建验证
 4. 完成前验证：测试通过 + 无 CRITICAL/HIGH + 格式已执行 + 构建通过 + 无调试残留 + 接口含 requestId/metadata + DDL 变更含迁移文件
 5. 文档更新（CLAUDE.md + README.md）
 6. 生成 Conventional Commits 消息 → 确认 → commit + SemVer tag（标签不可变）→ 询问是否 push
+
+### 内置 Agent 矩阵
+
+![Agent 矩阵](docs/agent-matrix.png)
 
 ---
 
