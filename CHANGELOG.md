@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.19.0] - 2026-06-15
+
+### Added
+- ESLint 检查清单（`rules/web/eslint-checklist.md`）：17 条 Error + 3 条 Warn + Flat Config 模板，覆盖闭包/then/匿名函数
+
 ## [2.18.1] - 2026-06-15
 
 ### Changed
