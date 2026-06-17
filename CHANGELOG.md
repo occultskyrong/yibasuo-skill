@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.21.0] - 2026-06-17
+
+### Changed
+- ESLint Error 规则从阶段 5 提前到阶段 4：每轮审查先跑 `eslint --max-warnings 0`，Error = CRITICAL，修复后重跑验证，避免审查通过后格式检查又改代码
+- 阶段 5 ESLint 降级为复核（不该有新错误）
+
 ## [2.20.0] - 2026-06-17
 
 ### Added

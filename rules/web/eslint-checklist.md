@@ -1,6 +1,8 @@
 # ESLint 检查清单
 
-> 阶段 5 格式检查时逐项核对。ESLint 负责代码质量，Prettier 负责格式。
+> **阶段 4 审查每轮执行**（Error 规则 = 代码缺陷，发现即 CRITICAL，修复后重跑验证）。
+> **阶段 5 提交复核**（Prettier + ESLint `--max-warnings 0`，不该有新错误）。
+> Prettier 负责格式，ESLint Error 负责代码质量，ESLint Warn 负责最佳实践。
 
 ## Error 级别（CI 阻断）
 
@@ -69,8 +71,16 @@ export default tseslint.defineConfig([
 ]);
 ```
 
-## 阶段 5 执行
+## 阶段 4+5 执行
 
+**阶段 4 审查每轮**：
+
+```bash
+<pkg> eslint . --max-warnings 0
 ```
+
+**阶段 5 提交复核**：
+
+```bash
 <pkg> prettier --check . && <pkg> eslint . --max-warnings 0
 ```

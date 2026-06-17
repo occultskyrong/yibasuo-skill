@@ -1,6 +1,6 @@
 ---
 name: yibasuo
-version: "2.20.0"
+version: "2.21.0"
 description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段1-4连续执行，阶段0与提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer, java-reviewer, typescript-reviewer]
@@ -129,17 +129,18 @@ requires:
 Read `rules/common/patterns.md` → 根据项目技术栈，确定本次适用的规范清单。
 
 **Round N**：
-1. 按技术栈 **并行**启动审查 agent：Java→`java-reviewer`，Node.js/前端→`typescript-reviewer` + `security-reviewer`
-2. **通用规范审查**（主会话执行，逐条对照规范路由表）：
+1. **ESLint 自动检查**（前端/Node.js 项目）：`<pkg> eslint . --max-warnings 0`，Error 规则 = 代码缺陷（如 `no-floating-promises`、`no-loop-func`），发现即阻断，计入审查清单 CRITICAL
+2. 按技术栈 **并行**启动审查 agent：Java→`java-reviewer`，Node.js/前端→`typescript-reviewer` + `security-reviewer`
+3. **通用规范审查**（主会话执行，逐条对照规范路由表）：
    - 接口与协议：对照 `api-response.md`、`restful-api.md`、`api-versioning.md`、`grpc-layering.md`（如适用）
    - 数据存储：对照 `table-structure.md`、`database-migration.md`、`mongodb.md`、`elasticsearch.md`（如适用）
    - 通用机制：对照 `logging.md`、`security.md`、`coding-style.md`、`testing.md`、`time-format.md`
-3. NestJS 项目额外：`src/` 1 层 / 无 `src/modules/` / 相对路径 import / `synchronize: false` / 无 Entity `@Index()`
-4. **基础设施配置审查**，详见 [references/infrastructure-review.md](references/infrastructure-review.md)
-5. **输出审查清单**：CRITICAL > HIGH > MEDIUM > LOW 分级，每项附文件路径和修复建议。清单按规范分组，标注来源规范文件
-6. **暂停，等用户确认**。用户确认后自动修复（CRITICAL 必修，HIGH 默认修，MEDIUM/LOW 用户选择）。修复后输出修复清单
-7. 开始下一轮审查。即使全部通过也跑满 3 轮
-8. 5 轮后仍有 CRITICAL/HIGH → 暂停等用户决定
+4. NestJS 项目额外：`src/` 1 层 / 无 `src/modules/` / 相对路径 import / `synchronize: false` / 无 Entity `@Index()`
+5. **基础设施配置审查**，详见 [references/infrastructure-review.md](references/infrastructure-review.md)
+6. **输出审查清单**：CRITICAL > HIGH > MEDIUM > LOW 分级，每项附文件路径和修复建议。清单按规范分组，标注来源规范文件。ESLint 错误单独列出，标记为自动化检测
+7. **暂停，等用户确认**。用户确认后自动修复（CRITICAL 必修，HIGH 默认修，MEDIUM/LOW 用户选择）。修复后输出修复清单。ESLint 错误修复后重跑 `eslint --max-warnings 0` 验证
+8. 开始下一轮审查。即使全部通过也跑满 3 轮。每轮 ESLint 必须在 agent reviewer 之前先跑，避免审查完又改代码
+9. 5 轮后仍有 CRITICAL/HIGH → 暂停等用户决定
 
 有 CodeGraph 时每轮末尾 `codegraph query "<变更符号>"` 验证引用点。
 
@@ -152,8 +153,8 @@ Read `rules/common/patterns.md` → 根据项目技术栈，确定本次适用�
    - NestJS：`<pkg> start:dev` 或 `npm start`，确认无 DI 错误、无 crash
    - 验证通过后停掉进程再继续
 2. **环境检查**：非 git 仓库警告暂停，`git diff --stat`
-3. **格式检查**（按技术栈）：
-   - Node.js/前端：`<pkg>` prettier → `<pkg>` eslint → ts-prune（僵尸代码扫描，列清单不自动删）
+3. **格式复核**（按技术栈）：
+   - Node.js/前端：`<pkg>` prettier → `<pkg>` eslint `--max-warnings 0`（阶段 4 已过，此处复核，不该有新错误）→ ts-prune（僵尸代码扫描，列清单不自动删）
    - Java：检测 pom.xml 是否含 `maven-pmd-plugin` → 有则 `mvn pmd:check`，无则跳过
    - 格式失败 → 暂停。优先复用项目已有 formatter/linter 配置
 4. **构建验证**（Node.js/前端）：`<pkg> build`，构建失败或缺 build 命令 → 暂停

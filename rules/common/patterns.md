@@ -48,5 +48,5 @@ Encapsulate data access behind a consistent interface (findAll, findById, create
 | 编码规范 | `coding-style.md` | 所有项目 | 每次审查 | 不可变性、注释规范、命名、函数 <50 行 |
 | 测试 | `testing.md` | 所有后端项目 | 新增功能时 | 覆盖率 ≥80%、RED→GREEN→IMPROVE、AAA 模式 |
 | 开发流程 | `development-workflow.md` | 所有项目 | 新功能开发时 | 研究复用、TDD 强制、code-reviewer、CI 通过 |
-| ESLint | `web/eslint-checklist.md` | 前端项目 | 阶段 5 格式检查 | 18 条 Error 规则 + 3 条 Warn + Flat Config 模板 |
+| ESLint | `web/eslint-checklist.md` | 前端项目 | 阶段 4 审查每轮 → 阶段 5 复核 | Error 规则 = CRITICAL（代码缺陷，非格式）、`--max-warnings 0` |
 | Git 工作流 | `git-workflow.md` | 所有项目 | 提交/push 时 | 分支命名 `feat/YYMMDD_desc`、commit message、PR 模板 |
