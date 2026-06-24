@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.23.0] - 2026-06-17
+
+### Fixed
+- install.sh install_rules/install_skill 只检查目录存在导致新增子规范文件永不安装（如 table-structure.md 等 12 个文件）
+- --force 被同版本检查拦截，永远无法触发强制覆盖
+
 ## [2.22.0] - 2026-06-17
 
 ### Added

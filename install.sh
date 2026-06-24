@@ -96,7 +96,7 @@ echo ""
 PREV_VERSION_FILE="$BASE/skills/$SKILL_NAME/.installed-version"
 if [[ -f "$PREV_VERSION_FILE" ]]; then
   PREV_VERSION="$(cat "$PREV_VERSION_FILE")"
-  if [[ "$VERSION" != "unknown" ]] && [[ "$PREV_VERSION" == "$VERSION" ]]; then
+  if [[ "$VERSION" != "unknown" ]] && [[ "$PREV_VERSION" == "$VERSION" ]] && [[ "$FORCE" != "--force" ]]; then
     echo "[i] 当前已是最新版本 v$VERSION，无需更新。"
     echo "    强制覆盖: ./install.sh --force"
     exit 0
@@ -114,13 +114,9 @@ install_rules() {
   local dest="$BASE/rules/$lang"
 
   if [[ -d "$src" ]]; then
-    if [[ -d "$dest" ]]; then
-      echo "  [-] rules/$lang already exists, skipping (use --force to overwrite)"
-    else
-      mkdir -p "$dest"
-      cp -r "$src"/* "$dest/"
-      echo "  [+] rules/$lang installed"
-    fi
+    mkdir -p "$dest"
+    cp -r "$src"/* "$dest/"
+    echo "  [+] rules/$lang installed ($(ls "$src" | wc -l | tr -d ' ') files)"
   fi
 }
 
@@ -137,13 +133,9 @@ install_skill() {
   local skill_src="$2"
   local skill_dest="$BASE/skills/$skill_name"
 
-  if [[ -d "$skill_dest" ]]; then
-    echo "  [-] skills/$skill_name already exists, skipping (use --force to overwrite)"
-  else
-    mkdir -p "$skill_dest"
-    cp -r "$SCRIPT_DIR/$skill_src"/* "$skill_dest/"
-    echo "  [+] skills/$skill_name installed"
-  fi
+  mkdir -p "$skill_dest"
+  cp -r "$SCRIPT_DIR/$skill_src"/* "$skill_dest/"
+  echo "  [+] skills/$skill_name installed"
 }
 
 install_skill "$SKILL_NAME" "$SKILL_SRC"
