@@ -66,7 +66,21 @@ yibasuo-skill/
 6. `git tag -a vX.Y.Z -m "yibasuo-skill vX.Y.Z — <summary>"`
 7. `git push origin master --tags`
 8. `echo vX.Y.Z > ~/.claude/skills/yibasuo/.installed-version`
-9. 脱敏检查
+9. **同步到本地安装目录**（install.sh 有增量遗漏风险，提交后手动补齐）：
+
+   ```bash
+   # rules
+   cp -r rules/* ~/.claude/rules/
+   # skills
+   cp skills/yibasuo/SKILL.md ~/.claude/skills/yibasuo/
+   cp -r skills/yibasuo/references/* ~/.claude/skills/yibasuo/references/
+   # agents
+   cp agents/*.md ~/.claude/agents/
+   ```
+
+   或等效 `rsync -av --delete rules/ ~/.claude/rules/ && rsync -av skills/ ~/.claude/skills/`
+
+10. 脱敏检查
 
 ## 技能设计
 
