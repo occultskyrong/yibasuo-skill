@@ -59,7 +59,7 @@ ALWAYS validate at system boundaries:
 ## Naming Conventions
 
 - Variables and functions: `camelCase` with descriptive names
-- Booleans: prefer `is`, `has`, `should`, or `can` prefixes
+- Booleans: prefer `is`, `has`, `should`, or `can` prefixes（**例外：Java POJO `boolean`/`Boolean` 属性禁止 `is` 前缀**，Jackson 序列化冲突，详见 `rules/java/coding-style.md`）
 - Interfaces, types, and components: `PascalCase`
 - Constants: `UPPER_SNAKE_CASE`
 - Custom hooks: `camelCase` with a `use` prefix

@@ -47,7 +47,7 @@ Resp: { "requestId": ".."}   ←     ) ENGINE=InnoDB;
 | 对象 | 命名风格 |
 |------|---------|
 | MySQL 表/列/索引 | **snake_case 全小写** |
-| MongoDB 集合 | **camelCase** |
+| MongoDB 集合 | **snake_case** 复数（见 `mongodb.md`） |
 | MongoDB 字段 | **camelCase** |
 
 ## 代码层（见各语言 coding-style.md）

@@ -11,6 +11,7 @@ paths:
 | 规范 | 文件 | 覆盖 |
 |------|------|------|
 | Repository Pattern | `rules/common/patterns.md#repository-pattern` | 接口抽象 |
+| 命名规范 | `rules/common/naming-convention.md` | JSON camelCase、DTO 后缀、DB snake_case |
 | 构造器注入 | 本文档 | 禁止字段注入 |
 | Service 层 | 本文档 | 业务逻辑分层 |
 | DTO 映射 | 本文档 | Record + static factory |

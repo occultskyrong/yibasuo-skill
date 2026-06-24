@@ -1,6 +1,6 @@
 ---
 name: yibasuo
-version: "2.25.0"
+version: "2.26.0"
 description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段1-4连续执行，阶段0与提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer, java-reviewer, typescript-reviewer]
@@ -97,7 +97,7 @@ requires:
 
 1. `Agent({ subagent_type: "architect" })`，prompt 含：需求 + 计划 + 语言规范 + **适用规范清单**。要求产出 ADR（决策/后果/替代方案）+ 接口契约 + 数据变更
 2. **按适用规范自检**：
-   - 涉及 API → 对照 `restful-api.md`（URL、HTTP 方法、状态码）
+   - 涉及 API → 对照 `restful-api.md`（URL、HTTP 方法、状态码）+ `naming-convention.md`（参数命名、DTO 后缀、JSON camelCase）
    - 涉及 gRPC → 对照 `grpc-layering.md`（分层、无鉴权、Status 映射）
    - 涉及数据库 → 对照 `table-structure.md`（命名、字段类型、审计字段）+ `database-migration.md`（Flyway 命名、幂等）+ 产出迁移文件（`V{YYYYMMDD}__{描述}.sql`）
    - 涉及 ES/MongoDB → 对照对应命名规范
@@ -134,7 +134,7 @@ Read `rules/common/patterns.md` → 根据项目技术栈，确定本次适用�
 3. **通用规范审查**（主会话执行，逐条对照规范路由表）：
    - 接口与协议：对照 `api-response.md`、`restful-api.md`、`api-versioning.md`、`grpc-layering.md`（如适用）
    - 数据存储：对照 `table-structure.md`、`database-migration.md`、`mongodb.md`、`elasticsearch.md`（如适用）
-   - 通用机制：对照 `logging.md`、`security.md`、`coding-style.md`、`testing.md`、`time-format.md`
+   - 通用机制：对照 `logging.md`、`security.md`、`coding-style.md`、`testing.md`、`time-format.md`、`naming-convention.md`
 4. NestJS 项目额外：`src/` 1 层 / 无 `src/modules/` / 相对路径 import / `synchronize: false` / 无 Entity `@Index()`
 5. **基础设施配置审查**，详见 [references/infrastructure-review.md](references/infrastructure-review.md)
 6. **输出审查清单**：CRITICAL > HIGH > MEDIUM > LOW 分级，每项附文件路径和修复建议。清单按规范分组，标注来源规范文件。ESLint 错误单独列出，标记为自动化检测

@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.0] - 2026-06-17
+
+### Fixed
+- naming-convention.md 未注册到 SKILL.md 阶段 2/4 审查清单 + java/ts patterns.md 路由表，导致技能运行时不读取
+- MongoDB 集合命名与 mongodb.md 冲突（naming-convention.md 写 camelCase，mongodb.md 写 snake_case）
+- common/coding-style.md Boolean is 前缀建议与 java/coding-style.md POJO 约束冲突（加 Java 例外标注）
+
 ## [2.25.0] - 2026-06-17
 
 ### Changed

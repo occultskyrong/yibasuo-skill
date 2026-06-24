@@ -13,6 +13,7 @@ paths:
 
 | 规范 | 文件 | 覆盖 |
 |------|------|------|
+| 命名规范 | `rules/common/naming-convention.md` | JSON camelCase、DTO 后缀、参数命名 |
 | API 响应格式 | `rules/common/api-response.md` | 信封、traceId |
 | RESTful API | `rules/common/restful-api.md` | URL 设计、HTTP 方法、状态码 |
 | API 版本控制 | `rules/common/api-versioning.md` | `/v2/xxx` 新旧并存 |
