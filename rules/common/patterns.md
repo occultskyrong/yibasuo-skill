@@ -45,6 +45,7 @@ Encapsulate data access behind a consistent interface (findAll, findById, create
 | 并发 | `concurrency.md` | Java 项目 | 涉及线程/锁/异步时 | ThreadPoolExecutor、ReentrantLock、ThreadLocal 清理 |
 | 时间格式 | `time-format.md` | 所有后端项目 | 新增/修改代码时 | `yyyy-MM-dd HH:mm:ss.SSS`、Asia/Shanghai、禁止 ISO |
 | 日志 | `logging.md` | 所有后端项目 | 每次审查 | TraceId 注入、敏感数据脱敏、占位符非拼接、生产 JSON |
+| 命名规范 | `naming-convention.md` | 所有项目 | 新增接口/参数/DTO 时 | JSON camelCase、Query camelCase、URL kebab-case、DTO 后缀、DB snake_case |
 | 编码规范 | `coding-style.md` | 所有项目 | 每次审查 | 不可变性、注释规范、命名、函数 <50 行 |
 | 测试 | `testing.md` | 所有后端项目 | 新增功能时 | 覆盖率 ≥80%、RED→GREEN→IMPROVE、AAA 模式 |
 | 开发流程 | `development-workflow.md` | 所有项目 | 新功能开发时 | 研究复用、TDD 强制、code-reviewer、CI 通过 |

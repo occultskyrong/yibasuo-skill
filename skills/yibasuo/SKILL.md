@@ -1,6 +1,6 @@
 ---
 name: yibasuo
-version: "2.23.0"
+version: "2.24.0"
 description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段1-4连续执行，阶段0与提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer, java-reviewer, typescript-reviewer]
@@ -28,7 +28,7 @@ requires:
 4. **循环验证** — 每阶段定义成功标准，不达标不回；覆盖率≥80%、CRITICAL=0 是底线
 5. **破坏性变更需确认** — 删除文件/代码块/接口签名/数据库表或字段等操作，必须先说明删除什么、为什么、影响范围。**用户同意后方可执行**，执行后在 `.yibasuo-deletions.log` 追加记录
 6. **前端校验不替代后端** — 前端做参数校验是 UX 优化（即时反馈、减少无效请求），**后端绝不信任前端传来的任何数据**。所有入参必须在后端重新完整校验（类型、长度、范围、格式、业务规则），即使前端已经校验过。防止绕过前端直接调 API 的攻击行为
-7. **List 查询必须分页** — 所有列表查询必须含 `PageRequest`（page, page_size），默认 20 上限 100。响应必须含 `PageResponse`（page, page_size, total）
+7. **List 查询必须分页** — 所有列表查询必须含分页参数（`page`, `pageSize`），默认 20 上限 100。响应 metadata 必须含 `currentPage`, `pageSize`, `totalPages`, `count`
 
 ## 语言适配
 

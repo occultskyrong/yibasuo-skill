@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.24.0] - 2026-06-17
+
+### Added
+- naming-convention.md: 统一 HTTP/JSON(camelCase) 与 DB(snake_case) 分层命名规范，含 Request/Response/DTO/Query 命名约定
+
+### Fixed
+- SKILL.md 红线 7 page_size → pageSize（与 restful-api.md 统一为 camelCase）
+
 ## [2.23.0] - 2026-06-17
 
 ### Fixed
