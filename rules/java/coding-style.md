@@ -56,8 +56,39 @@ public class Order {
 ## POJO 约束
 
 - POJO 属性**禁止使用基本类型**：`int`→`Integer`、`long`→`Long`、`boolean`→`Boolean`
-- POJO 布尔变量**禁止 `is` 前缀**（避免序列化框架误解析）
+- **布尔变量禁止 `is` 前缀**（只针对 `boolean`/`Boolean`，见下方详解）
 - **禁止滥用 `@Data`**：关联对象多的实体改用 `@Getter`/`@Setter` 单独指定，防止 `toString` 泄漏关联数据或循环引用。密码字段加 `@JsonIgnore` 排除序列化
+
+### 布尔变量 is 前缀规则
+
+**只禁止 `boolean`/`Boolean` 类型使用 `is` 前缀，其他类型不受此规则约束。**
+
+根本原因：JavaBean 规范 `isXxx()` getter 和 JSON 序列化框架（Jackson/Gson/Fastjson）之间的字段名映射冲突。
+
+```java
+// ❌ WRONG — Boolean 用 is 前缀
+// Jackson 会把 isActive() getter 映射为 "active"，导致字段名丢失 "is"
+public class User {
+    private Boolean isActive;  // 序列化 → {"active": true}，反序列化找不到字段
+}
+
+// ✅ CORRECT — Boolean 去 is 前缀
+public class User {
+    private Boolean active;    // 序列化 → {"active": true}，反序列化正确
+}
+
+// ✅ CORRECT — Integer/String 不受此规则约束
+// Integer 的 getter 是 getIsWeekend()，不存在 isXxx() 命名冲突
+// 且 isWeekend 语义清晰，一眼看出是 0/1 标记
+@TableField("is_weekend")
+private Integer isWeekend;     // p3c 不禁 Integer 的 is 前缀
+
+// ✅ CORRECT — 如果语义要求布尔，直接用 Boolean + 去前缀
+@TableField("is_weekend")
+private Boolean weekend;       // 或 weekendFlag 明确标记语义
+```
+
+**注意区分**：`boolean`/`Boolean` → 禁止 is；`Integer`/`Long`/`String` → 允许 is。不要因为看到 is 前缀就无脑去前缀，先看类型。
 
 ## Modern Java Features
 

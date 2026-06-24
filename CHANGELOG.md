@@ -1,6 +1,12 @@
 # Changelog
 
+## [2.25.0] - 2026-06-17
+
+### Changed
+- java/coding-style.md POJO 布尔变量 is 前缀规则：明确只禁 boolean/Boolean，Integer/Long/String 不受约束，补充根因解释和正反例
+
 ## [2.24.0] - 2026-06-17
+
 
 ### Added
 - naming-convention.md: 统一 HTTP/JSON(camelCase) 与 DB(snake_case) 分层命名规范，含 Request/Response/DTO/Query 命名约定
