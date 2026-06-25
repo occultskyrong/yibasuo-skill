@@ -90,7 +90,8 @@ You DO NOT refactor or rewrite code — you report findings only.
 - **Deep optional chaining without fallback**: `a?.b?.c?.d` with no default — add `?? fallback`
 - **Inconsistent naming**: camelCase for variables/functions, PascalCase for types/classes/components
 
-### MEDIUM -- Scheduled Tasks
+### CRITICAL -- Scheduled Tasks
+- **`@Cron` / `@Interval` / `@Timeout` in production**: Decorator-based scheduling used in production code (non-dev profile) — must use BullMQ instead. `@Cron` et al. are local/dev-only; see [common/scheduled-tasks.md](../rules/common/scheduled-tasks.md). **Block.**
 - **Blocking event loop**: CPU-heavy or synchronous I/O inside `@Cron` / `@Interval` / `@Timeout` handlers — use BullMQ or worker threads
 - **Missing distributed lock**: Multi-instance deployment without Redis lock — tasks will run on every instance
 - **Hardcoded cron string**: Cron literal in `@Cron()` decorator — must read from `ConfigService`

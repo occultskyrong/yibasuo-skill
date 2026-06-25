@@ -149,7 +149,7 @@ describe('<Unit Under Test>', () => {
     it('<expected behavior when condition>', () => { ... });
   });
 });
-```typescript
+```
 
 Example: `describe('UsersService', () => { describe('getById', () => { it('throws when user not found', ...) }) })`
 
@@ -163,7 +163,8 @@ Example: `describe('UsersService', () => { describe('getById', () => { it('throw
 ## Agent Support
 
 - **tdd-guide** — Enforce TDD workflow for new features and bug fixes
-- **e2e-runner** — Playwright E2E testing specialist
+- **code-reviewer** — Review test quality and coverage
+- **typescript-reviewer** — TypeScript-specific test patterns
 
 ## References
 

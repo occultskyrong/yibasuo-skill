@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.28.1] - 2026-06-25
+
+### Fixed
+
+- typescript/testing.md 代码块结束栅栏被误改为 ` ```typescript `（v2.28.0 markdownlint 整理回归），导致代码块未闭合、后续内容渲染异常
+- @Cron 生产可用性矛盾：typescript/patterns.md 明确 `@Cron`/`@Interval`/`@Timeout` 仅限本地开发，生产必须用 BullMQ；typescript-reviewer 审查清单新增 CRITICAL 级「生产环境使用 @Cron 裸跑 → 阻断」
+- agents.md/code-review.md/performance.md/typescript-testing.md 引用不存在的 agent（build-error-resolver/e2e-runner/refactor-cleaner/doc-updater/python-reviewer/go-reviewer/rust-reviewer），对齐实际 7 个 agent 并补全 java-reviewer
+
 ## [2.28.0] - 2026-06-25
 
 ### Changed

@@ -57,7 +57,6 @@ For complex tasks requiring deep reasoning:
 
 If build fails:
 
-1. Use **build-error-resolver** agent
-2. Analyze error messages
-3. Fix incrementally
-4. Verify after each fix
+1. Analyze error messages
+2. Fix incrementally
+3. Verify after each fix

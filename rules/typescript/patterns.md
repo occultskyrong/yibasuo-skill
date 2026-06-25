@@ -101,7 +101,7 @@ await this.reportQueue.add('generate', { userId }, {
 });
 ```
 
-`@Cron` 用于简单定时触发，BullMQ 用于需要重试/延迟/进度追踪的任务。
+`@Cron`/`@Interval`/`@Timeout` **仅限本地开发调试**，生产环境定时任务必须用 BullMQ（见 [common/scheduled-tasks.md](../common/scheduled-tasks.md) 红线）。BullMQ 适用于需要重试/延迟/优先级/进度追踪的任务。
 
 ## Module 设计
 
