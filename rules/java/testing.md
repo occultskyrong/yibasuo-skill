@@ -15,7 +15,7 @@ paths:
 
 ## Test Organization
 
-```
+```text
 src/test/java/com/example/app/
   service/           # Unit tests for service layer
   controller/        # Web layer / API tests
@@ -116,6 +116,7 @@ For Spring Boot integration tests, see skill: `springboot-tdd`.
 ## Test Naming
 
 Use descriptive names with `@DisplayName`:
+
 - `methodName_scenario_expectedBehavior()` for method names
 - `@DisplayName("human-readable description")` for reports
 
@@ -182,7 +183,7 @@ class UserControllerIT {
 
 ## 测试组织
 
-```
+```text
 src/test/java/com/example/app/
 ├── service/            # Service 层单元测试
 ├── controller/         # Controller 集成测试

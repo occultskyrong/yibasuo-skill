@@ -3,6 +3,7 @@
 ## Minimum Test Coverage: 80%
 
 Test Types（后端服务项目 ALL required，其他项目类型按需选择）：
+
 1. **Unit Tests** - Individual functions, utilities, components
 2. **Integration Tests** - API endpoints, database operations
 3. **E2E Tests** - Critical user flows (framework chosen per language)
@@ -10,6 +11,7 @@ Test Types（后端服务项目 ALL required，其他项目类型按需选择）
 ## Test-Driven Development
 
 MANDATORY for new features and bug fixes; MAY skip for config changes, docs, README updates:
+
 1. Write test first (RED)
 2. Run test - it should FAIL
 3. Write minimal implementation (GREEN)

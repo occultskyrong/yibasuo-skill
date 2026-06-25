@@ -51,7 +51,7 @@ Before marking code complete:
 ## Review Severity Levels
 
 | Level | Meaning | Action |
-|-------|---------|--------|
+| ------- | --------- | -------- |
 | CRITICAL | Security vulnerability or data loss risk | **BLOCK** - Must fix before merge |
 | HIGH | Bug or significant quality issue | **WARN** - Should fix before merge |
 | MEDIUM | Maintainability concern | **INFO** - Consider fixing |
@@ -62,7 +62,7 @@ Before marking code complete:
 Use these agents for code review:
 
 | Agent | Purpose |
-|-------|---------|
+| ------- | --------- |
 | **code-reviewer** | General code quality, patterns, best practices |
 | **security-reviewer** | Security vulnerabilities, OWASP Top 10 |
 | **typescript-reviewer** | TypeScript/JavaScript specific issues |
@@ -72,7 +72,7 @@ Use these agents for code review:
 
 ## Review Workflow
 
-```
+```text
 1. Run git diff to understand changes
 2. Check security checklist first
 3. Review code quality checklist

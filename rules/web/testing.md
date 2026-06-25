@@ -21,7 +21,7 @@ paths:
 ## Framework
 
 | 层 | 工具 |
-|----|------|
+| ---- | ------ |
 | Unit / Component | Vitest + Vue Test Utils / React Testing Library |
 | E2E | Playwright |
 | Visual | Playwright screenshots |

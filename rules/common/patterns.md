@@ -5,6 +5,7 @@
 ## Skeleton Projects
 
 When implementing new functionality:
+
 1. Search for battle-tested skeleton projects
 2. Use parallel agents to evaluate options (security, extensibility, relevance, implementation)
 3. Clone best match as foundation
@@ -21,7 +22,7 @@ Encapsulate data access behind a consistent interface (findAll, findById, create
 ### 接口与协议
 
 | 规范 | 文件 | 适配场景 | 审查触发条件 | 关键检查点 |
-|------|------|---------|------------|-----------|
+| ------ | ------ | --------- | ------------ | ----------- |
 | API 响应格式 | `api-response.md` | 所有 HTTP 项目 | 新增/修改接口时 | `code` 类型、`requestId`=traceId、`metadata` 必填字段 |
 | RESTful API | `restful-api.md` | 所有 HTTP 项目 | 新增路由/Controller 时 | 名词复数、无动词、≤2 层嵌套、标准查询参数 |
 | API 版本控制 | `api-versioning.md` | 所有 HTTP 项目 | 不兼容接口变更时 | `/v2/xxx` 新旧并存、旧版 `@Deprecated` |
@@ -30,7 +31,7 @@ Encapsulate data access behind a consistent interface (findAll, findById, create
 ### 数据存储
 
 | 规范 | 文件 | 适配场景 | 审查触发条件 | 关键检查点 |
-|------|------|---------|------------|-----------|
+| ------ | ------ | --------- | ------------ | ----------- |
 | 表结构 | `table-structure.md` | MySQL 项目 | 建表/改表时 | 命名小写+下划线、INT 主键、DECIMAL 金额、`COMMENT` 必写、审计字段 |
 | 数据库迁移 | `database-migration.md` | MySQL 项目 | DDL 变更时 | `V{YYYYMMDD}__{描述}.sql`、一文件一事、已部署禁改、回滚脚本 |
 | MongoDB | `mongodb.md` | MongoDB 项目 | 新增集合/字段时 | camelCase 字段、ObjectId、混合文档设计、删前归档 |
@@ -39,7 +40,7 @@ Encapsulate data access behind a consistent interface (findAll, findById, create
 ### 通用机制
 
 | 规范 | 文件 | 适配场景 | 审查触发条件 | 关键检查点 |
-|------|------|---------|------------|-----------|
+| ------ | ------ | --------- | ------------ | ----------- |
 | 定时任务 | `scheduled-tasks.md` | 所有后端项目 | 新增定时任务时 | 任务名 `{领域}:{动作}:{对象}`、cron 外置、分布式锁、幂等 |
 | 安全 | `security.md` | 所有项目 | 每次提交 | 硬编码密钥、输入校验、注入防护、HTTPS |
 | 并发 | `concurrency.md` | Java 项目 | 涉及线程/锁/异步时 | ThreadPoolExecutor、ReentrantLock、ThreadLocal 清理 |

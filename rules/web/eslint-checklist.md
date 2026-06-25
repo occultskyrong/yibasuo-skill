@@ -7,7 +7,7 @@
 ## Error 级别（CI 阻断）
 
 | 规则 | 说明 |
-|------|------|
+| ------ | ------ |
 | `react-hooks/rules-of-hooks` | Hook 必须在顶层调用，禁止条件/循环中使用 |
 | `react-hooks/exhaustive-deps` | useEffect/useMemo/useCallback 依赖数组完整 |
 | `react/jsx-key` | 列表渲染必须有唯一 key |
@@ -30,7 +30,7 @@
 ## Warn 级别
 
 | 规则 | 说明 |
-|------|------|
+| ------ | ------ |
 | `@typescript-eslint/no-explicit-any` | 避免 `any`，用 `unknown` 替代 |
 | `@typescript-eslint/consistent-type-imports` | 统一 `import type` |
 | `@typescript-eslint/prefer-nullish-coalescing` | 强制 `??`（更精确的 null 处理） |
@@ -38,7 +38,7 @@
 ## 建议关闭
 
 | 规则 | 原因 |
-|------|------|
+| ------ | ------ |
 | `react/react-in-jsx-scope` | React 17+ 自动 JSX 运行时 |
 | `react/prop-types` | TypeScript 已提供类型检查 |
 

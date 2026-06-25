@@ -14,6 +14,7 @@ paths:
 **生产密钥**（支付、生产数据库密码、生产 JWT Secret）禁止硬编码，必须走环境变量。
 
 **开发默认值**允许以 fallback 形式存在，但必须：
+
 1. 注明是开发/测试密钥，不是生产密钥
 2. 仅用于低风险场景（LLM provider、内网服务调用）
 3. 生产环境通过环境变量覆盖
@@ -111,6 +112,7 @@ app.useGlobalPipes(
 ```
 
 所有系统边界必须验证：
+
 - [ ] HTTP 请求体（DTO 通过 ValidationPipe）
 - [ ] URL 参数（`ParseUUIDPipe`、`ParseIntPipe`）
 - [ ] Query 参数（class-validator on query DTO）

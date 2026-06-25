@@ -42,6 +42,7 @@ npm run build # 备选
 如果 `package.json` 中 `scripts` 不包含 `build`，必须明确警告：
 
 > **WARNING**: 项目未配置 build 命令。请执行以下操作之一：
+>
 > 1. 在 package.json 中配置 `"build": "..."` 命令
 > 2. 手动执行构建并确认通过
 >

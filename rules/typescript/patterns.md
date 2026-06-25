@@ -12,7 +12,7 @@ paths:
 ## 架构
 
 | 规范 | 文件 | 覆盖 |
-|------|------|------|
+| ------ | ------ | ------ |
 | 命名规范 | `rules/common/naming-convention.md` | JSON camelCase、DTO 后缀、参数命名 |
 | API 响应格式 | `rules/common/api-response.md` | 信封、traceId |
 | RESTful API | `rules/common/restful-api.md` | URL 设计、HTTP 方法、状态码 |
@@ -21,7 +21,7 @@ paths:
 
 ### NestJS 分层
 
-```
+```text
 Controller → Service → Repository → Database
 ```
 
@@ -56,7 +56,7 @@ ResponseInterceptor 统一包装 `{code, message, data, requestId, metadata}`。
 ## gRPC
 
 | 规范 | 文件 | 覆盖 |
-|------|------|------|
+| ------ | ------ | ------ |
 | gRPC 分层 | `rules/common/grpc-layering.md` | 通用分层、Status 映射 |
 | NestJS gRPC | 本文档 | @GrpcMethod(), RpcException, Transport.GRPC |
 
@@ -73,7 +73,7 @@ const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule,
 ## 数据库
 
 | 规范 | 文件 | 覆盖 |
-|------|------|------|
+| ------ | ------ | ------ |
 | 表结构 | `rules/common/table-structure.md` | 命名、审计字段、DDL |
 | 迁移 | `rules/common/database-migration.md` | 6 步流程 |
 | Schema 管理 | 本文档 | synchronize 禁止、@Index 禁止 |
@@ -87,7 +87,7 @@ const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule,
 ## 定时任务
 
 | 规范 | 文件 | 覆盖 |
-|------|------|------|
+| ------ | ------ | ------ |
 | 通用 | `rules/common/scheduled-tasks.md` | 生命周期、幂等、分布式协调 |
 | NestJS | 本文档 | @Cron, BullMQ, SchedulerRegistry |
 
@@ -106,7 +106,7 @@ await this.reportQueue.add('generate', { userId }, {
 ## Module 设计
 
 | 原则 | 说明 |
-|------|------|
+| ------ | ------ |
 | 单一权责 | 一 Module 一领域，禁止 `UserOrderModule` |
 | 跨 Module 通过 `imports` | NestJS imports/exports 机制 |
 | 子模块嵌套 | 仅父模块内部使用时允许，外部引用时提升为顶层 |

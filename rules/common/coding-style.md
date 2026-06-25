@@ -4,7 +4,7 @@
 
 ALWAYS create new objects, NEVER mutate existing ones:
 
-```
+```text
 // Pseudocode
 WRONG:  modify(original, field, value) → changes original in-place
 CORRECT: update(original, field, value) → returns new copy with change
@@ -35,6 +35,7 @@ Rationale: Immutable data prevents hidden side effects, makes debugging easier, 
 ## File Organization
 
 MANY SMALL FILES > FEW LARGE FILES:
+
 - High cohesion, low coupling
 - 200-400 lines typical, 800 max
 - Extract utilities from large modules
@@ -43,6 +44,7 @@ MANY SMALL FILES > FEW LARGE FILES:
 ## Error Handling
 
 ALWAYS handle errors comprehensively:
+
 - Handle errors explicitly at every level
 - Provide user-friendly error messages in UI-facing code
 - Log detailed error context on the server side
@@ -51,6 +53,7 @@ ALWAYS handle errors comprehensively:
 ## Input Validation
 
 ALWAYS validate at system boundaries:
+
 - Validate all user input before processing
 - Use schema-based validation where available
 - Fail fast with clear error messages
@@ -85,7 +88,7 @@ Split large functions into focused pieces with clear responsibilities.
 ### 必须加注释的场景
 
 | 场景 | 说明 |
-|------|------|
+| ------ | ------ |
 | **Bug 修复** | 必须注释根因 + 修复思路，不写 "fix bug" |
 | **复杂算法** | 算法名称、核心思路、为什么选这个算法 |
 | **非直观业务规则** | 业务背景、为什么这样处理 |
@@ -101,7 +104,7 @@ Split large functions into focused pieces with clear responsibilities.
 
 **为什么 > 做什么**：代码本身描述 "做什么"，注释必须解释 "为什么"。
 
-```
+```text
 // BAD — 复述代码
 // 遍历用户列表
 for (User user : users) { ... }
@@ -125,7 +128,7 @@ for (User user : users) { ... }
 ### 特殊标记
 
 | 标记 | 含义 | 格式 |
-|------|------|------|
+| ------ | ------ | ------ |
 | `TODO` | 待完成 | `// TODO(owner): 描述 [target_version]` |
 | `FIXME` | 已知问题 | `// FIXME: 描述（必须有原因和方案）` |
 | `HACK` | 临时方案 | `// HACK: reason. TODO(#ticket): proper fix` |
@@ -137,6 +140,7 @@ for (User user : users) { ... }
 ## Code Quality Checklist
 
 Before marking work complete:
+
 - [ ] Code is readable and well-named
 - [ ] Functions are small (<50 lines)
 - [ ] Files are focused (<800 lines)

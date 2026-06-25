@@ -15,7 +15,7 @@ paths:
 根据项目现有技术栈选择，不引入不必要的框架：
 
 | 项目 | 框架 | 构建工具 |
-|------|------|---------|
+| ------ | ------ | --------- |
 | Vue 3 | Composition API + `<script setup>` | Vite |
 | React 18+ | Functional Components + Hooks | Vite / Next.js |
 
@@ -31,7 +31,7 @@ paths:
 
 按功能/表面组织，不按文件类型：
 
-```
+```text
 src/
 ├── components/
 │   ├── hero/

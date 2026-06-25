@@ -3,7 +3,7 @@
 与 HTTP/BFF 分层不同，gRPC 微服务不需要 Controller、ApiResponse、鉴权层：
 
 | 层 | 职责 | HTTP/BFF 对应 |
-|----|------|--------------|
+| ---- | ------ | -------------- |
 | Service Impl | gRPC 入口，替代 Controller | Controller |
 | Service（业务） | 纯业务逻辑，无鉴权 | Service |
 | Provider / Mapper | 数据访问（轻量微服务可省略） | Repository |
@@ -18,7 +18,7 @@
 ## gRPC Status → HTTP 映射（BFF 层）
 
 | gRPC Status | HTTP | 说明 |
-|-------------|:----:|------|
+| ------------- | :----: | ------ |
 | `NOT_FOUND` | 404 | 资源不存在 |
 | `INVALID_ARGUMENT` | 400 | 参数错误 |
 | `ALREADY_EXISTS` | 409 | 唯一约束冲突 |

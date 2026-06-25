@@ -9,7 +9,7 @@ paths:
 ## 架构
 
 | 规范 | 文件 | 覆盖 |
-|------|------|------|
+| ------ | ------ | ------ |
 | Repository Pattern | `rules/common/patterns.md#repository-pattern` | 接口抽象 |
 | 命名规范 | `rules/common/naming-convention.md` | JSON camelCase、DTO 后缀、DB snake_case |
 | 构造器注入 | 本文档 | 禁止字段注入 |
@@ -42,18 +42,18 @@ public record OrderResponse(Long id, String customer, BigDecimal total) {
 ## gRPC
 
 | 规范 | 文件 | 覆盖 |
-|------|------|------|
+| ------ | ------ | ------ |
 | gRPC 分层 | `rules/common/grpc-layering.md` | 通用分层 |
 | Java gRPC 实现 | 本文档 | @GrpcService, ServerInterceptor, StatusRuntimeException |
 
 ### Java gRPC 分层
 
-```
+```text
 gRPC Client → {Service}Impl (@GrpcService) → Service → Mapper → Database
 ```
 
 | 层 | 注解/组件 | 职责 |
-|----|----------|------|
+| ---- | ---------- | ------ |
 | `{Service}Impl` | `@GrpcService` | gRPC 入口，proto↔Entity 转换 |
 | Service | `@Service` | 纯业务逻辑，不含鉴权 |
 | Mapper | MyBatis-Plus `BaseMapper` | 数据访问 |
@@ -65,7 +65,7 @@ gRPC Client → {Service}Impl (@GrpcService) → Service → Mapper → Database
 ## 数据库
 
 | 规范 | 文件 | 覆盖 |
-|------|------|------|
+| ------ | ------ | ------ |
 | 表结构 | `rules/common/table-structure.md` | 命名、审计字段、DDL 模板 |
 | 索引 | 本文档 | p3c 索引规则 |
 | 迁移 | `rules/common/database-migration.md` | 6 步流程 |
@@ -97,7 +97,7 @@ public static final String TOKEN_KEY = PREFIX + ":token:";
 ## 定时任务
 
 | 规范 | 文件 | 覆盖 |
-|------|------|------|
+| ------ | ------ | ------ |
 | 通用 | `rules/common/scheduled-tasks.md` | 生命周期、幂等、分布式协调 |
 | Java XXL-Job | 本文档 | Handler、路由策略、@Scheduled |
 
@@ -122,7 +122,7 @@ public void execute() {
 ## Java 特有模式
 
 | 模式 | 简述 |
-|------|------|
+| ------ | ------ |
 | Builder Pattern | 多可选参数对象 |
 | Sealed Types | 领域模型穷举 |
 | Virtual Threads | `ReentrantLock` 替代 `synchronized` |

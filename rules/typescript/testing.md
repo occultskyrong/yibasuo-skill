@@ -12,7 +12,7 @@ paths:
 ## Test Framework
 
 | Layer | Tool |
-|-------|------|
+| ------- | ------ |
 | Unit / Integration | Vitest (preferred) or Jest |
 | HTTP endpoint | supertest |
 | E2E | Playwright |
@@ -20,7 +20,7 @@ paths:
 
 ## Test Organization
 
-```
+```text
 src/test/
 ├── unit/                  # Pure function / isolated provider tests
 │   └── modules/
@@ -143,13 +143,13 @@ test('user can log in', async ({ page }) => {
 
 ## Test Naming
 
-```
+```typescript
 describe('<Unit Under Test>', () => {
   describe('<method or scenario group>', () => {
     it('<expected behavior when condition>', () => { ... });
   });
 });
-```
+```typescript
 
 Example: `describe('UsersService', () => { describe('getById', () => { it('throws when user not found', ...) }) })`
 

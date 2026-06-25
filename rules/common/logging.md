@@ -1,13 +1,13 @@
 # 日志规范
 
-> 通用日志规范。语言特定实现见 `rules/java/logging.md`（Logback）和 `rules/typescript/logging.md`（pino）。
+> 通用日志规范。语言特定实现见 `rules/java/logging.md`（Logback）和 `rules/typescript/logging.md`（winston）。
 
 ## 日志级别
 
 ### 环境分级
 
 | 环境 | 业务代码 | 数据库查询 |
-|------|---------|-----------|
+| ------ | --------- | ----------- |
 | local/dev | DEBUG | DEBUG |
 | staging | INFO | DEBUG |
 | prod | INFO | INFO 或关闭 |
@@ -19,7 +19,7 @@ Java 生产环境 Root 设为 WARN（屏蔽框架噪音），业务代码通过�
 ### 字段要求
 
 | 字段 | 必要性 | 说明 |
-|------|:---:|------|
+| ------ | :---: | ------ |
 | 时间戳 | 必须 | `yyyy-MM-dd HH:mm:ss.SSS`（精确到毫秒） |
 | TraceId | **必须** | `[%X{traceId}]`（Java MDC）或 `{traceId}`（TS AsyncLocalStorage），无 APM 时手动塞入 |
 | 日志级别 | 必须 | ERROR / WARN / INFO / DEBUG |
@@ -28,14 +28,14 @@ Java 生产环境 Root 设为 WARN（屏蔽框架噪音），业务代码通过�
 
 ### 本地/dev — 可读格式
 
-```
+```text
 2026-05-11 14:30:01.234 [abc123] INFO  UsersService:42 - User created: id=1
 ```
 
 ### staging/prod — 结构化 JSON
 
 ```json
-{"level":"info","time":"2026-05-11T14:30:01.234Z","traceId":"abc123","msg":"User created: id=1"}
+{"level":"info","time":"2026-05-11 14:30:01.234","traceId":"abc123","msg":"User created: id=1"}
 ```
 
 - 生产环境禁用彩色输出（ELK/Loki 不识别 ANSI 颜色码）
@@ -46,7 +46,7 @@ Java 生产环境 Root 设为 WARN（屏蔽框架噪音），业务代码通过�
 ### 必须记录
 
 | 场景 | 级别 | 内容 |
-|------|------|------|
+| ------ | ------ | ------ |
 | 请求进入 | DEBUG | method、URL、来源 IP |
 | 请求完成 | INFO | method、URL、耗时（ms）、响应状态码 |
 | 外部 API 调用 | INFO | 目标 URL、耗时、响应码 |
@@ -76,7 +76,7 @@ log.info("User login: userId=" + userId + ", ip=" + ip);
 ## 输出目标
 
 | 目标 | local/dev | staging | prod |
-|------|-----------|---------|------|
+| ------ | ----------- | --------- | ------ |
 | 控制台 | 彩色可读 | 彩色可读 | **纯文本** / 纯 JSON |
 | 文件 | 可选 | 必须 | 容器 stdout |
 | 链路追踪 | — | — | ELK / Loki / Datadog |

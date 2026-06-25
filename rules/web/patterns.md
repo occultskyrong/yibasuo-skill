@@ -39,7 +39,7 @@ paths:
 ## State Management
 
 | 关注点 | 方案 |
-|--------|------|
+| -------- | ------ |
 | Server state | TanStack Query (Vue/React), SWR (React) |
 | Client state | Pinia (Vue), Zustand / Jotai (React) |
 | URL state | search params、route segments |
@@ -55,14 +55,17 @@ paths:
 ## Data Fetching
 
 ### Stale-While-Revalidate
+
 - 返回缓存数据立即渲染
 - 后台重新验证
 - 用 TanStack Query 等库，不手写
 
 ### Optimistic Updates
+
 - 快照当前状态 → 应用乐观更新 → 失败则回滚 → 回滚时给可见错误反馈
 
 ### Parallel Loading
+
 - 独立数据并行 fetch
 - 避免父子请求瀑布
 - 预取可能的下一页

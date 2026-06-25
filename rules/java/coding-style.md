@@ -39,7 +39,7 @@ public class Order {
 ## Naming
 
 | 对象 | 规则 | 示例 |
-|------|------|------|
+| ------ | ------ | ------ |
 | 类/接口/Record | PascalCase | `AdminUserService` |
 | 方法/变量 | camelCase | `findByPhone()` |
 | 常量 | UPPER_SNAKE_CASE | `DATA_SCOPE_ALL` |
@@ -93,6 +93,7 @@ private Boolean weekend;       // 或 weekendFlag 明确标记语义
 ## Modern Java Features
 
 优先使用现代语言特性提升代码清晰度：
+
 - **Records** for DTOs and value types (Java 16+)
 - **Sealed classes** for closed type hierarchies (Java 17+)
 - **Pattern matching** with `instanceof` — no explicit cast (Java 16+)
@@ -263,7 +264,7 @@ synchronized (this) {
 ### Javadoc 强制范围
 
 | 位置 | 要求 |
-|------|:---:|
+| ------ | :---: |
 | 所有 `public` 类/接口/枚举/Record | **必须** |
 | 所有 `public` / `protected` 方法 | **必须** |
 | 所有 `public` 字段（含枚举常量） | **必须** |
@@ -302,7 +303,7 @@ public class GardenService {
 标签按固定顺序：`@param` → `@return` → `@throws` → `@see` → `@since` → `@deprecated`
 
 | 标签 | 说明 |
-|------|------|
+| ------ | ------ |
 | `@param` | 参数名+描述+约束（"不能为 null""范围 1-100"） |
 | `@return` | 返回值描述，void 省略 |
 | `@throws` | checked 异常 + 重要的 unchecked 异常 |
@@ -316,7 +317,7 @@ public class GardenService {
 ### 行注释 vs 块注释
 
 | 场景 | 方式 |
-|------|------|
+| ------ | ------ |
 | 单行逻辑解释 | `//`，放在代码**上一行**，不放在行尾。**禁止用 `/* */` 写单行注释** |
 | 多行逻辑解释 | 多行 `//`，**禁止 `/* */`**（避免和注释掉的代码歧义） |
 

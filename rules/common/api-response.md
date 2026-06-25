@@ -21,7 +21,7 @@
 ```
 
 | 字段 | 类型 | 说明 |
-|------|------|------|
+| ------ | ------ | ------ |
 | `code` | `number \| string` | 成功=0（number），失败=业务错误码（string）。**不是纯 number**：Java `BusinessCode` 枚举为 String，NestJS 项目用数字 status，两者统一为 `number \| string` |
 | `message` | `string` | 用户提示信息 |
 | `data` | `T` | 业务数据。空列表返回 `[]`，单条查询无结果可返回 `null`，错误响应 `data` 为 `null` |

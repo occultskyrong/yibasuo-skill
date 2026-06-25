@@ -21,7 +21,7 @@
 **标准替换表：**
 
 | 境外 CDN | 国内替代 |
-|----------|---------|
+| ---------- | --------- |
 | `fonts.googleapis.com` | `fonts.googleapis.cn` |
 | `cdnjs.cloudflare.com` | `cdn.bootcdn.net` |
 | `cdn.jsdelivr.net` | `cdn.bootcdn.net` |

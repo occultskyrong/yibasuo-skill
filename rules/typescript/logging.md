@@ -78,7 +78,7 @@ export class AppLoggerService implements LoggerService {
 
 ### 输出格式
 
-```
+```text
 2026-06-08 10:30:01.234 [info] [abc123] [HTTP] GET /api/users 200 45ms
 ```
 

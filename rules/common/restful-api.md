@@ -4,12 +4,12 @@
 
 ## URL 设计
 
-```
+```text
 {prefix}/v{n}/{resource}[/{id}[/{sub-resource}[/{sub-id}]]]
 ```
 
 | 规则 | 正例 | 反例 |
-|------|------|------|
+| ------ | ------ | ------ |
 | 资源名用**名词复数** | `/orders` | `/getOrder` |
 | 资源名用 **kebab-case** | `/course-materials` | `/courseMaterials` |
 | 单个资源用 `/{id}` | `GET /orders/{id}` | `GET /orders/get?id=1` |
@@ -20,7 +20,7 @@
 ## HTTP 方法
 
 | 方法 | 语义 | 幂等 | 示例 |
-|------|------|:---:|------|
+| ------ | ------ | :---: | ------ |
 | `GET` | 查询 | ✅ | `GET /users/{id}` |
 | `POST` | 创建 | ❌ | `POST /users` |
 | `PUT` | 全量更新 | ✅ | `PUT /users/{id}` |
@@ -29,7 +29,7 @@
 
 非 CRUD 操作使用 `POST /{resource}/{id}/{action}`：
 
-```
+```text
 POST /orders/{id}/cancel      # 取消订单
 POST /orders/{id}/refund      # 退款
 ```
@@ -39,7 +39,7 @@ POST /orders/{id}/refund      # 退款
 ## 查询参数
 
 | 参数 | 类型 | 说明 |
-|------|------|------|
+| ------ | ------ | ------ |
 | `page` | int | 页码，从 1 开始 |
 | `pageSize` | int | 每页条数，默认 20，最大 100 |
 | `sort` | string | `-` 前缀降序（`?sort=-createdAt`） |
@@ -52,7 +52,7 @@ POST /orders/{id}/refund      # 退款
 HTTP 状态码与 ApiResponse `code` 双重标识：
 
 | HTTP | 场景 | `code` |
-|------|------|:---:|
+| ------ | ------ | :---: |
 | 200 | 查询/更新/操作成功 | `0` |
 | 201 | 创建成功 | `0` |
 | 204 | 删除成功（无响应体） | — |
@@ -66,7 +66,7 @@ HTTP 状态码与 ApiResponse `code` 双重标识：
 ## 反模式
 
 | 反模式 | 正例 |
-|--------|------|
+| -------- | ------ |
 | URL 包含动词 | `/users/{id}` 替代 `/getUserById?id={id}` |
 | CRUD 操作写在 URL 末尾 | `DELETE /users/{id}` 替代 `POST /users/{id}/delete` |
 | 嵌套超过 2 层 | 拆为独立路径 + query 参数 |

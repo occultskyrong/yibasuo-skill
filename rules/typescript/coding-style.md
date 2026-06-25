@@ -307,7 +307,7 @@ npm install --save @nestjs/schedule
 
 ### 正确结构
 
-```
+```text
 src/
 ├── main.ts
 ├── app.module.ts
@@ -356,12 +356,14 @@ import { UserService } from '../user/user.service';
 ### 判断标准
 
 | 条件 | 处理 |
-|------|------|
+| ------ | ------ |
 | 子模块仅被父模块 import | ✅ 可嵌套 |
 | 子模块被父模块外的**任何**模块 import | ❌ 必须提升为 `src/` 顶层 |
 | 不确定将来是否会被外部引用 | ❌ 直接放顶层（提前拆分成本最低） |
-  ├── payment.service.ts
-  └── dto/
+
+```text
+├── payment.service.ts
+└── dto/
 ```
 
 ### API Response Convention
@@ -431,7 +433,7 @@ getUser(orderId); // Type Error
 ### JSDoc 强制范围
 
 | 位置 | 要求 |
-|------|:---:|
+| ------ | :---: |
 | 所有 `export` 函数/类/常量 | **必须** |
 | 公共 API（Controller/Service 公开方法） | **必须** |
 | 复杂泛型（`infer`/条件类型/模板字面量类型） | **必须** |
@@ -459,7 +461,7 @@ async activateGarden(gardenId: string): Promise<Garden> { ... }
 ### JSDoc 标签规范
 
 | 标签 | 说明 | 必填场景 |
-|------|------|----------|
+| ------ | ------ | ---------- |
 | `@param` | 参数描述+约束 | 参数名不自解释或有多参数依赖时 |
 | `@returns` | 返回值描述 | 返回值类型复杂或方法有副作用时 |
 | `@throws` | 可能抛出的异常 | 方法主动抛异常给调用方时 |
@@ -553,10 +555,10 @@ async update(id: string, dto: UpdateDto): Promise<Course> { ... }
 ### 反模式速查
 
 | 反模式 | 替代做法 |
-|--------|----------|
+| -------- | ---------- |
 | 注释掉的代码 | 删除，Git 保留历史 |
 | `// fix later` / `// hack` | `TODO(owner): 具体描述 [target]` |
 | 逐行翻译式注释 | 代码已自解释 → 删除 |
 | 与代码不一致的注释 | 改代码时同步更新注释 |
 | 情绪化注释 | `FIXME` + 技术原因 |
-| `any` 辩解注释 | 用 `unknown` + 类型守卫或 `zod`
+| `any` 辩解注释 | 用 `unknown` + 类型守卫或 `zod` |

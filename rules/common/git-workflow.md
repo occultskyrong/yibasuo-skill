@@ -1,7 +1,8 @@
 # Git Workflow
 
 ## Commit Message Format
-```
+
+```text
 <type>: <description>
 
 <optional body>
@@ -14,7 +15,8 @@ Types: feat, fix, refactor, docs, test, chore, perf, ci, style
 Subject 描述**做了什么**，body 描述**为什么这样做**。
 
 **Bug 修复必须有 root cause**：
-```
+
+```text
 fix(order): 修复高并发下库存超卖
 
 Root cause: SELECT查+UPDATE写之间存在竞态窗口
@@ -23,14 +25,16 @@ Impact: 所有涉及库存扣减的接口
 ```
 
 **重构必须有动机**：
-```
+
+```text
 refactor(auth): 提取Token验证为独立服务
 
 为什么: BFF层4个服务各自实现Token验证，代码重复90%+
 ```
 
 **性能优化必须附数据**：
-```
+
+```text
 perf(query): 优化学生列表查询
 
 Before: 2.3s (全表扫描)  After: 45ms (复合索引)
@@ -41,7 +45,7 @@ Before: 2.3s (全表扫描)  After: 45ms (复合索引)
 格式：`<type>/YYMMDD_short-desc`
 
 | 元素 | 规则 | 示例 |
-|------|------|------|
+| ------ | ------ | ------ |
 | type | feat/fix/hotfix/refactor/docs/chore | `feat` |
 | YYMMDD | 6 位日期 | `260513` |
 | desc | kebab-case，小写英文+连字符 | `add-login-page` |
@@ -53,6 +57,7 @@ Note: Attribution disabled globally via ~/.claude/settings.json.
 ## Pull Request Workflow
 
 When creating PRs:
+
 1. Analyze full commit history (not just latest commit)
 2. Use `git diff [base-branch]...HEAD` to see all changes
 3. Draft comprehensive PR summary
