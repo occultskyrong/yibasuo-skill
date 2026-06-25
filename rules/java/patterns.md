@@ -15,6 +15,7 @@ paths:
 | 构造器注入 | 本文档 | 禁止字段注入 |
 | Service 层 | 本文档 | 业务逻辑分层 |
 | DTO 映射 | 本文档 | Record + static factory |
+| 并发编程 | `rules/java/concurrency.md` | 线程池、CompletableFuture、ThreadLocal、锁、并发集合、VT |
 
 ### 构造器注入
 

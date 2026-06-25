@@ -1,13 +1,13 @@
 # 命名规范
 
-> 统一 HTTP/JSON 层、数据库层、代码层的命名约定。**一条铁律：JSON 全用 camelCase，DB 全用 snake_case，中间层负责转换。**
+> 统一 HTTP/JSON 层、数据库层、代码层的命名约定。**一条铁律：JSON 全用 camelCase，关系型 DB（MySQL）全用 snake_case，MongoDB 字段例外用 camelCase（见 [mongodb.md](./mongodb.md)），中间层负责转换。**
 
 ## 分层命名
 
 ```text
 HTTP/JSON 层 (camelCase)         数据库层 (snake_case)
 ─────────────────────────────    ───────────────────────
-POST /users                      CREATE TABLE user (
+POST /users                      CREATE TABLE sys_user (
 Body: { "createdBy": 1 }   →        created_by INT,
 Resp: { "requestId": ".."}   ←     ) ENGINE=InnoDB;
 ```
@@ -27,7 +27,8 @@ Resp: { "requestId": ".."}   ←     ) ENGINE=InnoDB;
 | ------ | --------- | ------ |
 | **Response Body** (JSON) | lowerCamelCase | `{ "code": 0, "data": { "userName": "foo" } }` |
 | **分页 metadata** | lowerCamelCase | `{ "currentPage": 1, "pageSize": 20, "totalPages": 10, "count": 100 }` |
-| **错误 code** | PascalCase 或数字 | `"INVALID_PARAM"` 或 `0`（成功） |
+| **成功 code** | number | `0`（成功专用） |
+| **错误 code** | Java: PascalCase String；NestJS: number | `"INVALID_PARAM"` 或 `2`（按语言约定，见 api-response.md） |
 
 ## DTO 命名
 
@@ -41,6 +42,8 @@ Resp: { "requestId": ".."}   ←     ) ENGINE=InnoDB;
 | 批量操作 | `Batch{Action}{Entity}Dto` | `BatchDeleteUserDto` |
 
 非 CRUD 动作以动作命名：`CancelOrderDto`, `RefundOrderDto`。
+
+> **注意区分**：`{Entity}Response`（如 `UserResponse`）是 DTO 类名后缀，表示**单条业务数据**的响应结构；`ApiResponse<T>`（见 [api-response.md](./api-response.md)）是 HTTP 统一响应信封（含 code/message/data/requestId/metadata），两者职责不同，命名空间独立。
 
 ## 数据库层（见 table-structure.md）
 

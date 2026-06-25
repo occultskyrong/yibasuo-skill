@@ -144,7 +144,7 @@ Before marking work complete:
 - [ ] Code is readable and well-named
 - [ ] Functions are small (<50 lines)
 - [ ] Files are focused (<800 lines)
-- [ ] No deep nesting (>4 levels)
+- [ ] No deep nesting (>3 levels)
 - [ ] Proper error handling
 - [ ] No hardcoded values (use constants or config)
 - [ ] No mutation (immutable patterns used)

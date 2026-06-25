@@ -1,12 +1,46 @@
 # Changelog
 
-## [2.28.1] - 2026-06-25
+## [2.29.0] - 2026-06-25
 
-### Fixed
+### 规范审查修复（全仓库交叉审查）
 
-- typescript/testing.md 代码块结束栅栏被误改为 ` ```typescript `（v2.28.0 markdownlint 整理回归），导致代码块未闭合、后续内容渲染异常
+#### CRITICAL
+- typescript/testing.md:152 代码块结束栅栏被误改为 ` ```typescript `（v2.28.0 markdownlint 整理回归）→ 还原为 ` ``` `
 - @Cron 生产可用性矛盾：typescript/patterns.md 明确 `@Cron`/`@Interval`/`@Timeout` 仅限本地开发，生产必须用 BullMQ；typescript-reviewer 审查清单新增 CRITICAL 级「生产环境使用 @Cron 裸跑 → 阻断」
-- agents.md/code-review.md/performance.md/typescript-testing.md 引用不存在的 agent（build-error-resolver/e2e-runner/refactor-cleaner/doc-updater/python-reviewer/go-reviewer/rust-reviewer），对齐实际 7 个 agent 并补全 java-reviewer
+
+#### HIGH（5 项设计决策）
+- agents.md 清单对齐实际 7 个 agent（planner/architect/tdd-guide/code-reviewer/security-reviewer/java-reviewer/typescript-reviewer），删除不存在的 build-error-resolver/e2e-runner 等；code-review.md/performance.md 引用同步清理
+- 错误 code 类型双轨制明确化：api-response.md 澄清「Java 用 String（BusinessCode 枚举），NestJS 用 number（数字 status）」；naming-convention.md 拆分「成功 code」和「错误 code」行
+- reviewer 审批标准统一严格：common/code-review.md + code-reviewer.md 统一为「HIGH=0 才放行，CRITICAL 或 HIGH 阻断」
+- concurrency.md 重构为语言无关原则（线程安全/锁粒度/超时/原子操作），Java 细节迁移至 java/concurrency.md，java/patterns.md 路由表加引用
+- 测试命名确认语言差异合规：common/testing.md 明确「Java 用方法名_场景_预期行为，TS/JS 用描述性命名」；typescript/testing.md 加交叉引用
+
+#### MEDIUM（13 项）
+- 嵌套深度统一为 >3 层（common/coding-style.md + common/code-review.md 2 处）
+- MongoDB 索引命名示例对齐 camelCase 字段（child_id→childId）
+- naming-convention.md 铁律补充「MongoDB 字段例外用 camelCase」
+- 归档集合 _archive→_archives（对齐复数规则）
+- api-response.md 补充「204 No Content 是统一信封的明确例外」
+- api-response.md metadata 示例 pageSize=10→20（对齐 restful-api 默认值）
+- restful-api.md 状态码表补 502/504（对齐 gRPC 映射表）
+- java/security.md JWT refresh_token 7d→7-14d（对齐 typescript）
+- SKILL.md 阶段 3 跳过约束澄清：「原则上不可跳过；紧急 hotfix 可跳过但需声明风险并记入 commit message」
+- Java CSRF 补充「纯 Bearer JWT 项目可跳过」豁免条件（对齐 common）
+- logging.md prod JSON 字段名 time→timestamp（对齐 winston 默认）+ 补 logger/line 字段
+- typescript/logging.md 支持三档环境（dev/staging/prod），staging DB DEBUG 生效
+- ES 反模式「全小写 shakespeare-macbeth」重写为「缺少 namespace 的纯 dataset 名」+「索引名超长」两条
+
+#### LOW（6 项）
+- naming-convention.md 示例表名 `user`→`sys_user`（避开 MySQL 保留字）
+- mongodb.md 审计字段类型注释补充「MongoDB createdBy String vs MySQL created_by INT 是设计差异」
+- typescript/coding-style.md + web/coding-style.md 补充「Boolean 用 is 前缀，无 Java POJO 例外」
+- database-migration.md 补充「V20260608_1__ 的 _1 是 Flyway 子版本语义，单下划线非笔误」
+- naming-convention.md 补充「{Entity}Response 是 DTO 后缀，≠ ApiResponse 信封」
+- 新增 web/security.md 聚合前端安全要点（XSS/Token 存储/CSP/依赖安全），common/security.md + patterns.md 路由表更新引用
+
+### Changed
+- .markdownlint.json 加 ignores 排除 agents/skills/codex/根目录文档（CLAUDE.md/README.md/CHANGELOG.md/AGENTS.md）
+- architect.md 补 `model: opus`（对齐 performance.md 选型建议）
 
 ## [2.28.0] - 2026-06-25
 

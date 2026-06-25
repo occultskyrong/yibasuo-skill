@@ -1,6 +1,6 @@
 # 安全指南
 
-> 覆盖 OWASP Top 10 (2021) 核心类别。语言特定实现见 `rules/java/security.md` 和 `rules/typescript/security.md`。
+> 覆盖 OWASP Top 10 (2021) 核心类别。语言特定实现见 `rules/java/security.md`、`rules/typescript/security.md` 和 `rules/web/security.md`（前端特有：XSS/Token 存储/CSP/依赖安全）。
 
 ## 强制安全检查
 

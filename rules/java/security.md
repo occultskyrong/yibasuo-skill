@@ -112,7 +112,7 @@ try {
 
 ### CSRF 防护
 
-管理后台类服务开启 Spring Security CSRF 保护，或 Token 双写校验。
+继承 [common/security.md](../common/security.md) 条件：纯 `Authorization: Bearer` 头的 JWT 项目可跳过 CSRF；cookie 会话项目必须开启。管理后台类服务开启 Spring Security CSRF 保护，或 Token 双写校验。
 
 ### 文件上传
 
@@ -125,7 +125,7 @@ MyBatis 全部使用 `#{}` 参数化，禁止 `${}` 拼接用户输入（排序�
 ## Spring Security
 
 - BCrypt cost=12，通过 `SecurityConfig` Bean 注入，响应中 password 字段 `@JsonIgnore`
-- JWT: HS256 签名，access_token 15-60min，refresh_token 7d
+- JWT: HS256 签名，access_token 15-60min，refresh_token 7-14d
 - **Algorithm Confusion 防护**：验证时显式指定允许的算法列表（`algorithms: ["HS256"]`），拒绝 `alg: none`，防止攻击者篡改算法
 - Token 写入 Redis `{prefix}:token:{userId}:{jti}`，登出/强制下线时 JTI 加入黑名单
 

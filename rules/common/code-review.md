@@ -29,7 +29,7 @@ Before marking code complete:
 - [ ] Code is readable and well-named
 - [ ] Functions are focused (<50 lines)
 - [ ] Files are cohesive (<800 lines)
-- [ ] No deep nesting (>4 levels)
+- [ ] No deep nesting (>3 levels)
 - [ ] Errors are handled explicitly
 - [ ] No hardcoded secrets or credentials
 - [ ] No console.log or debug statements
@@ -94,7 +94,7 @@ Use these agents for code review:
 
 - Large functions (>50 lines) - split into smaller
 - Large files (>800 lines) - extract modules
-- Deep nesting (>4 levels) - use early returns
+- Deep nesting (>3 levels) - use early returns
 - Missing error handling - handle explicitly
 - Mutation patterns - prefer immutable operations
 - Missing tests - add test coverage
@@ -109,8 +109,8 @@ Use these agents for code review:
 ## Approval Criteria
 
 - **Approve**: No CRITICAL or HIGH issues
-- **Warning**: Only HIGH issues (merge with caution)
-- **Block**: CRITICAL issues found
+- **Warning**: Only MEDIUM issues (merge with caution)
+- **Block**: CRITICAL or HIGH issues found — must fix before merge
 
 ## Integration with Other Rules
 

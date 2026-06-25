@@ -19,7 +19,7 @@ temp_users
 student_leave_records
 
 # 归档集合
-{collection}_archive      # 删除前归档
+{collection}_archives     # 删除前归档（复数，对齐集合命名规则）
 {collection}_logs          # 变更日志
 ```
 
@@ -114,15 +114,15 @@ MongoDB 不需要逻辑删除。**删前归档 + 物理删除**：
 | 字段 | 类型 | 说明 |
 | ------ | ------ | ------ |
 | `_id` | ObjectId | MongoDB 默认主键，天然分布式唯一 |
-| `createdBy` | String? | 创建人 ID |
+| `createdBy` | String? | 创建人标识（用户名字符串，与 MySQL `created_by INT` 类型不同，是设计差异） |
 | `createdAt` | ISODate | 创建时间 |
-| `updatedBy` | String? | 更新人 ID |
+| `updatedBy` | String? | 更新人标识（同 `createdBy`） |
 | `updatedAt` | ISODate | 更新时间 |
 
 ### 删除流程
 
 ```text
-1. 将文档写入 {collection}_archive
+1. 将文档写入 {collection}_archives
 2. 从主集合中物理删除
 3. 归档集合保留原始 `_id` + 删除时间 `archivedAt`
 ```
@@ -137,9 +137,9 @@ MongoDB 不需要逻辑删除。**删前归档 + 物理删除**：
 
 | 索引类型 | 前缀 | 示例 |
 | --------- | ------ | ------ |
-| 普通索引 | `idx` | `child_attendances_child_id_idx` |
+| 普通索引 | `idx` | `child_attendances_childId_idx` |
 | 唯一索引 | `uk` | `users_phone_uk` |
-| 复合索引 | `idx` | `orders_user_status_idx` |
+| 复合索引 | `idx` | `orders_userId_status_idx` |
 | 文本索引 | `txt` | `products_name_txt` |
 
 ### 规则

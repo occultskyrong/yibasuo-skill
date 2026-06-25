@@ -30,7 +30,7 @@ yibasuo-skill/
 │   │   └── security.md / coding-style.md / concurrency.md / ...
 │   ├── java/    (6 files)    # patterns(路由)+security+testing+coding-style+logging+hooks
 │   ├── typescript/ (6 files) # patterns(路由)+security+testing+coding-style+logging+hooks
-│   └── web/     (5 files)    # patterns/testing/coding-style/hooks/static-website-checklist
+│   └── web/     (6 files)    # patterns/testing/coding-style/hooks/static-website-checklist/security
 └── skills/
     ├── yibasuo/
     │   ├── SKILL.md                       # 核心技能（~220 行）

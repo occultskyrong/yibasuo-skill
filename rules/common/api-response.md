@@ -1,6 +1,6 @@
 # API 响应格式
 
-遵循《阿里巴巴 Java 开发手册》前后端规约。所有 API 响应使用统一信封：
+遵循《阿里巴巴 Java 开发手册》前后端规约。所有**有响应体**的 API 响应使用统一信封（DELETE 返回 204 No Content 时无响应体，是明确例外，见 [restful-api.md](./restful-api.md)）：
 
 ```json
 {
@@ -13,16 +13,16 @@
     "method": "POST",
     "endpoint": "/api/users",
     "count": 100,
-    "totalPages": 10,
+    "totalPages": 5,
     "currentPage": 1,
-    "pageSize": 10
+    "pageSize": 20
   }
 }
 ```
 
 | 字段 | 类型 | 说明 |
 | ------ | ------ | ------ |
-| `code` | `number \| string` | 成功=0（number），失败=业务错误码（string）。**不是纯 number**：Java `BusinessCode` 枚举为 String，NestJS 项目用数字 status，两者统一为 `number \| string` |
+| `code` | `number \| string` | 成功=0（number）。失败=业务错误码：Java 用 String（`BusinessCode` 枚举，PascalCase 如 `INVALID_PARAM`），NestJS 用 number（数字 status 如 `2`）。两种实现按语言约定，统一为 `number \| string` 类型 |
 | `message` | `string` | 用户提示信息 |
 | `data` | `T` | 业务数据。空列表返回 `[]`，单条查询无结果可返回 `null`，错误响应 `data` 为 `null` |
 | `requestId` | `string` | **= traceId**，Gateway 生成，全链路透传 |

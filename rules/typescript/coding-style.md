@@ -254,6 +254,7 @@ const validated: UserInput = userSchema.parse(input)
 - Constants: `UPPER_SNAKE_CASE` (`MAX_RETRY_COUNT`)
 - **Private methods**: double-underscore prefix (`__validateInput`, `__mapToDto`)
 - Private fields: single underscore or `private readonly` (match project convention)
+- **Booleans**: `is`/`has`/`should`/`can` 前缀（TS 无 JavaBean 序列化冲突，无 Java POJO 例外；详见 [common/coding-style.md](../common/coding-style.md) 与 [java/coding-style.md](../java/coding-style.md)）
 
 ```typescript
 @Injectable()

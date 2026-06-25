@@ -35,7 +35,7 @@ Java 生产环境 Root 设为 WARN（屏蔽框架噪音），业务代码通过�
 ### staging/prod — 结构化 JSON
 
 ```json
-{"level":"info","time":"2026-05-11 14:30:01.234","traceId":"abc123","msg":"User created: id=1"}
+{"level":"info","timestamp":"2026-05-11 14:30:01.234","traceId":"abc123","logger":"UsersService","line":42,"msg":"User created: id=1"}
 ```
 
 - 生产环境禁用彩色输出（ELK/Loki 不识别 ANSI 颜色码）

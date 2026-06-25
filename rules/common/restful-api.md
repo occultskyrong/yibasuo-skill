@@ -62,6 +62,8 @@ HTTP 状态码与 ApiResponse `code` 双重标识：
 | 404 | 资源不存在 | String 业务错误码 |
 | 409 | 冲突（唯一键重复） | String 业务错误码 |
 | 500 | 服务器内部错误 | String 业务错误码 |
+| 502 | 服务不可用（上游/gRPC UNAVAILABLE） | String 业务错误码 |
+| 504 | 超时（上游/gRPC DEADLINE_EXCEEDED） | String 业务错误码 |
 
 ## 反模式
 

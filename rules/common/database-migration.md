@@ -5,7 +5,7 @@
 ```
 
 1. **编写脚本**
-   - 命名：`V{YYYYMMDD}__{描述}.sql`（Flyway 标准格式：V 前缀 + 双下划线，如 `V20260608__init_order_table.sql`）。同一天多次迁移在日期后加序号 `V20260608_1__add_index.sql`
+   - 命名：`V{YYYYMMDD}__{描述}.sql`（Flyway 标准格式：V 前缀 + 双下划线，如 `V20260608__init_order_table.sql`）。同一天多次迁移在日期后加序号 `V20260608_1__add_index.sql`（`_1` 是 Flyway 子版本语义，单下划线，非笔误；Flyway 解析为版本 `20260608.1`）
    - 一个文件只做一件事（建表、加列、加索引分开）
    - 所有 DDL 用 `IF NOT EXISTS` / `IF EXISTS` 保证幂等
    - 提供回滚脚本；若操作不可逆（如删列清表），标记 `[IRREVERSIBLE]` 并说明理由

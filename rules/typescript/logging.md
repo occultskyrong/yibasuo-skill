@@ -28,10 +28,15 @@ export class AppLoggerService implements LoggerService {
     const logDir = path.join(process.cwd(), 'logs');
     if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
 
-    const isDev = (process.env.NODE_ENV || 'development') === 'development';
+    const nodeEnv = process.env.NODE_ENV || 'development';
+    const isDev = nodeEnv === 'development';
+    const isStaging = nodeEnv === 'staging';
 
     this.logger = createLogger({
+      // dev=DEBUG, staging=INFO（DB 查询 logger 单独 DEBUG）, prod=INFO
       level: isDev ? 'debug' : 'info',
+      // staging 下 DB 查询 logger 单独设 DEBUG（对齐 common/logging.md 环境分级）
+      levels: isStaging ? { ...winston.config.npm.levels, 'db': 0 } : winston.config.npm.levels,
       format: format.combine(
         format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
         format.errors({ stack: true }),

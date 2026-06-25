@@ -108,7 +108,8 @@ memory-facts-production-read  →  memory-facts-production-*（最近 3 个月�
 | 时序索引无时间后缀无限增长 | 加 `-YYYY-MM` 后缀 + ILM |
 | namespace 重复出现 | 只出现在末尾 |
 | `dynamic: true`（默认） | 显式设置 `dynamic: strict` |
-| 全小写 `shakespeare-macbeth` | ES 索引名受 255 字节限制 |
+| 缺少 namespace 的纯 dataset 名（`shakespeare-macbeth`） | 必须含 namespace 后缀（`shakespeare-production`） |
+| 索引名超长（>200 字节） | ES 索引名受 255 字节限制，dataset/namespace 简洁命名 |
 
 ## 审查清单
 

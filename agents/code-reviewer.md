@@ -197,18 +197,18 @@ End every review with:
 | Severity | Count | Status |
 |----------|-------|--------|
 | CRITICAL | 0     | pass   |
-| HIGH     | 2     | warn   |
+| HIGH     | 0     | pass   |
 | MEDIUM   | 3     | info   |
 | LOW      | 1     | note   |
 
-Verdict: WARNING — 2 HIGH issues should be resolved before merge.
+Verdict: APPROVED — no CRITICAL/HIGH issues; MEDIUM/LOW are informational.
 ```
 
 ## Approval Criteria
 
 - **Approve**: No CRITICAL or HIGH issues
-- **Warning**: HIGH issues only (can merge with caution)
-- **Block**: CRITICAL issues found — must fix before merge
+- **Warning**: Only MEDIUM issues (can merge with caution)
+- **Block**: CRITICAL or HIGH issues found — must fix before merge
 
 ## Project-Specific Guidelines
 

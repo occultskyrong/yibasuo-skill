@@ -143,6 +143,8 @@ test('user can log in', async ({ page }) => {
 
 ## Test Naming
 
+TS/JS 使用 `it('描述性命名')` 风格（对齐 Jest/Vitest 社区惯例），Java 用 `方法名_场景_预期行为`——两种风格按语言约定，均合规，见 [common/testing.md](../common/testing.md#test-naming)。
+
 ```typescript
 describe('<Unit Under Test>', () => {
   describe('<method or scenario group>', () => {

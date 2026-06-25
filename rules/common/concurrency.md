@@ -1,85 +1,54 @@
 # 并发编程规范
 
-> 基于《阿里巴巴 Java 开发手册》p3c 第五章"并发编程"。本文件主要覆盖 Java 并发，TypeScript/Node.js 并发见 `rules/typescript/patterns.md`（Promise 并发控制、EventLoop 防阻塞、Worker Threads）。
+> 语言无关的并发原则。Java 特定实现（线程池/CompletableFuture/ThreadLocal/锁/并发集合/virtual thread）见 `rules/java/concurrency.md`，TypeScript/Node.js 并发（Promise 并发控制、EventLoop 防阻塞、Worker Threads）见 `rules/typescript/patterns.md`。
 
-## 线程池
+## 核心原则
 
-- **禁止使用 `Executors` 创建线程池** — `newFixedThreadPool` / `newCachedThreadPool` 可能导致 OOM（队列无界或线程数无界）。必须用 `ThreadPoolExecutor` 显式指定核心线程数、最大线程数、队列容量
-- **线程池必须命名** — `ThreadFactory` 设置 `setNamePrefix`，便于排查线程泄漏和死锁
-- **线程池大小公式**：
-  - CPU 密集型：`N_cpu + 1`
-  - IO 密集型：`N_cpu * 2 * (1 + W/C)`（W=等待时间，C=计算时间）
-  - 不硬编码，通过配置注入
+### 线程安全
 
-## CompletableFuture
+- **共享可变状态必须同步** — 多线程访问的可变状态，必须用锁、CAS 或不可变对象保护
+- **优先不可变** — 不可变对象天然线程安全，避免同步开销（见 [coding-style.md](./coding-style.md) 不可变性）
+- **最小化共享** — 能不共享就不共享，用线程局部存储或方法参数传递
 
-- **必须设置超时** — `orTimeout()` 或 `completeOnTimeout()`，防止无限等待
-- **异常处理** — 必须用 `exceptionally()` / `handle()` 处理异常，禁止裸 `get()`
-- **禁止阻塞** — 在异步链中禁止 `.get()` / `.join()` 阻塞调用线程
+### 锁
 
-```java
-// GOOD
-CompletableFuture.supplyAsync(() -> fetchOrder(id), executor)
-    .orTimeout(5, TimeUnit.SECONDS)
-    .exceptionally(ex -> Order.empty());
-
-// BAD — 无超时，无异常处理
-orderFuture.get();
-```
-
-## ThreadLocal
-
-- **必须在 `finally` 中 `remove`** — 防止线程复用时数据泄露（尤其线程池场景）
-- **Virtual Thread 下注意** — 每个 Virtual Thread 都会创建 ThreadLocal 副本，大量 VT + 大 ThreadLocal = 内存爆炸
-
-```java
-private static final ThreadLocal<User> CURRENT_USER = new ThreadLocal<>();
-
-try {
-    CURRENT_USER.set(user);
-    doSomething();
-} finally {
-    CURRENT_USER.remove(); // 必须
-}
-```
-
-## 锁
-
-- **优先使用 `ReentrantLock`** — 而非 `synchronized`。`ReentrantLock` 支持超时（`tryLock`）、公平锁、条件变量
-- **Virtual Thread 下禁止 `synchronized`** — `synchronized` 会导致 Virtual Thread pinning 到平台线程，改用 `ReentrantLock`
 - **锁粒度最小化** — 锁范围只包含需要互斥的代码，不锁整个方法
 - **锁顺序一致** — 多把锁时，所有线程按相同顺序获取，防止死锁
+- **优先高级同步原语** — 语言提供的并发原语（Java `ReentrantLock`、JS `Atomics`）优于自旋或自实现锁
+- **锁释放必须在 `finally`** — 异常时也要释放，防止死锁
 
-## 并发集合
+### 超时
 
-- **高并发 Map 用 `ConcurrentHashMap`** — 禁止 `HashMap` 做并发缓存
-- **`ConcurrentHashMap` 的 key/value 禁止为 null** — 与 `HashMap` 不同，`put(null, ...)` 会 NPE
-- **原子操作用 `putIfAbsent` / `computeIfAbsent`** — 禁止先 `get` 再 `put` 的检查-then-操作模式
+- **所有等待必须设超时** — 锁等待、Future 获取、条件变量 await，禁止无限期阻塞
+- **外部调用必须设超时** — 网络/DB/下游 API 调用，防止线程被永久挂起
 
-```java
-// GOOD
-map.computeIfAbsent(key, k -> loadValue(k));
+### 原子操作
 
-// BAD — 竞态条件
-if (!map.containsKey(key)) {
-    map.put(key, loadValue(key));
-}
-```
+- **复合操作必须原子** — "检查-然后-操作"（check-then-act）模式有竞态，必须用原子操作（`putIfAbsent`/`computeIfAbsent`/CAS）
+- **禁止先读后写的检查-操作模式** — `if (!contains) put` 在并发下会漏判
 
-## volatile
+## 异步与并发
 
-- **适用场景**：状态标志位（`volatile boolean running`）、双重检查锁定（DCL）
-- **不适用场景**：计数器（用 `AtomicInteger`）、复合操作（用 `synchronized` 或 `Lock`）
-- **Virtual Thread 下无特殊影响** — volatile 语义在 VT 和平台线程上一致
+- **异步链必须有异常处理** — Promise/CompletableFuture 链必须捕获异常，禁止裸 `get()`/裸 `.then()` 无 `.catch()`
+- **异步链必须设超时** — 防止无限等待（Java `orTimeout()`、JS `Promise.race(timeout)`）
+- **异步链中禁止阻塞** — 不在异步链里调用阻塞方法卡住调用线程
 
-## CountDownLatch / CyclicBarrier
+## 常见陷阱
 
-- **CountDownLatch**：一次性等待，计数到 0 后不可重置。用于"等 N 个任务全部完成"
-- **CyclicBarrier**：可重置，所有线程互相等待。用于"等 N 个线程同时到达某个点"
-- **必须设置超时** — `await(timeout, unit)` 防止某个线程失败导致永久等待
+| 陷阱 | 后果 | 对策 |
+| ---- | ---- | ---- |
+| 检查-then-操作竞态 | 双重写入、覆盖 | 用原子操作 |
+| 锁未在 finally 释放 | 异常时死锁 | try-finally 包裹 |
+| 无超时的等待 | 线程永久阻塞 | 所有 await 设超时 |
+| 锁顺序不一致 | 死锁 | 全局统一锁顺序 |
+| 共享可变状态无同步 | 数据竞争、脏读 | 同步或改不可变 |
+| 线程池无界队列/线程 | OOM | 显式限定容量 |
 
-## 通用规则
+## 审查清单
 
-- **禁止 `Thread.stop()`** — 已废弃，会导致数据不一致
-- **禁止 `Thread.sleep()` 在锁内** — 持有锁时 sleep 会延长锁持有时间
-- **中断处理** — 捕获 `InterruptedException` 后必须恢复中断状态 `Thread.currentThread().interrupt()`
+- [ ] 共享可变状态已同步或改为不可变
+- [ ] 锁粒度最小，锁释放在 `finally`
+- [ ] 多锁顺序全局一致
+- [ ] 所有等待和外部调用设超时
+- [ ] 复合操作用原子原语，无 check-then-act
+- [ ] 异步链有异常处理和超时

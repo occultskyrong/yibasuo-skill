@@ -1,6 +1,6 @@
 ---
 name: yibasuo
-version: "2.28.1"
+version: "2.29.0"
 description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段1-4连续执行，阶段0与提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer, java-reviewer, typescript-reviewer]
@@ -186,7 +186,7 @@ Read `rules/common/patterns.md` → 根据项目技术栈，确定本次适用�
 - **阶段 3 中断恢复**：先运行测试命令，根据结果判断当前所处 RED/GREEN/IMPROVE 阶段再继续
 - **跨会话恢复**：每个阶段结束写入 `.yibasuo-state.json`（字段: stage/mode/requirement/decisions/coverage），新会话读取恢复
 - **模式切换**：说"停一下"在当前最小步骤完成后暂停，不强制回滚
-- **跳过约束**：阶段 0-2 可按需跳过，阶段 3(TDD) 和阶段 4(审查) **不可跳过**（跳过 TDD 需显式声明风险并记入 commit message）
+- **跳过约束**：阶段 0-2 可按需跳过，阶段 3(TDD) 和阶段 4(审查) **原则上不可跳过**；紧急 hotfix 场景可跳过阶段 3，但需显式声明风险并记入 commit message（如 `TDD skipped: hotfix for production incident`）
 
 ## 任务适配
 

@@ -240,6 +240,8 @@ Spring Boot 4.0 支持 `spring.threads.virtual.enabled=true`：
 - **`synchronized` 导致 pinning** — Virtual Thread 持有 `synchronized` 锁时会 pin 到平台线程，改用 `ReentrantLock`
 - **ThreadLocal 内存开销** — 每个 Virtual Thread 都会创建 ThreadLocal 副本，大量 VT + 大 ThreadLocal = 内存爆炸
 
+锁/ThreadLocal/并发集合等并发细节见 [concurrency.md](./concurrency.md)。
+
 ```java
 // GOOD — Virtual Thread 下用 ReentrantLock
 private final ReentrantLock lock = new ReentrantLock();

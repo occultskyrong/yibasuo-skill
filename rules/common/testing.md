@@ -50,7 +50,10 @@ test('calculates similarity correctly', () => {
 
 ### Test Naming
 
-Use descriptive names that explain the behavior under test. 格式：`方法名_场景_预期行为`：
+Use descriptive names that explain the behavior under test。命名风格按语言约定（**语言差异，均合规**）：
+
+- **Java**：`方法名_场景_预期行为`（对齐 p3c，便于与被测方法关联）
+- **TypeScript/JavaScript**：`it('throws when user not found')` 描述性命名（对齐 Jest/Vitest 社区惯例）
 
 ```java
 // Java

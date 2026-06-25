@@ -26,6 +26,7 @@ paths:
 - CSS classes: kebab-case 或 utility classes
 - Files: 匹配组件名（`UserCard.vue`, `UserCard.tsx`）
 - Directories: kebab-case（`src/components/user-profile/`）
+- **Booleans**: `is`/`has`/`should`/`can` 前缀（与 [common/coding-style.md](../common/coding-style.md) 一致，无 Java POJO 例外）
 
 ## File Organization
 

@@ -173,7 +173,7 @@ const match = await bcrypt.compare(password, hash);
 
 ## 错误消息
 
-不在 API 响应中暴露内部信息：
+不在 API 响应中暴露内部信息（NestJS 用 number 数字 status 作为错误码，见 [api-response.md](../common/api-response.md)）：
 
 ```typescript
 @Catch()
@@ -183,7 +183,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     if (exception instanceof HttpException) {
       return response.status(exception.getStatus()).json({
-        code: 2,
+        code: 2, // NestJS 数字 status（非 0 即为错误），非 200 场景
         message: '请求错误',
         data: null,
         requestId: getTraceId(),
@@ -193,7 +193,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     logger.error('Unhandled error', exception);
     return response.status(500).json({
-      code: 99,
+      code: 99, // 未分类的内部错误
       message: 'Internal server error',
       data: null,
       requestId: getTraceId(),
