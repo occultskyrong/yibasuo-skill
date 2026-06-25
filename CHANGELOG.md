@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.29.1] - 2026-06-25
+
+### Added
+- 根目录 AGENTS.md 文档：说明 agents/ 目录下 7 个子 agent（architect/code-reviewer/java-reviewer/planner/security-reviewer/tdd-guide/typescript-reviewer）的职责和使用场景
+
 ## [2.29.0] - 2026-06-25
 
 ### 规范审查修复（全仓库交叉审查）
