@@ -1,6 +1,6 @@
 ---
 name: yibasuo
-version: "2.29.1"
+version: "2.29.2"
 description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段1-4连续执行，阶段0与提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer, java-reviewer, typescript-reviewer]
@@ -96,11 +96,24 @@ requires:
 ### 2. 架构
 
 1. `Agent({ subagent_type: "architect" })`，prompt 含：需求 + 计划 + 语言规范 + **适用规范清单**。要求产出 ADR（决策/后果/替代方案）+ 接口契约 + 数据变更
-2. **按适用规范自检**：
-   - 涉及 API → 对照 `restful-api.md`（URL、HTTP 方法、状态码）+ `naming-convention.md`（参数命名、DTO 后缀、JSON camelCase）
-   - 涉及 gRPC → 对照 `grpc-layering.md`（分层、无鉴权、Status 映射）
-   - 涉及数据库 → 对照 `table-structure.md`（命名、字段类型、审计字段）+ `database-migration.md`（Flyway 命名、幂等）+ 产出迁移文件（`V{YYYYMMDD}__{描述}.sql`）
-   - 涉及 ES/MongoDB → 对照对应命名规范
+   - **接口契约必须达到实现级精度**（根据场景取舍）：
+     - 类全名（含 package）
+     - 方法签名（参数类型 / 返回值 / 抛出的异常）
+     - 常量定义位置（类名 + 字段名，如 `MqConstants.SCHOOL_EXCHANGE`）
+     - exchange / routingKey / queue 名（MQ 场景）
+     - payload JSON 结构（字段名、类型、必填性）
+     - 接口返回结构（ApiResponse / gRPC message / HTTP status）
+2. **按适用规范自检**（三段式）：
+   1. **判定触发条件**：回答 `rules/common/patterns.md` 中该规范的「触发判定问句」。触发条件不成立 → 跳过该规范的 checklist 和产出物。
+   2. **触发成立 → 逐条对照规范 checklist**：
+      - 涉及 API → 对照 `restful-api.md`（URL、HTTP 方法、状态码）+ `naming-convention.md`（参数命名、DTO 后缀、JSON camelCase）
+      - 涉及 gRPC → 对照 `grpc-layering.md`（分层、无鉴权、Status 映射）
+      - 涉及数据库 → 对照 `table-structure.md`（命名、字段类型、审计字段）
+      - 涉及 ES/MongoDB → 对照对应命名规范
+   3. **触发成立且需要产出物 → 产出对应物**：
+      - 数据库有 DDL 变更 → 产出迁移文件 `V{YYYYMMDD}__{描述}.sql`（含回滚脚本或 `[IRREVERSIBLE]` 标记）
+      - 数据库无 DDL 变更 → 只对照 `table-structure.md` 做字段映射检查，**不产出迁移文件**
+      - API/gRPC 触发成立 → 产出 URL/方法/DTO 或 proto + service 设计
 3. 自检 P0 问题，**至少 3 轮、最多 5 轮**。5 轮后仍有 P0 → 暂停等用户决定
 4. Agent 失败 → **展示错误，暂停**
 5. 默认（自动）直接继续。交互模式问"方案 OK？"
@@ -109,7 +122,7 @@ requires:
 
 **铁律**：没有失败测试 → 没有生产代码。先行代码 = 删除。
 
-1. `Agent({ subagent_type: "tdd-guide" })`，prompt 含需求 + 计划 + 架构 + 按技术栈指定测试命令：
+1. `Agent({ subagent_type: "tdd-guide" })`，prompt 含需求 + 计划 + 架构 + **阶段 2 产出的接口契约文档** + 按技术栈指定测试命令：
    - Java → `mvn test`，JUnit5+AssertJ+Mockito，Testcontainers，JaCoCo
    - Node.js → `<pkg> test`，Vitest+supertest，Playwright E2E，v8
    - 前端 → `<pkg> test`，Vitest+Testing Library，Playwright E2E

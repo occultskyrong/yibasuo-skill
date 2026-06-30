@@ -9,3 +9,6 @@ credentials.*
 secrets.*
 .installed-version
 .installed-version
+
+# 过程文档 — 设计/计划文档保留在本地，不进入仓库
+skills/yibasuo/docs/superpowers/

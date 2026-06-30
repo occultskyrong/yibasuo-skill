@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.29.2] - 2026-07-01
+
+### CRITICAL（Batch 1：修复 yibasuo skill 两个 P0 设计缺陷）
+
+- **规范触发前置门**：`rules/common/patterns.md` 路由表增加「触发判定问句」和「产出物」列；`SKILL.md` 阶段 2 改为三段式自检，只有触发条件成立才产出对应物。消除「无 DDL 变更却产出迁移脚本」类问题。
+- **架构契约固化交接**：`SKILL.md` 阶段 2 明确接口契约必须达到实现级精度；阶段 3 要求 tdd-guide 以契约为唯一事实来源。`agents/architect.md` 增加「复现优先」原则，`agents/tdd-guide.md` 增加「契约对齐」约束。消除 RED 阶段因 exchange 名 / 常量位置漂移导致的反复编译失败。
+
 ## [2.29.1] - 2026-06-25
 
 ### Added
