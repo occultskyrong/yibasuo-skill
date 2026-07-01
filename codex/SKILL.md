@@ -1,7 +1,7 @@
 ---
 name: yibasuo
-version: "2.29.2"
-description: "一把梭 — 全流程开发管线。触发词：一把梭、全流程、梭哈、一步步梭。每阶段暂停等用户确认后继续。"
+version: "3.0.0"
+description: "一把梭 — 全流程开发管线 + 项目初始化/升级。触发词：一把梭、全流程、梭哈（开发）；初始化项目、创建项目、init project、项目升级、upgrade project（基建）。每阶段暂停等用户确认后继续。"
 ---
 
 # 一把梭 — 全流程开发管线
@@ -142,11 +142,17 @@ Codex 版：主会话内联执行，每阶段暂停等用户确认。
    - [x] 无 console.log / 调试残留
    - [x] 接口返回含 `requestId`（=traceId）和 `metadata`（timestamp/method/endpoint）
    - [x] DDL 变更已创建对应迁移文件，含回滚脚本或 `[IRREVERSIBLE]` 标记
+   - [x] Codex 变体已同步（若本次变更涉及流程内容，`codex/SKILL.md` version + 流程变更已同步）
 6. **文档更新**：全量梳理 `CLAUDE.md`（架构/模块/端口/命令）+ `README.md`
 7. 按 Conventional Commits 格式生成 commit message，展示给用户确认
-8. `git add <具体文件>`（精确添加，禁止 `-A`）+ `git commit`
-9. 创建 SemVer tag（标签不可变）
-10. 询问是否 push（含 `--tags`）。引导 PR/合并策略
+8. **同步 Codex 变体**：若本次变更涉及工作流/规范/红线等流程内容（非 agent 调度逻辑），同步到 `codex/SKILL.md`：
+   - 更新 `version` 字段与主 `SKILL.md` 一致
+   - 同步行为红线、工作流各阶段、反模式、任务适配等流程变更
+   - **不同步** agent 调度逻辑（Codex 版为内联执行，无 subagent 分发）
+   - 同步后展示 diff 供确认
+9. `git add <具体文件>`（精确添加，禁止 `-A`）+ `git commit`
+10. 创建 SemVer tag（标签不可变）
+11. 询问是否 push（含 `--tags`）。引导 PR/合并策略
 
 ---
 
@@ -171,6 +177,9 @@ Codex 版：主会话内联执行，每阶段暂停等用户确认。
 | 注释 | 扫描项目缺少注释的 public 方法/复杂逻辑，按规范补充 Javadoc/JSDoc，不修改业务逻辑 |
 | 纯研究 | 不适用，用 Read/Bash 手动调研 |
 | 生成说明文档 | 收集项目信息（README/CLAUDE/package.json/pom.xml）→ 整理为结构化文档 |
+| **项目初始化** | 走 6.0 检测分流 → 6.1 初始化流程（创建骨架+模板+Git+CodeGraph） |
+| **升级项目** | 走 6.0 检测分流 → 6.2 升级流程（分析+变更清单+增量升级+构建验证） |
+| **审查项目整体架构** | 调用 6.2 阶段 0 分析能力，评估技术栈版本/依赖状态/升级路径 |
 
 ## 示例
 
@@ -184,6 +193,42 @@ Codex 版：主会话内联执行，每阶段暂停等用户确认。
 | 3 | RED→GREEN→IMPROVE，Vitest+supertest，覆盖率≥80%，关键代码加注释 |
 | 4 | 代码质量审查 + 安全审查 |
 | 5 | prettier→eslint→ts-prune→build→commit `fix: 登录超时增加用户提示`→tag→push |
+
+## 六、项目初始化与升级
+
+> **触发词**：`初始化项目` `创建项目` `init project` `项目升级` `升级项目` `upgrade project`
+>
+> Codex 版为内联执行，每阶段暂停等用户确认。模板文件位于 `references/`。
+
+### 6.0 检测与分流
+
+1. 用户明确说"升级" → 升级流程（6.2）
+2. 目录为空（无 pom.xml / package.json / src/）→ 初始化流程（6.1）
+3. 存在 pom.xml → Java 项目（含 gRPC 依赖 → gRPC 微服务模板；其他 → HTTP/BFF 模板）
+4. 存在 package.json 且含 @nestjs/core → NestJS 升级流程
+5. 以上都不匹配 → 询问用户
+
+### 6.1 初始化流程
+
+1. **确认参数**：项目名、包名、端口、Java/Node 版本（暂停等确认）
+2. **创建骨架 + 写入模板**：按技术栈读 `references/` 对应模板生成代码 + 软基建文件（README/CLAUDE/.env.example/.gitignore/.dockerignore）
+3. **Git 初始化**：`git init` → commit → 4 环境分支（production/staging/master/development）→ `feat/YYMMDD_init-project`
+4. **CodeGraph 索引**（可选）：`nvm use 22 && codegraph init -i && codegraph index`
+5. **完成提示**：项目已就绪，下一步配置数据库/Redis → 启动验证 → 说"一把梭"开始开发
+
+### 6.2 升级流程
+
+1. **分析**：读 pom.xml/package.json 确认实际版本，确定升级路径（暂停等确认）
+2. **增量升级**：按路径逐步升级，每步暂停确认
+3. **构建验证**：`mvn clean package` / `<pkg> build && test`
+4. **升级报告**：版本变更表 + 代码变更统计 + 构建状态 + 后续建议
+
+### 6.3 反模式
+
+- **不要跳过确认** — 项目名/包名/端口错误 → 大量返工
+- **不要擅自升级** — 不经变更清单+确认不执行升级
+- **不要用字段注入** — Java/NestJS 统一构造器注入
+- **不要硬编码敏感信息** — 密码/密钥一律环境变量
 
 ## 反模式
 

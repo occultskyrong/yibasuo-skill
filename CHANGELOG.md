@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.0.0] - 2026-07-01
+
+### Changed（整合 yibasuo-infra 到一把梭主技能）
+
+- **合并 infra 能力**：将 `yibasuo-infra` 的项目初始化与升级流程整合到一把梭主技能，作为「六、项目初始化与升级」章节
+- **新增触发词**：`初始化项目` `创建项目` `init project` `项目升级` `升级项目` `upgrade project`
+- **新增 references 模板**：`java-templates.md` `java-grpc-templates.md` `nestjs-templates.md` `nestjs-grpc-templates.md`（从 infra 仓库迁入）
+- **新增任务适配类型**：项目初始化 / 升级项目 / 审查项目整体架构
+- **共享规范不重不漏**：infra 流程遵循的 `rules/{lang}/coding-style.md` `rules/{lang}/patterns.md` `rules/{lang}/logging.md` `rules/common/security.md` 与主技能同一套，不重复定义
+- **同步 Codex 变体**：`codex/SKILL.md` 同步版本号、基建章节、references 模板
+
 ## [2.29.2] - 2026-07-01
 
 ### CRITICAL（Batch 1：修复 yibasuo skill 两个 P0 设计缺陷）

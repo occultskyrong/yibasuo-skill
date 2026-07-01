@@ -33,12 +33,16 @@ yibasuo-skill/
 │   └── web/     (6 files)    # patterns/testing/coding-style/hooks/static-website-checklist/security
 └── skills/
     ├── yibasuo/
-    │   ├── SKILL.md                       # 核心技能（~220 行）
+    │   ├── SKILL.md                       # 核心技能（开发+基建双入口）
     │   └── references/
     │       ├── commit-conventions.md      # Conventional Commits + SemVer
     │       ├── codegraph.md              # CodeGraph 集成
     │       ├── frontend-flows.md         # 前端开发规范（场景路由+迭代内环）
-    │       └── infrastructure-review.md  # 基础设施配置审查清单
+    │       ├── infrastructure-review.md  # 基础设施配置审查清单
+    │       ├── java-templates.md         # Java HTTP/BFF 项目模板
+    │       ├── java-grpc-templates.md    # Java gRPC 微服务模板
+    │       ├── nestjs-templates.md       # NestJS HTTP 模板
+    │       └── nestjs-grpc-templates.md  # NestJS gRPC 微服务模板
     └── git-workflow/
         └── SKILL.md                       # Git 提交规范（独立可用）
 ```

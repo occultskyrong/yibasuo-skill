@@ -1,7 +1,7 @@
 ---
 name: yibasuo
-version: "2.29.2"
-description: "一把梭 — 全流程开发管线。默认自动模式（触发词：一把梭、全流程、梭哈）：阶段1-4连续执行，阶段0与提交前确认。交互模式需显式触发：一步步梭、交互梭、确认梭。"
+version: "3.0.0"
+description: "一把梭 — 全流程开发管线 + 项目初始化/升级。触发词：一把梭、全流程、梭哈（开发）；初始化项目、创建项目、init project、项目升级、upgrade project（基建）。默认自动模式：阶段1-4连续执行，阶段0与提交前确认。"
 requires:
   agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer, java-reviewer, typescript-reviewer]
   rules: [common, "java (Java 项目)", "typescript (Node.js 项目)", "web (Vue/React 前端项目)"]
@@ -179,6 +179,7 @@ Read `rules/common/patterns.md` → 根据项目技术栈，确定本次适用�
    - [x] 无 console.log / 调试残留
    - [x] 接口返回含 `requestId`（= traceId）和 `metadata`（timestamp/method/endpoint），格式符合 `rules/java/patterns.md` 规范
    - [x] DDL 变更已创建对应的迁移文件（`V{n}__{描述}.sql` 或 `V{YYYYMMDD}__{描述}.sql`），含回滚脚本或 `[IRREVERSIBLE]` 标记
+   - [x] Codex 变体已同步（若本次变更涉及流程内容，`codex/SKILL.md` version + 流程变更已同步）
 6. **Migration 确认**（存在迁移文件时必须执行）：
    - 列出本次提交包含的所有迁移文件及内容摘要
    - 告知用户：**Flyway 在应用启动时自动执行**，已部署的迁移不可修改（改错发新迁移）
@@ -188,9 +189,14 @@ Read `rules/common/patterns.md` → 根据项目技术栈，确定本次适用�
    - `README.md`：功能说明、使用方式 — 确保与实际变更匹配
 8. **生成 commit message**：遵循 [Conventional Commits](references/commit-conventions.md)（`<type>[!]: <desc>`），破坏性变更加 `!`
 9. **展示确认**（两种模式都必确认）
-10. `git add <具体文件>`（精确添加，禁止 `git add -A`）+ `git commit`
-11. **创建 tag**：遵循 [SemVer](references/commit-conventions.md#semver-tag)，根据 type 确定 MAJOR/MINOR/PATCH。**标签不可变**
-12. 询问是否 push（含 `--tags`）。引导 PR/合并策略
+10. **同步 Codex 变体**：若本次变更涉及工作流/规范/红线等流程内容（非 agent 调度逻辑），同步到 `codex/SKILL.md`：
+    - 更新 `version` 字段与主 `SKILL.md` 一致
+    - 同步行为红线、工作流各阶段、反模式、任务适配等流程变更
+    - **不同步** agent 调度逻辑（Codex 版为内联执行，无 subagent 分发）
+    - 同步后展示 diff 供确认
+11. `git add <具体文件>`（精确添加，禁止 `git add -A`）+ `git commit`
+12. **创建 tag**：遵循 [SemVer](references/commit-conventions.md#semver-tag)，根据 type 确定 MAJOR/MINOR/PATCH。**标签不可变**
+13. 询问是否 push（含 `--tags`）。引导 PR/合并策略
 
 ## 中断与恢复
 
@@ -214,6 +220,132 @@ Read `rules/common/patterns.md` → 根据项目技术栈，确定本次适用�
 | 纯研究 / 调研 | 不适用一把梭，用 planner agent 出调研报告 |
 | **注释** | 扫描项目中缺少注释的 public 方法（Javadoc/JSDoc）、复杂逻辑、非直观业务规则，按 `rules/common/coding-style.md` 注释规范补充。不修改业务逻辑，仅补注释 |
 | **生成说明文档** | 收集项目信息（README/CLAUDE/package.json/pom.xml）→ 整理为结构化文档 → 调用 `ui-ux-pro-max` skill 生成 HTML |
+| **项目初始化** | 走 6.0 检测分流 → 6.1 初始化流程（创建骨架+模板+Git+CodeGraph） |
+| **升级项目** | 走 6.0 检测分流 → 6.2 升级流程（分析+变更清单+增量升级+构建验证） |
+| **审查项目整体架构** | 调用 6.2 阶段 0 分析能力，评估技术栈版本/依赖状态/升级路径 |
+
+## 六、项目初始化与升级
+
+> **触发词**：`初始化项目` `创建项目` `init project` `项目升级` `升级项目` `upgrade project`
+>
+> **与开发流程的关系**：初始化/升级是独立入口，完成后进入阶段 0 开始正常开发流程。在开发流程中若需**审查项目整体架构**（如存量项目首次接入、技术栈升级评估），可调用升级流程的阶段 0 分析能力。
+
+### 6.0 检测与分流
+
+1. 用户明确说"升级" → 升级流程（6.2）
+2. 目录为空（无 pom.xml / package.json / src/）→ 初始化流程（6.1）
+3. 存在 pom.xml → Java 项目
+   - pom.xml 含 `spring-grpc-spring-boot-starter` **或** `web-application-type: none` **或** 用户说"gRPC"/"微服务" → **gRPC 微服务**（按 [references/java-grpc-templates.md](references/java-grpc-templates.md)）
+   - 其他 → **HTTP/BFF**（按 [references/java-templates.md](references/java-templates.md)）
+4. 存在 package.json 且 dependencies 含 @nestjs/core → NestJS 升级流程
+5. 以上都不匹配 → 询问用户（Java HTTP / Java gRPC / NestJS / 取消）
+
+### 6.1 初始化流程
+
+#### 阶段 0：确认参数
+
+| 参数 | Java HTTP/BFF | Java gRPC 微服务 | NestJS |
+|------|-------------|-----------------|--------|
+| 项目名 | 目录名 | 目录名 | 目录名 |
+| 基础包名 | `com.example.{project}` | `com.jiachen.{service}` | — |
+| 端口 | 8080 | 48200+（微服务段） | 3000 |
+| Java / Node 版本 | 21 | 21 | 24 LTS |
+
+**暂停，等待用户确认。**
+
+#### 阶段 1：创建骨架 + 写入模板
+
+按技术栈读取 `references/` 下的对应模板规格生成代码：
+
+| 技术栈 | 模板规格 |
+|--------|---------|
+| Java HTTP/BFF | [references/java-templates.md](references/java-templates.md) — pom.xml(Web+MyBatis-Plus+JWT), Application, ApiResponse, ExceptionHandler, logback-spring, application.yml |
+| Java gRPC 微服务 | [references/java-grpc-templates.md](references/java-grpc-templates.md) — pom.xml(gRPC+Nacos,无Web), Application, TraceIdInterceptor, proto 协议规范, logback-spring, application.yml |
+| NestJS | [references/nestjs-templates.md](references/nestjs-templates.md) — package.json, main.ts, filter, interceptor, dto, tsconfig |
+
+**软基建文件**（Java / NestJS 通用）：`README.md`（项目名/技术栈/启动命令）、`CLAUDE.md`（路径/端口/命令/编码约定）、`.env.example`（无真实值）、`.gitignore`、`.dockerignore`
+
+**遵循的规则**：`rules/{lang}/coding-style.md`、`rules/{lang}/patterns.md`、`rules/{lang}/logging.md`、`rules/common/security.md`
+
+#### 阶段 2：Git 初始化
+
+```bash
+git -C <path> init && git -C <path> add -A
+git -C <path> commit -m "feat(init): 项目初始化 — {Java SB4 / NestJS 11}"
+# 4 环境分支（已存在则跳过）
+git -C <path> branch production  2>/dev/null || true
+git -C <path> branch staging     2>/dev/null || true
+git -C <path> branch development 2>/dev/null || true
+# 工作分支
+git -C <path> checkout -b feat/YYMMDD_init-project development
+git -C <path> push origin --all 2>/dev/null || echo "⚠ 未配置远程仓库，跳过推送"
+```
+
+分支层级：`production → staging → master → development → feat/xxx`
+
+#### 阶段 2.5：CodeGraph 索引
+
+```bash
+nvm use 22 && codegraph init -i && codegraph index
+```
+
+- 若项目环境无 Node.js 22，跳过此步（阶段 1 规划时会自动检测并初始化）
+
+#### 阶段 3：完成提示
+
+```
+项目已就绪。下一步: 配置数据库/Redis → 启动验证 → 说"一把梭"开始开发
+```
+
+### 6.2 升级流程
+
+#### 阶段 0：分析
+
+**先读项目文件确认实际版本**：`pom.xml`（Java）或 `package.json`（NestJS），不要假设版本。
+
+**Java 升级路径**：
+
+| 当前 SB | 当前 Java | 升级路径 |
+|---------|----------|---------|
+| 2.7.x | 8/11 | 2.7→3.0→3.5→4.0, Java→17→21 |
+| 3.0.x-3.4.x | 17 | 3.x→3.5→4.0, Java 17→21 |
+| 3.5.x | 17/21 | 3.5→4.0 |
+
+破坏性变更: javax.*→jakarta.*, RestTemplate→HTTP Service Client, @Autowired字段→构造器注入, spring.factories→AutoConfiguration.imports, WebSecurityConfigurerAdapter→SecurityFilterChain
+
+**NestJS 升级路径**：v9→10→11
+
+#### 阶段 1：变更清单（暂停确认）
+
+展示版本变更 + 代码变更点 + 风险点。**暂停，等用户确认。**
+
+#### 阶段 2：增量升级
+
+```
+Java:  ①SB 2.7→3.0+Java8→17 → ②SB 3.0→3.5 → ③SB 3.5→4.0+Java17→21 → ④javax→jakarta → ⑤@Autowired→构造器 → ⑥RestTemplate→HTTP Client
+NestJS: ①v9→10 → ②v10→11 → ③Node升级 → ④依赖修复
+```
+
+每步后**暂停确认**。
+
+#### 阶段 3：构建验证
+
+```bash
+# Java:  ./mvnw clean package -DskipTests && ./mvnw test
+# NestJS: <pkg> build && <pkg> test && <pkg> lint
+```
+
+#### 阶段 4：升级报告
+
+版本变更表 + 代码变更统计 + 构建状态 + 后续建议（回归测试/CI更新/staging验证）
+
+### 6.3 反模式
+
+- **不要跳过确认** — 项目名/包名/端口错误 → 大量返工
+- **不要擅自升级** — 不经变更清单+确认不执行升级
+- **不要忽略日志规范** — logback-spring.xml 必须完整
+- **不要用字段注入** — Java/NestJS 统一构造器注入
+- **不要硬编码敏感信息** — 密码/密钥一律环境变量
 
 ## 示例
 
