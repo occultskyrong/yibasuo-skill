@@ -2,7 +2,7 @@
 name: yibasuo
 description: "一把梭 — 全流程开发管线 + 项目初始化/兼容性升级。触发词：一把梭、全流程、梭哈（开发）；初始化项目、创建项目、init project、项目升级、upgrade project（基建）。每阶段暂停等用户确认后继续。"
 metadata:
-  version: "3.0.1"
+  version: "3.0.2"
 ---
 
 # 一把梭 — 全流程开发管线
@@ -206,13 +206,15 @@ Codex 版：主会话内联执行，每阶段暂停等用户确认。
 1. 用户明确说"升级" → 升级流程（6.2）
 2. 目录为空（无 pom.xml / package.json / src/）→ 初始化流程（6.1）
 3. 存在 pom.xml → Java 项目：含 gRPC 依赖或 `@GrpcService` → gRPC 微服务模板；使用 Gateway WebFlux starter 或明确 Gateway → 复用 `yms-gateway`；其他 → HTTP/BFF 模板
-4. 存在 package.json 且含 @nestjs/core → NestJS 升级流程
-5. 以上都不匹配 → 询问用户
+4. 存在 package.json 且含 @nestjs/core → 识别 NestJS 子类型后进入升级流程：
+   - 同时含 `@nestjs/microservices`、`@grpc/grpc-js`，源码含 `@GrpcMethod` / `Transport.GRPC`，或用户明确说 "NestJS gRPC" / "NestJS 微服务" → NestJS gRPC（读 [references/nestjs-grpc-templates.md](references/nestjs-grpc-templates.md)）
+   - 其他 → NestJS HTTP（读 [references/nestjs-templates.md](references/nestjs-templates.md)）
+5. 以上都不匹配 → 询问用户（Java HTTP / Java gRPC / NestJS HTTP / NestJS gRPC / 取消）
 
 ### 6.1 初始化流程
 
-1. **确认参数**：项目名、包名、端口、Java/Node 版本；YMS 额外确认 Gateway/BFF/gRPC 类型、服务名及实际 DB/Redis/MQ/XXL-Job 依赖（暂停等确认）
-2. **创建骨架 + 写入模板**：按技术栈读 `references/` 对应模板生成代码 + 软基建文件（README/CLAUDE/环境变量示例/.gitignore/.dockerignore）；YMS 使用 `deploy/.env.example`，通用项目可使用根目录 `.env.example`；`.gitignore` 加入 `.yibasuo-state.json`、`.yibasuo-deletions.log`、`.codegraph/`，但不得忽略 YMS 明确跟踪的 `deploy/.env.test` / `.env.prod`。YMS Gateway 复用 `yms-gateway`，BFF 与 gRPC 分别使用对应模板
+1. **确认参数**：项目类型（Java HTTP/BFF / Java gRPC / NestJS HTTP / NestJS gRPC）、项目名、包名、端口、Java/Node 版本；NestJS gRPC 额外确认 proto package、service 名、proto 路径及是否存在权威 proto；YMS 额外确认 Gateway/BFF/gRPC 类型、服务名及实际 DB/Redis/MQ/XXL-Job 依赖（暂停等确认）
+2. **创建骨架 + 写入模板**：按技术栈读 `references/` 对应模板生成代码 + 软基建文件（README/CLAUDE/环境变量示例/.gitignore/.dockerignore）；NestJS HTTP 读 [references/nestjs-templates.md](references/nestjs-templates.md)，NestJS gRPC 读 [references/nestjs-grpc-templates.md](references/nestjs-grpc-templates.md)；YMS 使用 `deploy/.env.example`，通用项目可使用根目录 `.env.example`；`.gitignore` 加入 `.yibasuo-state.json`、`.yibasuo-deletions.log`、`.codegraph/`，但不得忽略 YMS 明确跟踪的 `deploy/.env.test` / `.env.prod`。YMS Gateway 复用 `yms-gateway`，BFF 与 gRPC 分别使用对应模板
 3. **生成项目验证**：Java 运行 test+package；NestJS 运行 install+test+build+lint。外部依赖不可用时明确标记未完成启动验证
 4. **Git 本地初始化**：仅限新仓；精确暂存生成文件并展示确认后 commit；4 个环境分支从固定 init SHA 创建，禁止 `git add -A`
 5. **远端操作**：默认不 push；展示 remote/branch/commit 并分别确认后才能写入，禁止 `push --all`

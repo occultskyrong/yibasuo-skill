@@ -2,7 +2,7 @@
 name: yibasuo
 description: "一把梭 — 全流程开发管线 + 项目初始化/兼容性升级。触发词：一把梭、全流程、梭哈（开发）；初始化项目、创建项目、init project、项目升级、upgrade project（基建）。默认自动模式：阶段1-4连续执行，阶段0与提交前确认。"
 metadata:
-  version: "3.0.1"
+  version: "3.0.2"
   requires:
     agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer, java-reviewer, typescript-reviewer]
     rules: [common, "java (Java 项目)", "typescript (Node.js 项目)", "web (Vue/React 前端项目)"]
@@ -240,19 +240,25 @@ Read `rules/common/patterns.md` → 根据项目技术栈，确定本次适用�
    - pom.xml 含 `spring-grpc-spring-boot-starter`、源码含 `@GrpcService`，或用户说"gRPC"/"微服务" → **gRPC 微服务**（按 [references/java-grpc-templates.md](references/java-grpc-templates.md)）
    - 使用 `spring-cloud-starter-gateway-server-webflux` 或用户明确 Gateway → **Gateway**（复用 `yms-gateway`，不能套用 BFF 模板）
    - 其他 → **HTTP/BFF**（按 [references/java-templates.md](references/java-templates.md)）
-4. 存在 package.json 且 dependencies 含 @nestjs/core → NestJS 升级流程
-5. 以上都不匹配 → 询问用户（Java HTTP / Java gRPC / NestJS / 取消）
+4. 存在 package.json 且 dependencies 含 @nestjs/core → 识别 NestJS 子类型后进入升级流程
+   - 同时含 `@nestjs/microservices`、`@grpc/grpc-js`，源码含 `@GrpcMethod` / `Transport.GRPC`，或用户明确说 "NestJS gRPC" / "NestJS 微服务" → **NestJS gRPC**（按 [references/nestjs-grpc-templates.md](references/nestjs-grpc-templates.md)）
+   - 其他 → **NestJS HTTP**（按 [references/nestjs-templates.md](references/nestjs-templates.md)）
+5. 以上都不匹配 → 询问用户（Java HTTP / Java gRPC / NestJS HTTP / NestJS gRPC / 取消）
 
 ### 6.1 初始化流程
 
 #### 阶段 0：确认参数
 
-| 参数 | Java HTTP/BFF | Java gRPC 微服务 | NestJS |
-|------|-------------|-----------------|--------|
-| 项目名 | 目录名 | 目录名 | 目录名 |
-| 基础包名 | `com.example.{project}` | `com.jiachen.{service}` | — |
-| 端口 | 8080 | 48200+（微服务段） | 3000 |
-| Java / Node 版本 | 21 | 21 | 24 LTS |
+先确认项目类型（Java HTTP/BFF / Java gRPC / NestJS HTTP / NestJS gRPC），再按下表确认参数：
+
+| 参数 | Java HTTP/BFF | Java gRPC 微服务 | NestJS HTTP | NestJS gRPC |
+|------|-------------|-----------------|-------------|-------------|
+| 项目名 | 目录名 | 目录名 | 目录名 | 目录名 |
+| 基础包名 | `com.example.{project}` | `com.jiachen.{service}` | — | — |
+| 端口 | 8080 | 48200+（微服务段） | 3000 | 50051（确认） |
+| Java / Node 版本 | 21 | 21 | 24 LTS | 24 LTS |
+
+NestJS gRPC 还必须确认 proto package、service 名、proto 路径，以及是否存在必须复用的权威 proto；不得凭模板另造契约。
 
 YMS 项目额外确认：项目类型（Gateway / BFF / gRPC）、服务名、环境端口（BFF `APP_PORT`；gRPC `GRPC_PORT` + `HTTP_PORT`），以及实际需要的 DB/Redis/MQ/XXL-Job。YMS 分层、Nacos、健康检查和部署规则以 `rules/java/patterns.md` 的「YMS 架构覆盖层」为准。
 
@@ -267,7 +273,8 @@ YMS 项目额外确认：项目类型（Gateway / BFF / gRPC）、服务名、�
 | YMS Gateway | 以 `yms-gateway` 的 WebFlux、路由、粗鉴权、TraceId 和 Nacos 配置为唯一参考；不得使用 BFF 或 gRPC 模板 |
 | Java HTTP/BFF | [references/java-templates.md](references/java-templates.md) — Spring MVC、Gateway 内部请求校验、ApiResponse、gRPC client、Nacos、JSON logback、application.yml |
 | Java gRPC 微服务 | [references/java-grpc-templates.md](references/java-grpc-templates.md) — pom.xml(gRPC+Web health+Nacos)、TraceId/InternalAuth interceptor、proto、`/healthy`、JSON logback |
-| NestJS | [references/nestjs-templates.md](references/nestjs-templates.md) — package.json, main.ts, filter, interceptor, dto, tsconfig |
+| NestJS HTTP | [references/nestjs-templates.md](references/nestjs-templates.md) — package.json、HTTP main.ts、filter、interceptor、dto、tsconfig |
+| NestJS gRPC | [references/nestjs-grpc-templates.md](references/nestjs-grpc-templates.md) — microservices、proto、`Transport.GRPC`、TraceId/InternalAuth interceptor、RpcException |
 
 **软基建文件**（Java / NestJS 通用）：`README.md`（项目名/技术栈/启动命令）、`CLAUDE.md`（项目类型、分层边界、路径/端口/命令/配置来源/编码约定）、环境变量示例（YMS 使用 `deploy/.env.example`，通用项目可使用根目录 `.env.example`；无真实值且只列实际消费变量）、`.gitignore`、`.dockerignore`。`.gitignore` 必须包含 `.yibasuo-state.json`、`.yibasuo-deletions.log` 和默认不跟踪的 `.codegraph/`；YMS 私密仓库明确要求跟踪的 `deploy/.env.test` / `.env.prod` 不得被宽泛忽略。
 

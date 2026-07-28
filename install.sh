@@ -58,6 +58,18 @@ verify_release() {
     fi
   }
 
+  check_contains() {
+    local label="$1"
+    local file="$2"
+    local expected="$3"
+    if grep -Fq -- "$expected" "$file"; then
+      echo "  [OK] $label"
+    else
+      echo "  [FAIL] $label: 缺少 $expected"
+      errors=$((errors + 1))
+    fi
+  }
+
   local skill_version codex_version plugin_version readme_version
   skill_version="$(sed -n 's/^  version: *"\([^"]*\)".*/\1/p' \
     "$SCRIPT_DIR/skills/$SKILL_NAME/SKILL.md" | head -1)"
@@ -73,6 +85,23 @@ verify_release() {
   check_equal "codex/SKILL.md" "$version" "$codex_version"
   check_equal ".codex-plugin/plugin.json" "$version" "$plugin_version"
   check_equal "README.md" "$version" "$readme_version"
+
+  check_contains \
+    "skills/yibasuo NestJS gRPC 初始化分流" \
+    "$SCRIPT_DIR/skills/$SKILL_NAME/SKILL.md" \
+    "Java HTTP / Java gRPC / NestJS HTTP / NestJS gRPC / 取消"
+  check_contains \
+    "skills/yibasuo NestJS gRPC 模板路由" \
+    "$SCRIPT_DIR/skills/$SKILL_NAME/SKILL.md" \
+    "[references/nestjs-grpc-templates.md](references/nestjs-grpc-templates.md)"
+  check_contains \
+    "codex NestJS gRPC 初始化分流" \
+    "$SCRIPT_DIR/codex/SKILL.md" \
+    "Java HTTP / Java gRPC / NestJS HTTP / NestJS gRPC / 取消"
+  check_contains \
+    "codex NestJS gRPC 模板路由" \
+    "$SCRIPT_DIR/codex/SKILL.md" \
+    "[references/nestjs-grpc-templates.md](references/nestjs-grpc-templates.md)"
 
   local reference
   for reference in \

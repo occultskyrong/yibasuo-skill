@@ -1,4 +1,4 @@
-# 一把梭 (yibasuo) — 全流程开发管线 + 项目初始化/兼容性升级 v3.0.1
+# 一把梭 (yibasuo) — 全流程开发管线 + 项目初始化/兼容性升级 v3.0.2
 
 > 需求 → 规划 → 架构 → 测试驱动开发 → 审查 → 提交。
 > 7 个内置 Agent + 4 套 Rules，流程化消除 AI 编码的随机性。
@@ -95,8 +95,8 @@ cd /tmp/yibasuo-skill && bash install.sh --codex # Codex
 
 ### 初始化流程
 
-1. **确认参数** — 项目名、包名、端口、Java/Node 版本（暂停等确认）
-2. **创建骨架 + 写入模板** — 按技术栈读 `references/` 生成代码 + 软基建文件；YMS 使用 `deploy/.env.example`
+1. **确认参数** — 先选择 Java HTTP/BFF、Java gRPC、NestJS HTTP 或 NestJS gRPC，再确认项目名、包名、端口、Java/Node 版本；NestJS gRPC 还需确认 proto package、service 与权威 proto（暂停等确认）
+2. **创建骨架 + 写入模板** — 按技术栈读 `references/` 生成代码 + 软基建文件；NestJS HTTP/gRPC 分别路由到各自模板，YMS 使用 `deploy/.env.example`
 3. **生成物验证** — Java 执行 test + package；NestJS 锁文件安装后执行 test + build + lint。外部依赖未就绪时明确区分“构建通过”和“启动/业务链路未验证”
 4. **本地 Git 初始化** — 仅新仓库执行 `git init -b master`，精确暂存生成文件；从同一个初始提交创建环境分支。远端添加和逐分支推送必须另行确认
 5. **CodeGraph 索引（可选）** — 仅经用户明确同意后初始化；未安装时继续使用 Read/rg/Glob

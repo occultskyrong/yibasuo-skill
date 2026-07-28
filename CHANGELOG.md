@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.2] - 2026-07-28
+
+### Fixed
+
+- **NestJS gRPC 初始化分流**：主技能与 Codex 版补齐 NestJS HTTP/gRPC 子类型识别、初始化选项、proto 参数确认和模板路由，避免 `nestjs-grpc-templates.md` 存在但初始化流程不可达。
+- **回归门禁**：发布校验新增主技能与 Codex 版的 NestJS gRPC 初始化路由检查，防止后续再次遗漏模板入口。
+
 ## [3.0.1] - 2026-07-28
 
 ### Fixed
