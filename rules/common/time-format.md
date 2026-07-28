@@ -24,6 +24,6 @@ DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 // dayjs 格式化
 dayjs().format('YYYY-MM-DD HH:mm:ss.SSS');
 
-// winston timestamp
-format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
+// pino 自定义 timestamp（完整实现见 rules/typescript/logging.md）
+timestamp: shanghaiTimestamp,
 ```

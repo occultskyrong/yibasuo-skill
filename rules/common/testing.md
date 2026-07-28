@@ -17,7 +17,7 @@ MANDATORY for new features and bug fixes; MAY skip for config changes, docs, REA
 3. Write minimal implementation (GREEN)
 4. Run test - it should PASS
 5. Refactor (IMPROVE)
-6. Verify coverage (80%+)
+6. Verify coverage: 全量业务生产代码覆盖率 ≥ 80% 且本次新增/修改业务生产代码覆盖率 ≥ 80%，报告需分别展示全量、增量及未覆盖关键分支
 
 ## Troubleshooting Test Failures
 

@@ -33,7 +33,7 @@ yibasuo-skill/
 │   └── web/     (5 files)    # patterns/testing/coding-style/hooks/static-website-checklist
 └── skills/
     ├── yibasuo/
-    │   ├── SKILL.md                       # 核心技能（~220 行）
+    │   ├── SKILL.md                       # 核心技能
     │   └── references/
     │       ├── commit-conventions.md      # Conventional Commits + SemVer
     │       ├── codegraph.md              # CodeGraph 集成
@@ -57,22 +57,23 @@ yibasuo-skill/
 | `feat:` | MINOR |
 | `fix:` `docs:` `chore:` `style:` `refactor:` `perf:` `test:` `ci:` | PATCH |
 
-**标签不可变**：`push --tags` 后永不 `tag -d` 重打，错误发新版本。
+**标签不可变**：标签推送后永不 `tag -d` 重打，错误发新版本。
 
 ### 发布流程
 
 1. 定版本号 → 2. 同步 `VERSION` + `SKILL.md` + `README.md` + `codex/SKILL.md` + `.codex-plugin/plugin.json` → 3. **README 标题版本号（最容易漏）** → 4. 追加 `CHANGELOG.md`
-5. `git add <具体文件> && git commit -m "<type>: <desc>"`
+5. `git add -- <本次发布的具体文件...>`，核对 staged diff 后 commit
 6. `git tag -a vX.Y.Z -m "yibasuo-skill vX.Y.Z — <summary>"`
-7. `git push origin master --tags`
-8. `echo vX.Y.Z > ~/.Codex/skills/yibasuo/.installed-version`
-9. 脱敏检查
+7. 在干净工作区运行 `./install.sh --verify`
+8. 用户确认后分别推送目标分支与当前精确标签，禁止 `push --all` 或无范围的 `push --tags`
+9. 通过 `./install.sh --force` / `./install.sh --codex --force` 同步本地副本
+10. 脱敏检查
 
 ## 技能设计
 
 ### CC vs Codex
 
-| | Codex 版 | Codex 版 |
+| | Claude Code 版 | Codex 版 |
 |---|--------------|---------|
 | 分工 | 委托内置 agent 做重活 | 主会话内联执行 |
 | 文件 | `skills/yibasuo/SKILL.md` | `codex/SKILL.md` |

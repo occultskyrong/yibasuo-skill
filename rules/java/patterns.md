@@ -17,6 +17,25 @@ paths:
 | DTO 映射 | 本文档 | Record + static factory |
 | 并发编程 | `rules/java/concurrency.md` | 线程池、CompletableFuture、ThreadLocal、锁、并发集合、VT |
 
+### YMS 架构覆盖层
+
+当项目名以 `yms-` 开头，或需求明确属于幼立方（YMS）时，本节优先于通用 Java 模板。初始化前必须先确定项目类型；不能把 Gateway、BFF 和领域微服务当作同一类 HTTP 项目。
+
+| 项目类型 | 服务名 | 对外协议 | 必须具备 | 禁止事项 |
+| --- | --- | --- | --- | --- |
+| Gateway | `yms-gateway` | WebFlux HTTP | 路由、粗鉴权、TraceId、内部头注入、访问日志 | 业务库、领域写入、BFF 业务聚合 |
+| BFF/API | `yms-xxx-api` | Spring MVC HTTP | Gateway 内部请求校验、端侧登录态/RBAC、`ApiResponse`、gRPC client 编排 | 跨库写领域事实、直接暴露 gRPC 原始响应 |
+| 领域微服务 | `yms-xxx-service` | gRPC + HTTP `/healthy` | 自有数据边界、proto、Nacos gRPC 注册、TraceId 与内部调用拦截器 | HTTP 业务 Controller、端侧 JWT/RBAC、跨库访问 |
+
+YMS 初始化还必须满足：
+
+1. `application.yml` 只提供 dev 默认值；test/prod 通过 `spring.config.import` 加载 `application-common.yaml` 与 `${spring.application.name}.yaml`。
+2. Nacos 中只保存连接地址和 `${ENV_VAR}` 占位符；密码、token、JWT secret 仅来自受控 `deploy/.env.test` / `.env.prod`。
+3. gRPC 微服务同时监听 `GRPC_PORT` 与仅用于 Actuator `/healthy` 的 `HTTP_PORT`；Nacos `instance.port` 必须是 `GRPC_PORT`，HTTP 端口只写 metadata。
+4. BFF 的 `requestId` 必须等于经白名单校验后的 `traceId`，统一响应固定为 `code/message/data/requestId/metadata`；Gateway 是 TraceId 权威来源。
+5. 新业务表使用 `INT NOT NULL AUTO_INCREMENT`，显式随机 `AUTO_INCREMENT=1000~3000`；新表用 `deleted_at` + `now()`/`null`。多服务共库时 Flyway history 表按服务隔离。
+6. Redis key 使用 `yms:{service}:{env}:{module}:{key}`，全部设置 TTL；MQ、XXL-Job 只在实际业务需要时接入，不写空环境变量占位。
+
 ### 构造器注入
 
 始终使用构造器注入，禁止字段注入：
@@ -59,8 +78,8 @@ gRPC Client → {Service}Impl (@GrpcService) → Service → Mapper → Database
 | Service | `@Service` | 纯业务逻辑，不含鉴权 |
 | Mapper | MyBatis-Plus `BaseMapper` | 数据访问 |
 
-- 无 `@RestController`、无 `ApiResponse`、无 Spring Security
-- `web-application-type: none`
+- 无 `@RestController`、无 `ApiResponse`、无端侧 Spring Security
+- 非 YMS 的纯 gRPC 项目可使用 `web-application-type: none`；YMS gRPC 微服务必须遵循上方覆盖层，启动最小 HTTP server 仅暴露 `/healthy`
 - gRPC Status→HTTP 映射见 `rules/common/grpc-layering.md`
 
 ## 数据库

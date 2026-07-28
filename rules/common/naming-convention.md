@@ -28,7 +28,7 @@ Resp: { "requestId": ".."}   ←     ) ENGINE=InnoDB;
 | **Response Body** (JSON) | lowerCamelCase | `{ "code": 0, "data": { "userName": "foo" } }` |
 | **分页 metadata** | lowerCamelCase | `{ "currentPage": 1, "pageSize": 20, "totalPages": 10, "count": 100 }` |
 | **成功 code** | number | `0`（成功专用） |
-| **错误 code** | Java: PascalCase String；NestJS: number | `"INVALID_PARAM"` 或 `2`（按语言约定，见 api-response.md） |
+| **错误 code** | String `UPPER_SNAKE_CASE` | `"INVALID_PARAM"`（Java/NestJS 一致，见 api-response.md） |
 
 ## DTO 命名
 

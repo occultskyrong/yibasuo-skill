@@ -1,10 +1,11 @@
 ---
 name: yibasuo
-version: "3.0.0"
-description: "一把梭 — 全流程开发管线 + 项目初始化/升级。触发词：一把梭、全流程、梭哈（开发）；初始化项目、创建项目、init project、项目升级、upgrade project（基建）。默认自动模式：阶段1-4连续执行，阶段0与提交前确认。"
-requires:
-  agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer, java-reviewer, typescript-reviewer]
-  rules: [common, "java (Java 项目)", "typescript (Node.js 项目)", "web (Vue/React 前端项目)"]
+description: "一把梭 — 全流程开发管线 + 项目初始化/兼容性升级。触发词：一把梭、全流程、梭哈（开发）；初始化项目、创建项目、init project、项目升级、upgrade project（基建）。默认自动模式：阶段1-4连续执行，阶段0与提交前确认。"
+metadata:
+  version: "3.0.1"
+  requires:
+    agents: [planner, architect, tdd-guide, code-reviewer, security-reviewer, java-reviewer, typescript-reviewer]
+    rules: [common, "java (Java 项目)", "typescript (Node.js 项目)", "web (Vue/React 前端项目)"]
 ---
 
 # 一把梭
@@ -25,7 +26,7 @@ requires:
 1. **编码前思考** — 不确定时提 2-3 种解释，不默默假设
 2. **简洁优先** — 最少代码解决问题，不添加未请求的功能
 3. **手术刀改动** — 只改任务相关代码，不顺手重构；死代码只提不删
-4. **循环验证** — 每阶段定义成功标准，不达标不回；覆盖率≥80%、CRITICAL=0 是底线
+4. **循环验证** — 每阶段定义成功标准，不达标不回；全量业务生产代码覆盖率≥80%且增量≥80%、CRITICAL=0 是底线
 5. **破坏性变更需确认** — 删除文件/代码块/接口签名/数据库表或字段等操作，必须先说明删除什么、为什么、影响范围。**用户同意后方可执行**，执行后在 `.yibasuo-deletions.log` 追加记录
 6. **前端校验不替代后端** — 前端做参数校验是 UX 优化（即时反馈、减少无效请求），**后端绝不信任前端传来的任何数据**。所有入参必须在后端重新完整校验（类型、长度、范围、格式、业务规则），即使前端已经校验过。防止绕过前端直接调 API 的攻击行为
 7. **List 查询必须分页** — 所有列表查询必须含分页参数（`page`, `pageSize`），默认 20 上限 100。响应 metadata 必须含 `currentPage`, `pageSize`, `totalPages`, `count`
@@ -35,7 +36,7 @@ requires:
 | 技术栈 | 注入要点 |
 |--------|---------|
 | Java | JUnit5+AssertJ+Mockito+Testcontainers，p3c，构造器注入，Logback |
-| Node.js / NestJS | Vitest+supertest，NestJS分层，winston，`__`私有前缀，Zod |
+| Node.js / NestJS | Vitest+supertest，NestJS分层，pino，`__`私有前缀，Zod |
 | Vue / React | Vitest+Testing Library，Pinia/Zustand，Playwright E2E，Prettier+ESLint |
 
 **包管理器检测**（Node.js / 前端项目）：根据锁文件自动选择 — `pnpm-lock.yaml`→pnpm、`yarn.lock`→yarn、`package-lock.json`→npm。优先级：pnpm > yarn > npm。以下文档用 `<pkg>` 指代检测到的包管理器。
@@ -52,7 +53,7 @@ requires:
 
 ## CodeGraph 集成
 
-项目初始化后必须启用 CodeGraph。**内部代码查询禁止使用 grep/glob 手工扫描**，必须走 CodeGraph 命令（`codegraph context` / `codegraph query` / `codegraph affected`）。详见 [references/codegraph.md](references/codegraph.md)。
+仅当项目根目录已经存在 `.codegraph/` 时启用 CodeGraph，并优先使用 `codegraph context/query/affected` 理解内部代码。没有索引时使用项目已有的 Read/rg/Glob；初始化或安装 CodeGraph 必须先取得用户明确同意。详见 [references/codegraph.md](references/codegraph.md)。
 
 ## 工作流
 
@@ -83,8 +84,9 @@ requires:
 ### 1. 规划
 
 1. **有 CodeGraph 则先执行**：
-   - 检查 `.codegraph/` 目录是否存在，不存在则 `nvm use 22 && codegraph init -i && codegraph index`
-   - `nvm use 22 && codegraph context "<需求>"` 获取项目结构摘要（替代手工读代码）
+   - 检查项目根目录是否存在 `.codegraph/`
+   - 已存在 → `codegraph context "<需求>"` 获取项目结构摘要（替代手工扫描）
+   - 不存在 → 使用 Read/rg/Glob 检查结构；如索引会显著改善后续工作，只提出可选建议，未经确认不得执行 `codegraph init/index`
    - 检查项目是否已有 `CLAUDE.md`，若有则读取并增量更新（架构/模块/端口/命令等章节）
 2. **加载规范路由**：Read `rules/common/patterns.md` + 语言特定 `rules/<lang>/patterns.md`，确定本次涉及的规范清单
 3. `Agent({ subagent_type: "planner" })`，prompt 含：需求卡片 + 项目结构摘要 + 语言规范 + 适用规范清单。要求输出任务分解、依赖关系图、风险点列表
@@ -107,7 +109,7 @@ requires:
    1. **判定触发条件**：回答 `rules/common/patterns.md` 中该规范的「触发判定问句」。触发条件不成立 → 跳过该规范的 checklist 和产出物。
    2. **触发成立 → 逐条对照规范 checklist**：
       - 涉及 API → 对照 `restful-api.md`（URL、HTTP 方法、状态码）+ `naming-convention.md`（参数命名、DTO 后缀、JSON camelCase）
-      - 涉及 gRPC → 对照 `grpc-layering.md`（分层、无鉴权、Status 映射）
+      - 涉及 gRPC → 对照 `grpc-layering.md`（分层、无端侧 JWT/RBAC、服务身份默认拒绝、Status 映射）
       - 涉及数据库 → 对照 `table-structure.md`（命名、字段类型、审计字段）
       - 涉及 ES/MongoDB → 对照对应命名规范
    3. **触发成立且需要产出物 → 产出对应物**：
@@ -128,11 +130,11 @@ requires:
    - 前端 → `<pkg> test`，Vitest+Testing Library，Playwright E2E
    - **强制 agent 先 Read 项目的 `rules/<lang>/testing.md` 再动手**
    - 有 CodeGraph 时：`codegraph affected <改动文件>` 自动定位受影响测试，加速 RED 阶段
-2. RED → GREEN → IMPROVE，**目标覆盖率 ≥ 80%**（与 `rules/common/testing.md` 一致）。Bug 修复时，在修复关键代码处加注释说明**为什么这样修**
+2. RED → GREEN → IMPROVE。**覆盖率门禁**：以业务生产代码为统计范围，整体覆盖率不得低于 80%，且不得因本次变更下降；本次新增或修改的业务生产代码覆盖率也不得低于 80%。如项目已有更严格门禁，按更严格规则执行。Bug 修复时，在修复关键代码处加注释说明**为什么这样修**
 3. Agent 失败 → **展示错误，暂停**
-4. 展示覆盖率。未达 80% → 暂停修复。达标则继续。
+4. 展示覆盖率报告，必须分别呈现：全量业务生产代码覆盖率、本次新增/修改业务生产代码覆盖率、未覆盖的关键业务分支及原因。任一项未达 80% → 暂停修复
 
-**门禁**：覆盖率 ≥ 80% 且所有测试通过。不达标不进入阶段 4。
+**门禁**：全量业务生产代码覆盖率 ≥ 80% 且本次新增/修改业务生产代码覆盖率 ≥ 80%，且所有测试通过。任一项不达标不进入阶段 4。凡影响实际运行的代码（配置绑定、依赖注入、权限校验、异常分支等），不得仅因文件类型豁免，须有适当测试验证
 
 ### 4. 审查
 
@@ -172,7 +174,7 @@ Read `rules/common/patterns.md` → 根据项目技术栈，确定本次适用�
    - 格式失败 → 暂停。优先复用项目已有 formatter/linter 配置
 4. **构建验证**（Node.js/前端）：`<pkg> build`，构建失败或缺 build 命令 → 暂停
 5. **完成前验证**：
-   - [x] 测试通过 + 覆盖率达标
+   - [x] 测试通过 + 全量业务生产代码覆盖率 ≥ 80% + 本次新增/修改业务生产代码覆盖率 ≥ 80%
    - [x] 无 CRITICAL/HIGH 审查问题
    - [x] 格式已执行（prettier+eslint / p3c）
    - [x] 构建通过（或已处理缺失警告）
@@ -220,7 +222,7 @@ Read `rules/common/patterns.md` → 根据项目技术栈，确定本次适用�
 | 纯研究 / 调研 | 不适用一把梭，用 planner agent 出调研报告 |
 | **注释** | 扫描项目中缺少注释的 public 方法（Javadoc/JSDoc）、复杂逻辑、非直观业务规则，按 `rules/common/coding-style.md` 注释规范补充。不修改业务逻辑，仅补注释 |
 | **生成说明文档** | 收集项目信息（README/CLAUDE/package.json/pom.xml）→ 整理为结构化文档 → 调用 `ui-ux-pro-max` skill 生成 HTML |
-| **项目初始化** | 走 6.0 检测分流 → 6.1 初始化流程（创建骨架+模板+Git+CodeGraph） |
+| **项目初始化** | 走 6.0 检测分流 → 6.1 初始化流程（骨架+模板+验证+本地 Git；远端/CodeGraph 单独确认） |
 | **升级项目** | 走 6.0 检测分流 → 6.2 升级流程（分析+变更清单+增量升级+构建验证） |
 | **审查项目整体架构** | 调用 6.2 阶段 0 分析能力，评估技术栈版本/依赖状态/升级路径 |
 
@@ -235,7 +237,8 @@ Read `rules/common/patterns.md` → 根据项目技术栈，确定本次适用�
 1. 用户明确说"升级" → 升级流程（6.2）
 2. 目录为空（无 pom.xml / package.json / src/）→ 初始化流程（6.1）
 3. 存在 pom.xml → Java 项目
-   - pom.xml 含 `spring-grpc-spring-boot-starter` **或** `web-application-type: none` **或** 用户说"gRPC"/"微服务" → **gRPC 微服务**（按 [references/java-grpc-templates.md](references/java-grpc-templates.md)）
+   - pom.xml 含 `spring-grpc-spring-boot-starter`、源码含 `@GrpcService`，或用户说"gRPC"/"微服务" → **gRPC 微服务**（按 [references/java-grpc-templates.md](references/java-grpc-templates.md)）
+   - 使用 `spring-cloud-starter-gateway-server-webflux` 或用户明确 Gateway → **Gateway**（复用 `yms-gateway`，不能套用 BFF 模板）
    - 其他 → **HTTP/BFF**（按 [references/java-templates.md](references/java-templates.md)）
 4. 存在 package.json 且 dependencies 含 @nestjs/core → NestJS 升级流程
 5. 以上都不匹配 → 询问用户（Java HTTP / Java gRPC / NestJS / 取消）
@@ -251,6 +254,8 @@ Read `rules/common/patterns.md` → 根据项目技术栈，确定本次适用�
 | 端口 | 8080 | 48200+（微服务段） | 3000 |
 | Java / Node 版本 | 21 | 21 | 24 LTS |
 
+YMS 项目额外确认：项目类型（Gateway / BFF / gRPC）、服务名、环境端口（BFF `APP_PORT`；gRPC `GRPC_PORT` + `HTTP_PORT`），以及实际需要的 DB/Redis/MQ/XXL-Job。YMS 分层、Nacos、健康检查和部署规则以 `rules/java/patterns.md` 的「YMS 架构覆盖层」为准。
+
 **暂停，等待用户确认。**
 
 #### 阶段 1：创建骨架 + 写入模板
@@ -259,57 +264,86 @@ Read `rules/common/patterns.md` → 根据项目技术栈，确定本次适用�
 
 | 技术栈 | 模板规格 |
 |--------|---------|
-| Java HTTP/BFF | [references/java-templates.md](references/java-templates.md) — pom.xml(Web+MyBatis-Plus+JWT), Application, ApiResponse, ExceptionHandler, logback-spring, application.yml |
-| Java gRPC 微服务 | [references/java-grpc-templates.md](references/java-grpc-templates.md) — pom.xml(gRPC+Nacos,无Web), Application, TraceIdInterceptor, proto 协议规范, logback-spring, application.yml |
+| YMS Gateway | 以 `yms-gateway` 的 WebFlux、路由、粗鉴权、TraceId 和 Nacos 配置为唯一参考；不得使用 BFF 或 gRPC 模板 |
+| Java HTTP/BFF | [references/java-templates.md](references/java-templates.md) — Spring MVC、Gateway 内部请求校验、ApiResponse、gRPC client、Nacos、JSON logback、application.yml |
+| Java gRPC 微服务 | [references/java-grpc-templates.md](references/java-grpc-templates.md) — pom.xml(gRPC+Web health+Nacos)、TraceId/InternalAuth interceptor、proto、`/healthy`、JSON logback |
 | NestJS | [references/nestjs-templates.md](references/nestjs-templates.md) — package.json, main.ts, filter, interceptor, dto, tsconfig |
 
-**软基建文件**（Java / NestJS 通用）：`README.md`（项目名/技术栈/启动命令）、`CLAUDE.md`（路径/端口/命令/编码约定）、`.env.example`（无真实值）、`.gitignore`、`.dockerignore`
+**软基建文件**（Java / NestJS 通用）：`README.md`（项目名/技术栈/启动命令）、`CLAUDE.md`（项目类型、分层边界、路径/端口/命令/配置来源/编码约定）、环境变量示例（YMS 使用 `deploy/.env.example`，通用项目可使用根目录 `.env.example`；无真实值且只列实际消费变量）、`.gitignore`、`.dockerignore`。`.gitignore` 必须包含 `.yibasuo-state.json`、`.yibasuo-deletions.log` 和默认不跟踪的 `.codegraph/`；YMS 私密仓库明确要求跟踪的 `deploy/.env.test` / `.env.prod` 不得被宽泛忽略。
 
 **遵循的规则**：`rules/{lang}/coding-style.md`、`rules/{lang}/patterns.md`、`rules/{lang}/logging.md`、`rules/common/security.md`
 
-#### 阶段 2：Git 初始化
+#### 阶段 2：生成项目验证
+
+在创建 Git 提交前验证生成结果：
 
 ```bash
-git -C <path> init && git -C <path> add -A
+# Java
+./mvnw test && ./mvnw clean package
+
+# NestJS（按锁文件选择包管理器）
+<pkg> install --frozen-lockfile
+<pkg> test
+<pkg> build
+<pkg> lint
+```
+
+- 命令必须按生成项目实际提供的 script/wrapper 调整，不得虚构通过结果
+- 依赖数据库、Redis、Nacos 等外部资源而无法启动时，明确区分“编译/测试通过”和“未完成依赖支撑的启动验证”
+- 任一必需命令失败 → 展示错误并暂停，不得进入 Git 初始化或宣称“项目已就绪”
+
+#### 阶段 3：Git 本地初始化
+
+```bash
+# 仅适用于尚未处于任何 Git worktree 的新项目。
+# 若已是 Git 仓库，先展示 status/diff/stash 并暂停，禁止把初始化流程套到存量仓库。
+git -C <path> init -b master
+
+# <generated-files...> 必须是阶段 1 实际创建的精确文件清单，禁止 git add -A / git add .
+git -C <path> add -- <generated-files...>
+git -C <path> diff --cached --name-status
+# 展示暂存清单并取得提交确认后：
 git -C <path> commit -m "feat(init): 项目初始化 — {Java SB4 / NestJS 11}"
-# 4 环境分支（已存在则跳过）
-git -C <path> branch production  2>/dev/null || true
-git -C <path> branch staging     2>/dev/null || true
-git -C <path> branch development 2>/dev/null || true
-# 工作分支
-git -C <path> checkout -b feat/YYMMDD_init-project development
-git -C <path> push origin --all 2>/dev/null || echo "⚠ 未配置远程仓库，跳过推送"
+
+init_sha="$(git -C <path> rev-parse HEAD)"
+git -C <path> branch production "$init_sha"
+git -C <path> branch staging "$init_sha"
+git -C <path> branch development "$init_sha"
+git -C <path> switch -c feat/YYMMDD_init-project development
 ```
 
 分支层级：`production → staging → master → development → feat/xxx`
 
-#### 阶段 2.5：CodeGraph 索引
+**远端操作不属于初始化默认动作**。需要 push 时先展示 remote、分支、提交和将要写入的远端分支；取得明确确认后逐分支执行。`production`、`staging` 与其他分支分别确认，不得使用 `push --all`，不得吞掉 pull/push 错误。
+
+#### 阶段 3.5：CodeGraph 索引（可选）
 
 ```bash
 nvm use 22 && codegraph init -i && codegraph index
 ```
 
-- 若项目环境无 Node.js 22，跳过此步（阶段 1 规划时会自动检测并初始化）
+- 仅在用户明确同意初始化索引后执行
+- 若项目环境无兼容 Node.js 或 CodeGraph，跳过并记录；后续阶段继续使用 Read/rg/Glob
 
-#### 阶段 3：完成提示
+#### 阶段 4：完成提示
 
 ```
-项目已就绪。下一步: 配置数据库/Redis → 启动验证 → 说"一把梭"开始开发
+项目骨架已通过上述构建/测试验证。若外部依赖启动验证尚未完成，先配置数据库/Redis/Nacos 后补做；随后可说"一把梭"开始开发。
 ```
 
 ### 6.2 升级流程
 
 #### 阶段 0：分析
 
-**先读项目文件确认实际版本**：`pom.xml`（Java）或 `package.json`（NestJS），不要假设版本。
+**先读项目文件确认实际版本**：`pom.xml`（Java）或 `package.json`（NestJS），不要假设版本。再查对应官方兼容矩阵确定目标版本；“升级”不等于无条件追最新，YMS 必须同时满足 Spring Boot、Spring Cloud、Spring Cloud Alibaba 与 Spring gRPC 的兼容组合。
 
 **Java 升级路径**：
 
 | 当前 SB | 当前 Java | 升级路径 |
 |---------|----------|---------|
-| 2.7.x | 8/11 | 2.7→3.0→3.5→4.0, Java→17→21 |
-| 3.0.x-3.4.x | 17 | 3.x→3.5→4.0, Java 17→21 |
-| 3.5.x | 17/21 | 3.5→4.0 |
+| 2.7.x | 8/11 | 2.7→3.0→当前受支持的 3.x→经兼容验证的 4.x；Java→17→21 |
+| 3.0.x-3.4.x | 17 | 3.x→当前受支持的 3.x→经兼容验证的 4.x；Java 17→21 |
+| 3.5.x | 17/21 | 3.5→经兼容验证的 4.x |
 
 破坏性变更: javax.*→jakarta.*, RestTemplate→HTTP Service Client, @Autowired字段→构造器注入, spring.factories→AutoConfiguration.imports, WebSecurityConfigurerAdapter→SecurityFilterChain
 
@@ -322,7 +356,7 @@ nvm use 22 && codegraph init -i && codegraph index
 #### 阶段 2：增量升级
 
 ```
-Java:  ①SB 2.7→3.0+Java8→17 → ②SB 3.0→3.5 → ③SB 3.5→4.0+Java17→21 → ④javax→jakarta → ⑤@Autowired→构造器 → ⑥RestTemplate→HTTP Client
+Java:  ①确认官方兼容矩阵与目标版本 → ②逐主版本升级并运行测试 → ③Java 版本升级 → ④javax→jakarta → ⑤@Autowired→构造器 → ⑥按实际弃用项迁移 HTTP client
 NestJS: ①v9→10 → ②v10→11 → ③Node升级 → ④依赖修复
 ```
 
@@ -356,7 +390,7 @@ NestJS: ①v9→10 → ②v10→11 → ③Node升级 → ④依赖修复
 | 0 | 澄清：超时多少秒？提示文案？确认 NestJS → 注入 typescript rules |
 | 1 | （Bug 修复跳过） |
 | 2 | （Bug 修复跳过） |
-| 3 | tdd-guide：`pnpm test`，Vitest+supertest，覆盖率≥80% |
+| 3 | tdd-guide：`pnpm test`，Vitest+supertest，全量≥80%+增量≥80%，关键代码加注释 |
 | 4 | typescript-reviewer ∥ security-reviewer 并行 |
 | 5 | prettier→eslint→ts-prune→build→commit `fix: 登录超时增加用户提示`→tag `v1.2.1`
 

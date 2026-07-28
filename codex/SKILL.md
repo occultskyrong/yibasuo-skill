@@ -1,7 +1,8 @@
 ---
 name: yibasuo
-version: "3.0.0"
-description: "一把梭 — 全流程开发管线 + 项目初始化/升级。触发词：一把梭、全流程、梭哈（开发）；初始化项目、创建项目、init project、项目升级、upgrade project（基建）。每阶段暂停等用户确认后继续。"
+description: "一把梭 — 全流程开发管线 + 项目初始化/兼容性升级。触发词：一把梭、全流程、梭哈（开发）；初始化项目、创建项目、init project、项目升级、upgrade project（基建）。每阶段暂停等用户确认后继续。"
+metadata:
+  version: "3.0.1"
 ---
 
 # 一把梭 — 全流程开发管线
@@ -15,7 +16,7 @@ Codex 版：主会话内联执行，每阶段暂停等用户确认。
 1. **编码前思考** — 不确定时提 2-3 种解释，不默默假设
 2. **简洁优先** — 最少代码解决问题，不添加未请求的功能
 3. **手术刀改动** — 只改任务相关代码，不顺手重构；死代码只提不删
-4. **循环验证** — 每阶段定义成功标准，不达标不回；覆盖率≥80%、CRITICAL=0 是底线
+4. **循环验证** — 每阶段定义成功标准，不达标不回；全量业务生产代码覆盖率≥80%且增量≥80%、CRITICAL=0 是底线
 5. **破坏性变更需确认** — 删除文件/代码块/接口签名/数据库表或字段等操作，必须先说明删除什么、为什么、影响范围。**用户同意后方可执行**，执行后在 `.yibasuo-deletions.log` 追加记录
 6. **前端校验不替代后端** — 后端必须重新完整校验所有入参，即使前端已校验
 7. **List 查询必须分页** — 所有列表查询含分页参数（`page`, `pageSize`），默认 20 上限 100
@@ -38,7 +39,7 @@ Codex 版：主会话内联执行，每阶段暂停等用户确认。
 
 ## CodeGraph 集成（可选）
 
-预索引代码库，替代手工扫描文件。初始化：`nvm use 22 && codegraph init -i && codegraph index`。
+仅当项目根目录已有 `.codegraph/` 时使用 CodeGraph。没有索引时使用 Read/rg/Glob；安装或执行 `codegraph init/index` 必须先取得用户明确同意。
 
 | 阶段 | CodeGraph 用法 |
 |------|-------|
@@ -69,7 +70,7 @@ Codex 版：主会话内联执行，每阶段暂停等用户确认。
 
 ### 1. 规划
 
-1. **有 CodeGraph 则先执行**：检查 `.codegraph/` 是否存在 → 不存在则 `nvm use 22 && codegraph init -i && codegraph index`；执行 `codegraph context` 获取项目结构；检查 CLAUDE.md 是否有则增量更新
+1. **有 CodeGraph 则先执行**：检查 `.codegraph/` 是否存在；存在则执行 `codegraph context` 获取项目结构，不存在则使用 Read/rg/Glob，未经确认不得初始化索引；检查 CLAUDE.md 是否有则增量更新
 2. 读项目代码（Read/Bash 确认结构、模块、版本）
 3. 读取项目的 `rules/` 了解语言规范
 4. 基于需求卡片 + 项目结构，输出任务分解、依赖关系图、风险点列表
@@ -105,11 +106,11 @@ Codex 版：主会话内联执行，每阶段暂停等用户确认。
    - Java → `mvn test`，JUnit5+AssertJ+Mockito，Testcontainers，JaCoCo
    - Node.js → `<pkg> test`，Vitest+supertest，Playwright E2E
    - 前端 → `<pkg> test`，Vitest+Testing Library，Playwright E2E
-5. RED → GREEN → IMPROVE，**目标覆盖率 ≥ 80%**。Bug 修复时在关键代码处加注释说明根因
-6. 展示覆盖率。未达 80% → 暂停修复。达标则继续。
+5. RED → GREEN → IMPROVE。**覆盖率门禁**：以业务生产代码为统计范围，整体覆盖率不得低于 80%，且不得因本次变更下降；本次新增或修改的业务生产代码覆盖率也不得低于 80%。如项目已有更严格门禁，按更严格规则执行。Bug 修复时在关键代码处加注释说明根因
+6. 展示覆盖率报告，必须分别呈现：全量业务生产代码覆盖率、本次新增/修改业务生产代码覆盖率、未覆盖的关键业务分支及原因。任一项未达 80% → 暂停修复
 5. **暂停，等用户确认。**
 
-**门禁**：覆盖率 ≥ 80% 且所有测试通过。不达标不进入阶段 4。
+**门禁**：全量业务生产代码覆盖率 ≥ 80% 且本次新增/修改业务生产代码覆盖率 ≥ 80%，且所有测试通过。任一项不达标不进入阶段 4。凡影响实际运行的代码（配置绑定、依赖注入、权限校验、异常分支等），不得仅因文件类型豁免，须有适当测试验证
 
 ### 4. 审查
 
@@ -136,7 +137,7 @@ Codex 版：主会话内联执行，每阶段暂停等用户确认。
    - Java：检测 pom.xml 含 `maven-pmd-plugin` → 则 `mvn pmd:check`
 4. **构建验证**（Node.js/前端）：`<pkg> build`
 5. **完成前验证**：
-   - [x] 测试通过 + 覆盖率达标
+   - [x] 测试通过 + 全量业务生产代码覆盖率 ≥ 80% + 本次新增/修改业务生产代码覆盖率 ≥ 80%
    - [x] 无 CRITICAL/HIGH 审查问题
    - [x] 格式已执行 + 构建通过
    - [x] 无 console.log / 调试残留
@@ -177,7 +178,7 @@ Codex 版：主会话内联执行，每阶段暂停等用户确认。
 | 注释 | 扫描项目缺少注释的 public 方法/复杂逻辑，按规范补充 Javadoc/JSDoc，不修改业务逻辑 |
 | 纯研究 | 不适用，用 Read/Bash 手动调研 |
 | 生成说明文档 | 收集项目信息（README/CLAUDE/package.json/pom.xml）→ 整理为结构化文档 |
-| **项目初始化** | 走 6.0 检测分流 → 6.1 初始化流程（创建骨架+模板+Git+CodeGraph） |
+| **项目初始化** | 走 6.0 检测分流 → 6.1 初始化流程（骨架+模板+验证+本地 Git；远端/CodeGraph 单独确认） |
 | **升级项目** | 走 6.0 检测分流 → 6.2 升级流程（分析+变更清单+增量升级+构建验证） |
 | **审查项目整体架构** | 调用 6.2 阶段 0 分析能力，评估技术栈版本/依赖状态/升级路径 |
 
@@ -190,7 +191,7 @@ Codex 版：主会话内联执行，每阶段暂停等用户确认。
 | 0 | 澄清：超时多少秒？提示文案？确认 NestJS → 注入 typescript rules |
 | 1 | （Bug 修复跳过） |
 | 2 | （Bug 修复跳过） |
-| 3 | RED→GREEN→IMPROVE，Vitest+supertest，覆盖率≥80%，关键代码加注释 |
+| 3 | RED→GREEN→IMPROVE，Vitest+supertest，全量≥80%+增量≥80%，关键代码加注释 |
 | 4 | 代码质量审查 + 安全审查 |
 | 5 | prettier→eslint→ts-prune→build→commit `fix: 登录超时增加用户提示`→tag→push |
 
@@ -204,21 +205,23 @@ Codex 版：主会话内联执行，每阶段暂停等用户确认。
 
 1. 用户明确说"升级" → 升级流程（6.2）
 2. 目录为空（无 pom.xml / package.json / src/）→ 初始化流程（6.1）
-3. 存在 pom.xml → Java 项目（含 gRPC 依赖 → gRPC 微服务模板；其他 → HTTP/BFF 模板）
+3. 存在 pom.xml → Java 项目：含 gRPC 依赖或 `@GrpcService` → gRPC 微服务模板；使用 Gateway WebFlux starter 或明确 Gateway → 复用 `yms-gateway`；其他 → HTTP/BFF 模板
 4. 存在 package.json 且含 @nestjs/core → NestJS 升级流程
 5. 以上都不匹配 → 询问用户
 
 ### 6.1 初始化流程
 
-1. **确认参数**：项目名、包名、端口、Java/Node 版本（暂停等确认）
-2. **创建骨架 + 写入模板**：按技术栈读 `references/` 对应模板生成代码 + 软基建文件（README/CLAUDE/.env.example/.gitignore/.dockerignore）
-3. **Git 初始化**：`git init` → commit → 4 环境分支（production/staging/master/development）→ `feat/YYMMDD_init-project`
-4. **CodeGraph 索引**（可选）：`nvm use 22 && codegraph init -i && codegraph index`
-5. **完成提示**：项目已就绪，下一步配置数据库/Redis → 启动验证 → 说"一把梭"开始开发
+1. **确认参数**：项目名、包名、端口、Java/Node 版本；YMS 额外确认 Gateway/BFF/gRPC 类型、服务名及实际 DB/Redis/MQ/XXL-Job 依赖（暂停等确认）
+2. **创建骨架 + 写入模板**：按技术栈读 `references/` 对应模板生成代码 + 软基建文件（README/CLAUDE/环境变量示例/.gitignore/.dockerignore）；YMS 使用 `deploy/.env.example`，通用项目可使用根目录 `.env.example`；`.gitignore` 加入 `.yibasuo-state.json`、`.yibasuo-deletions.log`、`.codegraph/`，但不得忽略 YMS 明确跟踪的 `deploy/.env.test` / `.env.prod`。YMS Gateway 复用 `yms-gateway`，BFF 与 gRPC 分别使用对应模板
+3. **生成项目验证**：Java 运行 test+package；NestJS 运行 install+test+build+lint。外部依赖不可用时明确标记未完成启动验证
+4. **Git 本地初始化**：仅限新仓；精确暂存生成文件并展示确认后 commit；4 个环境分支从固定 init SHA 创建，禁止 `git add -A`
+5. **远端操作**：默认不 push；展示 remote/branch/commit 并分别确认后才能写入，禁止 `push --all`
+6. **CodeGraph 索引**（可选）：仅在用户明确同意后执行 `nvm use 22 && codegraph init -i && codegraph index`
+7. **完成提示**：只有构建/测试通过后才称项目骨架已就绪；列明仍缺少的依赖支撑启动验证
 
 ### 6.2 升级流程
 
-1. **分析**：读 pom.xml/package.json 确认实际版本，确定升级路径（暂停等确认）
+1. **分析**：读 pom.xml/package.json 确认实际版本，并查官方兼容矩阵确定目标版本；不无条件追最新（暂停等确认）
 2. **增量升级**：按路径逐步升级，每步暂停确认
 3. **构建验证**：`mvn clean package` / `<pkg> build && test`
 4. **升级报告**：版本变更表 + 代码变更统计 + 构建状态 + 后续建议

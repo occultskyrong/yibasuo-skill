@@ -11,6 +11,7 @@
 │   ├── main.ts                       # ValidationPipe + Helmet + CORS + pino
 │   ├── app.module.ts
 │   ├── common/
+│   │   ├── logging/shanghai-timestamp.ts # pino Asia/Shanghai 毫秒时间
 │   │   ├── entities/
 │   │   │   └── base.entity.ts           # 抽象基类，6 个审计字段（业务表用）
 │   │   ├── filters/http-exception.filter.ts
@@ -26,7 +27,7 @@
 
 - `@nestjs/core` ^11.1, `@nestjs/platform-express`
 - `class-validator`, `class-transformer`
-- `helmet`, `pino`, `pino-pretty`
+- `helmet`, `nestjs-pino`, `pino`, `pino-http`, `pino-pretty`
 - scripts: `start:dev`, `start:prod`, `build`, `test`, `test:e2e`, `format`, `lint`
 
 ## CLAUDE.md
@@ -142,8 +143,8 @@ pnpm start:prod
 
 - ValidationPipe: whitelist + forbidNonWhitelisted + transform
 - Helmet + CORS
-- traceId 中间件: 从 `X-Trace-Id` 请求头提取，无则 UUID 生成 → AsyncLocalStorage
-- pino/日志注入: winston `format((info) => { info.traceId = getTraceId(); return info; })()`
+- traceId 中间件: 只接受 `[A-Za-z0-9._-]{1,64}`，非法或缺失时生成 UUID hex → AsyncLocalStorage
+- pino/日志注入: 使用 `nestjs-pino` 的 `mixin()` 从 AsyncLocalStorage 注入 traceId
 - 日志格式: `时间 [traceId] 级别 来源 - 消息`
 - 全局注册: HttpExceptionFilter + ResponseInterceptor
 
@@ -164,11 +165,19 @@ export function getTraceId(): string {
 ## trace.middleware.ts
 
 ```typescript
+import { randomUUID } from 'node:crypto';
+import { Injectable, NestMiddleware } from '@nestjs/common';
+import { NextFunction, Request, Response } from 'express';
+
+const VALID_TRACE_ID = /^[A-Za-z0-9._-]{1,64}$/;
+
 @Injectable()
 export class TraceMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
-    const traceId = req.get('x-trace-id')
-      || `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+    const incoming = req.get('x-trace-id');
+    const traceId = incoming && VALID_TRACE_ID.test(incoming)
+      ? incoming
+      : randomUUID().replaceAll('-', '');
     res.setHeader('X-Trace-Id', traceId);
     traceContext.run({ traceId }, () => next());
   }
@@ -185,37 +194,56 @@ consumer.apply(TraceMiddleware, LoggerMiddleware, CorsMiddleware).forRoutes('*')
 ## Logger 注入 traceId
 
 ```typescript
-// winston format 链
-format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
-format((info) => { info.traceId = getTraceId(); return info; })(),
-format.json(),
+import { LoggerModule } from 'nestjs-pino';
+import { shanghaiTimestamp } from './common/logging/shanghai-timestamp';
+import { getTraceId } from './common/trace/trace.context';
 
-// console printf
-const tid = traceId ? `[${traceId}] ` : '';
-return `${timestamp} [${level}] ${tid}${ctx}${message}`;
+LoggerModule.forRoot({
+  pinoHttp: {
+    timestamp: shanghaiTimestamp,
+    mixin: () => ({ traceId: getTraceId() }),
+    redact: {
+      paths: [
+        'req.headers.authorization',
+        'req.headers.cookie',
+        'req.body.password',
+        'req.body.token',
+        'req.body.secret',
+      ],
+      censor: '***',
+    },
+    transport: process.env.NODE_ENV === 'development'
+      ? {
+          target: 'pino-pretty',
+          options: { translateTime: false, singleLine: true },
+        }
+      : undefined,
+  },
+});
 ```
+
+`shanghai-timestamp.ts` 使用 `rules/typescript/logging.md` 中的完整实现，输出 `yyyy-MM-dd HH:mm:ss.SSS`。`main.ts` 用 `{ bufferLogs: true }` 创建应用，并执行 `app.useLogger(app.get(Logger))`。
 
 ## app.module.ts
 
-- 空模块，仅 `imports: []`
+- `imports` 至少包含上面的 `LoggerModule.forRoot(...)`
 
 ## http-exception.filter.ts
 
 遵循 `rules/typescript/patterns.md`：
 
 - `@Catch()` 捕获所有异常
-- HttpException → status >=2, safe message + error_code
-- 未知 → status 10001, 记录完整 Error, 返回 "Internal server error"
+- HttpException → HTTP status 保留在传输层，body 使用安全业务 `code` + `message`
+- 未知异常 → HTTP 500，记录完整 Error，body 返回 `code: "INTERNAL_ERROR"` + `"Internal server error"`
 
 ## response.interceptor.ts
 
-- 包裹: `{ status: 0, message: "请求成功", data, requestId, metadata: { timestamp, method, endpoint } }`
+- 包裹: `{ code: 0, message: "请求成功", data, requestId, metadata: { timestamp, method, endpoint } }`
 - 自动处理分页 metadata（count, totalPages, currentPage, pageSize）
 
 ## api-response.dto.ts
 
-- `status: number`, `message: string`, `data: T|null`, `requestId: string`
-- `error_code?: number`, `error_message?: string`
+- `code: number | string`, `message: string`, `data: T|null`, `requestId: string`
 - `metadata: { timestamp: string, method: string, endpoint: string, count?, totalPages?, currentPage?, pageSize? }`
 
 ## tsconfig.json

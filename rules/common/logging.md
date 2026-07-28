@@ -1,6 +1,6 @@
 # 日志规范
 
-> 通用日志规范。语言特定实现见 `rules/java/logging.md`（Logback）和 `rules/typescript/logging.md`（winston）。
+> 通用日志规范。语言特定实现见 `rules/java/logging.md`（Logback）和 `rules/typescript/logging.md`（pino）。
 
 ## 日志级别
 
@@ -23,7 +23,7 @@ Java 生产环境 Root 设为 WARN（屏蔽框架噪音），业务代码通过�
 | 时间戳 | 必须 | `yyyy-MM-dd HH:mm:ss.SSS`（精确到毫秒） |
 | TraceId | **必须** | `[%X{traceId}]`（Java MDC）或 `{traceId}`（TS AsyncLocalStorage），无 APM 时手动塞入 |
 | 日志级别 | 必须 | ERROR / WARN / INFO / DEBUG |
-| Logger + 行号 | 必须 | 类名:行号 |
+| Logger/上下文 | 必须 | Java 类名:行号；TS logger context（行号仅在采集器可靠提供时记录） |
 | 消息 | 必须 | 占位符格式，禁止字符串拼接 |
 
 ### 本地/dev — 可读格式
@@ -77,8 +77,8 @@ log.info("User login: userId=" + userId + ", ip=" + ip);
 
 | 目标 | local/dev | staging | prod |
 | ------ | ----------- | --------- | ------ |
-| 控制台 | 彩色可读 | 彩色可读 | **纯文本** / 纯 JSON |
-| 文件 | 可选 | 必须 | 容器 stdout |
+| 控制台 | 彩色可读 | JSON | JSON |
+| 文件 | 可选 | 非容器部署由进程管理器负责 | 容器 stdout；非容器由进程管理器负责 |
 | 链路追踪 | — | — | ELK / Loki / Datadog |
 
 ## 审查清单

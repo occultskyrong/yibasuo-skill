@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.0.1] - 2026-07-28
+
+### Fixed
+
+- **Git 安全边界**：项目初始化只精确暂存生成文件，环境分支从固定初始提交创建；移除自动 pull/rebase、`push --all` 与错误吞掉，远端写入改为单独确认。
+- **YMS gRPC 契约**：服务身份配置统一为 `callers.<service>.{token,role,allowed-methods}`，增加常量时间 token 比较与完整方法白名单；TraceId 覆盖跨线程 listener 回调，异常不再泄漏服务端消息。
+- **响应与日志模板**：Java `ApiResponse` 统一填充 requestId/metadata；NestJS HTTP 统一使用 `code` 信封与 pino，实现合法 TraceId 校验；NestJS gRPC 增加服务身份拦截器。
+- **安装与发布校验**：技能目录原子替换以清除陈旧文件；安装器不再自动全局安装可选工具或生成递归 CodeGraph wrapper；`--verify` 检查工作区、精确标签、插件/技能版本与 Claude/Codex 镜像。
+- **验证语义**：初始化必须执行生成项目的 test/build/lint；外部依赖启动证据与源码/构建结论分开报告。CodeGraph 仅在已有索引时使用，初始化必须经用户明确同意。
+
 ## [3.0.0] - 2026-07-01
 
 ### Changed（整合 yibasuo-infra 到一把梭主技能）

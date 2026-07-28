@@ -173,31 +173,48 @@ const match = await bcrypt.compare(password, hash);
 
 ## 错误消息
 
-不在 API 响应中暴露内部信息（NestJS 用 number 数字 status 作为错误码，见 [api-response.md](../common/api-response.md)）：
+不在 API 响应中暴露内部信息。HTTP status 保留在传输层，body 使用 String 业务错误码（见 [api-response.md](../common/api-response.md)）：
 
 ```typescript
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const response = host.switchToHttp().getResponse<Response>();
+    const request = host.switchToHttp().getRequest<Request>();
+    const timestamp = new Intl.DateTimeFormat('sv-SE', {
+      timeZone: 'Asia/Shanghai',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      fractionalSecondDigits: 3,
+      hourCycle: 'h23',
+    }).format(new Date()).replace(',', '.');
+    const metadata = {
+      timestamp,
+      method: request.method,
+      endpoint: request.originalUrl,
+    };
 
     if (exception instanceof HttpException) {
       return response.status(exception.getStatus()).json({
-        code: 2, // NestJS 数字 status（非 0 即为错误），非 200 场景
+        code: 'REQUEST_ERROR',
         message: '请求错误',
         data: null,
         requestId: getTraceId(),
-        metadata: null,
+        metadata,
       });
     }
 
-    logger.error('Unhandled error', exception);
+    logger.error({ err: exception }, 'Unhandled error');
     return response.status(500).json({
-      code: 99, // 未分类的内部错误
+      code: 'INTERNAL_ERROR',
       message: 'Internal server error',
       data: null,
       requestId: getTraceId(),
-      metadata: null,
+      metadata,
     });
   }
 }

@@ -26,7 +26,7 @@ Encapsulate data access behind a consistent interface (findAll, findById, create
 | API 响应格式 | `api-response.md` | 所有 HTTP 项目 | 新增/修改接口时 | `code` 类型、`requestId`=traceId、`metadata` 必填字段 | 本次是否新增/修改 HTTP 接口响应？ | 响应结构定义 |
 | RESTful API | `restful-api.md` | 所有 HTTP 项目 | 新增路由/Controller 时 | 名词复数、无动词、≤2 层嵌套、标准查询参数 | 本次是否新增/修改 HTTP 路由或 DTO？ | URL/方法/DTO |
 | API 版本控制 | `api-versioning.md` | 所有 HTTP 项目 | 不兼容接口变更时 | `/v2/xxx` 新旧并存、旧版 `@Deprecated` | 本次是否有不兼容接口变更？ | 版本方案 / `@Deprecated` 标注 |
-| gRPC 分层 | `grpc-layering.md` | gRPC 微服务 | 新增 proto/Service 时 | 无 ApiResponse、不鉴权、StatusRuntimeException | 本次是否新增/修改 proto/service？ | proto + service 设计 |
+| gRPC 分层 | `grpc-layering.md` | gRPC 微服务 | 新增 proto/Service 时 | 无 ApiResponse、无端侧 JWT/RBAC、服务身份默认拒绝、StatusRuntimeException | 本次是否新增/修改 proto/service？ | proto + service + 调用方授权设计 |
 
 ### 数据存储
 

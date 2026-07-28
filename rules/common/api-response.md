@@ -22,7 +22,7 @@
 
 | 字段 | 类型 | 说明 |
 | ------ | ------ | ------ |
-| `code` | `number \| string` | 成功=0（number）。失败=业务错误码：Java 用 String（`BusinessCode` 枚举，PascalCase 如 `INVALID_PARAM`），NestJS 用 number（数字 status 如 `2`）。两种实现按语言约定，统一为 `number \| string` 类型 |
+| `code` | `number \| string` | 成功=`0`（number）；失败=跨语言一致的 String 业务错误码（`UPPER_SNAKE_CASE`，如 `INVALID_PARAM`） |
 | `message` | `string` | 用户提示信息 |
 | `data` | `T` | 业务数据。空列表返回 `[]`，单条查询无结果可返回 `null`，错误响应 `data` 为 `null` |
 | `requestId` | `string` | **= traceId**，Gateway 生成，全链路透传 |

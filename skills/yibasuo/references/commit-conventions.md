@@ -24,7 +24,7 @@
 | `fix:` | **PATCH** `1.0.0→1.0.1` |
 | `docs:` `chore:` `refactor:` `test:` `ci:` `perf:` | **PATCH** `1.0.0→1.0.1` |
 
-**标签铁律**：`git push --tags` 后永不 `tag -d` 重打，发现错误发新版本。
+**标签铁律**：标签推送后永不 `tag -d` 重打，发现错误发新版本。只推送本次确认的精确标签，禁止无范围的 `push --tags`。
 
 创建流程：
 1. `git tag --sort=-v:refname | head -1` 检测当前最新 tag

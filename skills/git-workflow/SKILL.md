@@ -1,7 +1,8 @@
 ---
 name: git-workflow
-version: "1.0.0"
 description: "Git 提交操作规范 — 强制执行分支命名、Conventional Commits、提交前验证、SemVer 标签创建、受保护分支保护。所有项目执行 git commit/push 时必须使用。触发词：提交、commit、push、推送、创建分支、切分支、merge、合并、tag。"
+metadata:
+  version: "1.0.1"
 ---
 
 # Git 操作规范
@@ -12,7 +13,7 @@ description: "Git 提交操作规范 — 强制执行分支命名、Conventional
 
 1. **禁止直接在 staging/master/production 分支提交** — 所有改动走 feature 分支
 2. **提交前验证必须通过** — 格式化 + 构建 + 测试，任何一项失败不得提交
-3. **标签不可变** — `git push --tags` 后永不 `tag -d` 重打
+3. **标签不可变** — 标签推送后永不 `tag -d` 重打
 
 ## 一、分支命名
 
@@ -28,10 +29,14 @@ description: "Git 提交操作规范 — 强制执行分支命名、Conventional
 
 创建分支：
 ```bash
-git checkout <base-branch>      # production 或 staging 或 master
-git pull                         # 确保最新
-git checkout -b feat/YYMMDD_desc
+git status --short
+git fetch origin
+git switch <base-branch>         # production 或 staging 或 master
+git merge --ff-only origin/<base-branch>
+git switch -c feat/YYMMDD_desc
 ```
+
+工作区不干净、远端不存在或无法 fast-forward 时暂停，不得自动 rebase、stash 或强制覆盖。
 
 ## 二、受保护分支
 
@@ -109,10 +114,12 @@ git tag -a vX.Y.Z -m "vX.Y.Z — 简短描述"
 ## 六、Push 流程
 
 ```bash
-git push origin <branch> --tags    # 推送分支 + 标签
+git push origin <branch>           # 仅推送已确认的目标分支
+git push origin vX.Y.Z             # 仅在用户另行确认标签后推送当前标签
 ```
 
 - 首次推送 `git push -u origin <branch>`
+- 分支与标签是两个独立外部写入动作，分别展示目标并确认；禁止 `push --all` 和无范围的 `push --tags`
 - 若需要 PR，创建 Pull Request / Merge Request
 - 分支完成后，询问合并策略（merge/变基/压缩）
 
@@ -133,4 +140,5 @@ git push origin <branch> --tags    # 推送分支 + 标签
 - **不要 `--no-verify`** — 跳过验证等于跳过安全检查
 - **不要在保护分支直接提交** — 必须走 feature 分支
 - **不要重打已推送的 tag** — 发新版本
+- **不要自动 rebase/stash/force push** — 工作区或历史不满足前置条件时暂停
 - **不要提交 `.env` / `credentials.*`** — 遵循项目 .gitignore

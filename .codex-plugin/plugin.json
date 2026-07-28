@@ -1,13 +1,13 @@
 {
   "name": "yibasuo",
-  "version": "3.0.0",
-  "description": "一把梭 (yibasuo) — 全流程开发管线。需求→规划→架构→测试驱动开发→审查→提交。每阶段需用户确认后继续。",
+  "version": "3.0.1",
+  "description": "一把梭 (yibasuo) — 全流程开发管线 + 项目初始化/兼容性升级。需求→规划→架构→测试驱动开发→审查→提交。",
   "author": "occultskyrong",
   "homepage": "https://github.com/occultskyrong/yibasuo-skill",
   "skills": [
     {
       "path": "codex/SKILL.md",
-      "description": "一把梭 — 全流程开发管线。触发词：一把梭、全流程、梭哈。每阶段暂停等用户确认后继续。"
+      "description": "一把梭 — 全流程开发管线 + 基建。触发词：一把梭、全流程、梭哈、初始化项目、创建项目、项目升级。"
     }
   ]
 }

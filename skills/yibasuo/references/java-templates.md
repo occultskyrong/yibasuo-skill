@@ -9,7 +9,7 @@
 ├── src/main/java/{package}/
 │   ├── Application.java              # @SpringBootApplication
 │   ├── common/
-│   │   ├── ApiResponse.java          # Record: status/message/data/requestId/metadata
+│   │   ├── ApiResponse.java          # Record: code/message/data/requestId/metadata
 │   │   ├── BaseEntity.java           # @MappedSuperclass，6 个审计字段（业务表用）
 │   │   ├── AuditMetaObjectHandler.java  # MyBatis-Plus 审计字段自动填充
 │   │   ├── GlobalExceptionHandler.java
@@ -66,12 +66,14 @@
 | 日志 JSON | `logstash-logback-encoder` | 9.0 | JSON 日志（Jackson 3） |
 | 数据库 | `mysql-connector-j` | (代管) | MySQL 驱动 |
 | 迁移 | `flyway-mysql` | (代管) | 数据库迁移 |
-| 定时任务 | `xxl-job-core` | 2.5.0 | 分布式任务调度（生产唯一方案） |
+| 定时任务 | `xxl-job-core` | 2.5.0 | 分布式任务调度（生产唯一方案），**BFF 层按需引入，gRPC 微服务不需要** |
 | 工具 | `lombok` | (代管) | 可选 |
 | AOP | `aspectjweaver` | (代管) | AOP 支持，按需引入 |
-| Sentinel | `sentinel-spring-cloud-gateway-adapter` | **1.8.8** | Gateway 限流熔断，**SCA BOM 不管此 artifact，需显式锁版本** |
+| Sentinel | `sentinel-spring-cloud-gateway-adapter` | **1.8.8** | ~~Gateway 限流熔断~~ **暂不启用**（Phase 6 再加），SCA BOM 不管此 artifact，启用时需显式锁版本 |
 
 ### Gateway 专用
+
+本模板仅用于 Spring MVC BFF/API；YMS Gateway 必须复用 `yms-gateway` 的 WebFlux 基线，不能把 Gateway starter、路由或 Sentinel 依赖混入 BFF。以下内容只是 Gateway 参考，不是 BFF 初始化依赖。
 
 SC 2025.x 中 Gateway artifact 已拆分，需用新的：
 
@@ -100,6 +102,12 @@ spring.cloud.gateway.server.webflux.routes
 - **禁止** `spring-cloud-starter-bootstrap`：SCA 2025.1 已移除 bootstrap 支持，改用 `spring.config.import`
 - p3c-pmd plugin（阿里巴巴 Java 开发手册）
 - maven-wrapper (mvnw)
+
+### YMS BFF 初始化边界
+
+YMS BFF 只承载端侧 HTTP、登录态/RBAC、DTO 转换和 gRPC 编排。`spring-boot-starter-security`、JWT、Redis、MyBatis-Plus、Flyway、gRPC client 与 XXL-Job 均按实际业务依赖引入，不能为了“通用模板”预置未使用能力。
+
+必须具备 `TraceIdFilter`、Gateway 内部请求校验（`X-Internal-Token`）、统一异常与响应封装。调用微服务时封装为 `<Domain>GrpcClient`，设置 deadline、映射 gRPC status，并禁止在 Controller 中直接调用 stub 或跨库访问领域表。
 
 ## CLAUDE.md
 
@@ -141,10 +149,11 @@ spring.cloud.gateway.server.webflux.routes
 遵循 `rules/java/patterns.md` + 阿里巴巴 Java 开发手册。
 
 - 分层 controller→service→mapper→entity，Controller 禁止直接调用 Mapper
-- 统一 `ApiResponse<T>` 响应
+- 统一 `ApiResponse<T>` 响应（code/message/data/requestId/metadata）
 - 逻辑删除 `deleted_at` + MyBatis-Plus `@TableLogic`
-- Redis Key 带环境前缀，全部带 TTL
-- 时间格式 `yyyy-MM-dd HH:mm:ss.SSS`
+- **主键 `INT AUTO_INCREMENT`**，不从 1 起（1000-3000 随机起始），禁止 BIGINT 雪花 ID
+- Redis Key 格式 `yms:{service}:{env}:{module}:{key}`，全部带 TTL
+- 时间格式 `yyyy-MM-dd HH:mm:ss.SSS`，时区 `Asia/Shanghai`
 ```
 
 ## README.md
@@ -210,27 +219,87 @@ java -jar target/{project}.jar --spring.profiles.active=prod
 
 ## ApiResponse.java
 
-遵循 `rules/java/patterns.md` + 阿里巴巴 Java 开发手册前后端规约：
+遵循 `rules/common/api-response.md` + 阿里巴巴 Java 开发手册前后端规约：
 
 ```java
-public record ApiResponse<T>(Object code, String message, T data, String requestId) {
+import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.MDC;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
+
+public record ApiResponse<T>(
+        Object code,
+        String message,
+        T data,
+        String requestId,
+        Map<String, Object> metadata) {
+
+    private static final ZoneId ZONE = ZoneId.of("Asia/Shanghai");
+    private static final DateTimeFormatter TIMESTAMP_FORMAT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+
     public static <T> ApiResponse<T> ok(T data) {
-        return new ApiResponse<>(0, "操作成功", data, UUID.randomUUID().toString().replace("-", ""));
+        return create(0, "操作成功", data, Map.of());
     }
+
+    public static <T> ApiResponse<T> ok(
+            T data, Map<String, Object> additionalMetadata) {
+        return create(0, "操作成功", data, additionalMetadata);
+    }
+
     public static <T> ApiResponse<T> fail(String code, String message) {
-        return new ApiResponse<>(code, message, null, UUID.randomUUID().toString().replace("-", ""));
+        return create(code, message, null, Map.of());
+    }
+
+    private static <T> ApiResponse<T> create(
+            Object code,
+            String message,
+            T data,
+            Map<String, Object> additionalMetadata) {
+
+        Map<String, Object> metadata = new LinkedHashMap<>();
+        metadata.put("timestamp",
+                LocalDateTime.now(ZONE).format(TIMESTAMP_FORMAT));
+
+        ServletRequestAttributes attributes =
+                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request =
+                attributes == null ? null : attributes.getRequest();
+        metadata.put("method", request == null ? "" : request.getMethod());
+        metadata.put("endpoint", request == null ? "" : request.getRequestURI());
+        if (additionalMetadata != null) {
+            metadata.putAll(additionalMetadata);
+        }
+
+        return new ApiResponse<>(
+                code,
+                message,
+                data,
+                Objects.requireNonNullElse(MDC.get("traceId"), ""),
+                Collections.unmodifiableMap(metadata));
     }
 }
 ```
 
-- `code`: 成功=0(Integer)，失败=String（业务错误码）
-- `requestId`: UUID 去横线，每次请求唯一
+- `code`: 成功=0(Integer)，失败=String（业务错误码，`UPPER_SNAKE_CASE` 如 `INVALID_PARAM`）
+- `requestId`: **= traceId**，由 Gateway 生成并通过 `X-Trace-Id` 头透传，BFF 层从 Filter 注入，**不自行生成 UUID**
+- `metadata`: 含 `timestamp`/`method`/`endpoint`，分页场景额外含 `count`/`totalPages`/`currentPage`/`pageSize`
 - 空列表返回 `[]`，禁止 `null`
+
+`TraceIdFilter` 必须先于 Controller 执行；工厂方法从 MDC 和当前请求上下文统一组装 `requestId`/`metadata`。分页响应把分页字段通过 `ok(data, additionalMetadata)` 传入，Controller 不得手写另一套响应结构。
 
 ## GlobalExceptionHandler.java
 
 - `@RestControllerAdvice`
-- MethodArgumentNotValidException → 400 + ApiResponse.error
+- MethodArgumentNotValidException → 400 + ApiResponse.fail
 - Exception → 500 + 记录完整堆栈 + 返回 "Internal server error"
 
 ## application.yml（基础配置）
@@ -244,17 +313,23 @@ spring:
   cloud.nacos.config.enabled: false
   cloud.nacos.discovery.enabled: false
   data.redis:
+    # dev 可给本地默认值；YMS test/prod 的连接地址统一来自 Nacos application-common.yaml
     host: ${REDIS_HOST:localhost}
     port: ${REDIS_PORT:6379}
     password: ${REDIS_PASSWORD:}
     database: 10
   datasource:
+    # dev 可给本地默认值；YMS test/prod 的 URL/schema 来自服务级 Nacos Data ID
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/{db_name}?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
 server:
   port: {port}
+
+# Redis Key 前缀：yms:{service}:{env}:，通过环境变量注入，避免多服务共享 Redis 时 Key 冲突
+# 规范见 rules/java/patterns.md → Redis 段
+# 示例：REDIS_KEY_PREFIX=yms:admin:staging
 
 logging:
   file.name: ${user.home}/logs/${spring.application.name}.log
@@ -275,6 +350,7 @@ spring:
       config:
         enabled: true
         server-addr: ${NACOS_ADDR}
+        namespace: ${NACOS_NAMESPACE}
         username: ${NACOS_USERNAME}
         password: ${NACOS_PASSWORD}
       discovery:
@@ -291,17 +367,18 @@ logging:
 
 - bootstrap.yml / bootstrap-test.yml / bootstrap-prod.yml **全部删除**
 - `optional:` 前缀确保 Nacos 不可用时服务仍可启动（降级使用 application.yml 中的默认值）
+- YMS 的 `deploy/.env.test` / `.env.prod` 只提供密码、token、端口和实例 IP；禁止写 `DB_HOST`/`DB_PORT`/`DB_SCHEMA`/`REDIS_HOST` 等重复连接地址。
 
 ## logback-spring.xml
 
 严格遵循 `rules/java/logging.md`：
 
-- 控制台: 彩色(dev) / 纯文本(prod)
-- 文件: SizeAndTimeBasedRollingPolicy, 10MB/30天
+- 控制台: 彩色(dev) / test、staging、prod 一行一个 JSON
+- 文件: SizeAndTimeBasedRollingPolicy, 10MB/30天；test、staging、prod 同样使用 JSON
 - AsyncAppender: queueSize=512, discardingThreshold=0
 - TraceId: `%X{traceId}`
 - Root: WARN(prod) / INFO(dev), 业务包: INFO
-- 格式: `%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId}] %-5level %logger{50}:%L - %msg%n`
+- JSON timestamp: `Asia/Shanghai` + `yyyy-MM-dd HH:mm:ss.SSS`；包含 `traceId`、`service`、`profile`
 
 ## TraceIdFilter.java
 
@@ -319,8 +396,9 @@ public class TraceIdFilter implements Filter {
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
         String traceId = httpRequest.getHeader(TRACE_ID_HEADER);
-        if (traceId == null || traceId.isEmpty()) {
-            traceId = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        if (traceId == null || !traceId.matches("[A-Za-z0-9._-]{1,64}")) {
+            // Gateway 未生成时（本地开发/直连），生成 32 位 traceId
+            traceId = UUID.randomUUID().toString().replace("-", "");
         }
         MDC.put(MDC_KEY, traceId);
         httpResponse.setHeader(TRACE_ID_HEADER, traceId);
@@ -332,6 +410,12 @@ public class TraceIdFilter implements Filter {
     }
 }
 ```
+
+> 生产实现使用 `OncePerRequestFilter`，并在 finally 中清理 MDC。Gateway 是 TraceId 权威来源；BFF 只接受白名单字符，非法或缺失才生成 32 位 hex，响应头回写最终值。
+
+## InternalAuthFilter.java
+
+YMS BFF 必须在鉴权和 Controller 前校验 Gateway 注入的 `X-Internal-Token`。登录、刷新、Swagger 或 actuator 等公开路径可以免 JWT，但只有真正可直连的公开路径才能免内部 token；“兼容旧前端但仍要求经过 Gateway”的接口不能跳过内部校验。
 
 ## RestClient 转发 traceId
 
@@ -466,7 +550,8 @@ public class AuditMetaObjectHandler implements MetaObjectHandler {
 
     /**
      * 从 SecurityContext 提取当前用户 ID。
-     * BFF 层覆盖此方法接入 JWT principal；微服务层（无鉴权）返回 null，由业务层手动 set。
+     * BFF 层覆盖此方法接入 JWT principal；gRPC 微服务不承载端侧登录态，
+     * 服务身份鉴权与此审计用户字段是两个独立概念。
      */
     protected Integer getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -518,10 +603,9 @@ Spring Boot 自动集成 Flyway，**启动时自动执行迁移**（无需手动
 spring:
   flyway:
     enabled: true
-    table: flyway_schema_history_{project}   # 每个项目独立 history 表
 ```
 
-> 自定义 `table` 名称避免多项目共享同一数据库时 Flyway history 冲突。
+> 服务拥有独立 schema 时使用默认 `flyway_schema_history`。多服务共用同一 schema 时必须配置按服务隔离的 history 表（例如 `flyway_schema_history_yms_business`）；Spring 上下文不能隔离同一张数据库元数据表。
 
 **启动顺序**：Spring Boot 启动时 Flyway **先于** `@Entity` 扫描和 `ApplicationRunner` 执行。数据初始化逻辑（如 Seed Data）应放在 `ApplicationRunner` 中，确保迁移已完成后再写入。
 
